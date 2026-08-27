@@ -1,0 +1,19 @@
+^XA
+^FWN
+^PON
+^CI28
+^PW479
+^LL319
+^LH0,0
+^FO0,10^BY2,2,44
+^BCN,44,N,N,N
+^FD024770^FS
+^FO352,8^A0N,34,29^FDB/.9.00^FS
+^FO1,56^A0N,28,15^FDKetoyi Keto Bizcocho Mini molde^FS
+^FO1,116^A0N,28,15^FDIngredientes:^FS
+^FO1,148^A0N,28,14^FDmantequilla, almendra,^FS
+^FO1,180^A0N,28,14^FDerythritol, queso crema, huevos.^FS
+^FO1,254^A0N,20,20^FD[024770]^FS
+^FO296,254^A0N,23,23^FDEXP: 22/08/2026^FS
+^PQ1
+^XZ

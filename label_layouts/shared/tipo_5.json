@@ -1,0 +1,15 @@
+{
+    "version": 1,
+    "etiqueta": "5",
+    "shared": true,
+    "unit": "twips",
+    "label": { "width": 3395, "height": 2263 },
+    "fields": {
+        "barcode": { "x": 1, "y": 70, "h": 350 },
+        "precio": { "x": 2500, "y": 60, "font": 12, "titulo": "B/." },
+        "itemid": { "x": 10, "y": 1800, "font": 7, "titulo": "" },
+        "descripcion": { "x": 10, "y": 400, "font": 10, "alcance": 33, "renglon": 200, "titulo": "" },
+        "ingredientes": { "x": 10, "y": 820, "font": 10, "titulo": "" },
+        "fecha": { "x": 2100, "y": 1800, "font": 8, "titulo": "EXP:" }
+    }
+}

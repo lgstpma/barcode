@@ -1,0 +1,12 @@
+@echo off
+echo ========================================
+echo Cola ZPL UNIFICADA - tu PC
+echo ========================================
+echo  API: http://winsrvr2012xamp/barcode4.0/
+echo  #1 #9 #13 #21 -^> GK420t_chica
+echo  #10 #14 -^> impresora del job (lbls)
+echo.
+echo  Ctrl+C para parar. NO instala tarea.
+echo.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0print_etiqueta21.ps1"
+pause

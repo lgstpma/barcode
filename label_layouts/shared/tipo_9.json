@@ -1,0 +1,35 @@
+{
+    "version": 1,
+    "etiqueta": "9",
+    "shared": true,
+    "unit": "twips_vb",
+    "fields": {
+        "barcode": {
+            "x": 150,
+            "y": 10,
+            "w": 3500,
+            "h": 1000
+        },
+        "itemid": {
+            "x": 1700,
+            "y": 30,
+            "font": 5,
+            "titulo": ""
+        },
+        "precio": {
+            "x": 1495,
+            "y": 137,
+            "font": 9,
+            "titulo": "B\/."
+        },
+        "descripcion": {
+            "x": 120,
+            "y": 325,
+            "font": 6,
+            "alcance": 24,
+            "renglon": 117,
+            "titulo": ""
+        }
+    },
+    "updated_at": "2026-08-21T22:50:29+02:00"
+}

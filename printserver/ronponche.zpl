@@ -1,0 +1,28 @@
+^XA
+ ^PW183     ; ancho = 0.90"
+^LL495     ; largo = 2.44"
+^FO180,45
+^BY1
+ 
+^CFA,30
+^FO150,15^FDRon Ponche 750 ml. ^FS
+^FO120,15^FD^FS
+ 
+^CFA,20
+^FO100,15^FDExp.:12/10/25^FS
+^FO80,15^FD#Lote:SE23 ^FS
+ 
+^CFA,30
+^CFA,40
+^FO80,250^FDB/.21.75^FS
+ 
+^FO30,80
+^BY3
+^BER,50,Y,N
+ ^FD7451111590790^FS
+^CFA,24
+
+ 
+^FO50,100^FD^FS
+^PQ3
+^XZ'

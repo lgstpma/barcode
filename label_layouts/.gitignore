@@ -1,0 +1,8 @@
+# Layouts locales (pruebas WYSIWYG). No afectan MySQL.
+# Impresion de produccion sigue usando lbls/lbl_lines / defaults PHP.
+# items/*.json = por producto (tipos 10/14)
+# shared/tipo_{1,5,9}.json = layout fijo SoftShop
+*
+!.gitignore
+!shared/
+!shared/**

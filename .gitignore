@@ -1,0 +1,13 @@
+*.log
+Thumbs.db
+Desktop.ini
+*.zpl.bak
+tools/php/
+print_service_21/config.local.ps1
+Label_Printserver/
+Label_Printserver_ver2/
+data_array.php
+printserver/*.bmp
+printserver/*.BMP
+printserver_designs/
+IMG/
