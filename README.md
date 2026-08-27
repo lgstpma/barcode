@@ -22,7 +22,13 @@ PHP portable va en `tools\php\` (ya incluido). MySQL sigue siendo el remoto conf
 - El original en `z:\barcode4.0` **no se borró** (copia independiente).
 - IP impresora formato #13: `print_ip_13.cfg`
 - Historial de trabajo Cursor: `docs/historial/`
+- Los `.bmp` de `printserver/` están en disco (necesarios para formato 10/14); no van todos en git por tamaño.
+- PHP portable está en `tools\php\` (no versionado); si falta, `tools\install_php.bat`.
 
 ## Reinstalar PHP portable
 
 Si falta `tools\php\php.exe`, ejecute `tools\install_php.bat`.
+
+## Abrir en Cursor
+
+`File → Open Folder → D:\github\BARCODE`
