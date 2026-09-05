@@ -258,53 +258,79 @@
 
 		$link = conec_mysql();
 
+		function sr_param($key, $default = '')
+		{
+			if (isset($_POST[$key])) {
+				$v = $_POST[$key];
+			} elseif (isset($_GET[$key])) {
+				$v = $_GET[$key];
+			} else {
+				return $default;
+			}
+			if (is_array($v)) {
+				$v = reset($v);
+			}
+			$s = (string)$v;
+			if (stripos($s, 'Warning') !== false || strpos($s, '<br') !== false || strpos($s, '<b>') !== false) {
+				return $default;
+			}
+			return $s;
+		}
+
+		function sr_int_param($key, $default = 0)
+		{
+			$s = trim((string)sr_param($key, ''));
+			if ($s === '' || !preg_match('/^-?\d+/', $s, $m)) {
+				return (int)$default;
+			}
+			return (int)$m[0];
+		}
+
+		function sr_cell($row, $key, $default = '')
+		{
+			if (!is_array($row) || !isset($row[$key]) || $row[$key] === null) {
+				return htmlspecialchars((string)$default, ENT_QUOTES, 'UTF-8');
+			}
+			return htmlspecialchars((string)$row[$key], ENT_QUOTES, 'UTF-8');
+		}
+
+		function sr_sql_str($link, $v)
+		{
+			return mysqli_real_escape_string($link, (string)$v);
+		}
+
 		$archivo = '';
 		$tipo_img = '';
 		$contenido = '';
 		$nombre = '';
 
-		$action_clone =  @$action_clone = $_GET['clone_botton'];
-
-		$action =  @$action = $_GET['bttn_actualizar'];
-
-		$instruc =  @$instruc = $_GET['instruc'];
-
-		$ingre =  @$ingre = $_GET['ingre'];
-$txt_codigo2 =  @$txt_codigo2 = $_GET['txt_codigo2'];
- 
-		$txt_precio =  @$txt_precio = $_GET['txt_precio'];
-		$dias_exp_post = isset($_GET['exp']) ? (int)$_GET['exp'] : null;
-		
-		$descrip =  @$descrip = $_GET['descrip'];
-
-		$obs =  @$obs = $_GET['obs'];
-
-		$code =  @$code = $_GET['code'];
-
-		$reg_sanitario =  @$reg_sanitario = $_GET['reg_sanitario'];
-
-		$etiqueta =  @$etiqueta = $_GET['etiqueta'];
-		$printer =  @$printer = $_GET['printer'];
-		$width =  @$width = $_GET['width'];
-		$height =  @$height = $_GET['height'];
-
-		$bar_x =  @$bar_x = $_GET['bar_x'];
-		$bar_y =  @$bar_y = $_GET['bar_y'];
-		$bar_width =  @$bar_width = $_GET['bar_width'];
-		$bar_height =  @$height = $_GET['bar_height'];
-
-
-		$bar_x2 =  @$bar_x2 = $_GET['bar_x2'];
-		$bar_y2 =  @$bar_y2 = $_GET['bar_y2'];
-		$bar_width2 =  @$bar_width2 = $_GET['bar_width2'];
-		$bar_height2 =  @$bar_height2 = $_GET['bar_height2'];
-
-
-
-		$design_x =  @$design_x = $_GET['design_x'];
-		$design_y =  @$design_y = $_GET['design_y'];
-		$design_width =  @$design_width = $_GET['design_width'];
-		$design_height =  @$design_height = $_GET['design_height'];
+		$action_clone = sr_param('clone_botton', '');
+		$action = sr_param('bttn_actualizar', '');
+		$instruc = sr_param('instruc', '');
+		$ingre = sr_param('ingre', '');
+		$txt_codigo2 = sr_param('txt_codigo2', '');
+		$txt_precio = sr_param('txt_precio', '0');
+		$dias_exp_post = sr_param('exp', '') === '' ? null : sr_int_param('exp', 0);
+		$descrip = sr_param('descrip', '');
+		$obs = sr_param('obs', '');
+		$code = sr_param('code', '');
+		$reg_sanitario = sr_param('reg_sanitario', '');
+		$etiqueta = sr_param('etiqueta', '');
+		$printer = sr_param('printer', '');
+		$width = sr_int_param('width', 0);
+		$height = sr_int_param('height', 0);
+		$bar_x = sr_int_param('bar_x', 0);
+		$bar_y = sr_int_param('bar_y', 0);
+		$bar_width = sr_int_param('bar_width', 0);
+		$bar_height = sr_int_param('bar_height', 0);
+		$bar_x2 = sr_int_param('bar_x2', 0);
+		$bar_y2 = sr_int_param('bar_y2', 0);
+		$bar_width2 = sr_int_param('bar_width2', 0);
+		$bar_height2 = sr_int_param('bar_height2', 0);
+		$design_x = sr_int_param('design_x', 0);
+		$design_y = sr_int_param('design_y', 0);
+		$design_width = sr_int_param('design_width', 0);
+		$design_height = sr_int_param('design_height', 0);
 
 		$temp_id =  $code;
 		$temp_codigo2 = isset($_GET['txt_codigo2']) ? trim((string)$_GET['txt_codigo2']) : '';
@@ -392,85 +418,88 @@ $txt_codigo2 =  @$txt_codigo2 = $_GET['txt_codigo2'];
 
 			if ($action == 'Actualizar') {
 
-				$descripcion_font = @$descripcion_font = $_GET['descripcion_font'];
-				$descripcion_bold = @$descripcion_bold = $_GET['descripcion_bold'];
-				$descripcion_x = @$descripcion_x = $_GET['descripcion_x'];
-				$descripcion_y = @$descripcion_y = $_GET['descripcion_y'];
-				$descripcion_alcance = @$descripcion_alcance = $_GET['descripcion_alcance'];
-				$descripcion_renglon = @$descripcion_renglon = $_GET['descripcion_renglon'];
-				$descripcion_titulo = @$descripcion_titulo = $_GET['descripcion_titulo'];
+				$descripcion_font = sr_param('descripcion_font', '');
+				$descripcion_bold = sr_param('descripcion_bold', '');
+				$descripcion_x = sr_param('descripcion_x', '0');
+				$descripcion_y = sr_param('descripcion_y', '0');
+				$descripcion_alcance = sr_param('descripcion_alcance', '0');
+				$descripcion_renglon = sr_param('descripcion_renglon', '0');
+				$descripcion_titulo = sr_param('descripcion_titulo', '');
 
+				$itemid_font = sr_param('itemid_font', '');
+				$itemid_bold = sr_param('itemid_bold', '');
+				$itemid_x = sr_param('itemid_x', '0');
+				$itemid_y = sr_param('itemid_y', '0');
+				$itemid_alcance = sr_param('itemid_alcance', '0');
+				$itemid_renglon = sr_param('itemid_renglon', '0');
+				$itemid_titulo = sr_param('itemid_titulo', '');
 
-				$itemid_font = @$itemid_font = $_GET['itemid_font'];
-				$itemid_bold = @$itemid_bold = $_GET['itemid_bold'];
-				$itemid_x = @$itemid_x = $_GET['itemid_x'];
-				$itemid_y = @$itemid_y = $_GET['itemid_y'];
-				$itemid_alcance = @$itemid_alcance = $_GET['itemid_alcance'];
-				$itemid_renglon = @$itemid_renglon = $_GET['itemid_renglon'];
-				$itemid_titulo = @$itemid_titulo = $_GET['itemid_titulo'];
+				$precio_font = sr_param('precio_font', '');
+				$precio_bold = sr_param('precio_bold', '');
+				$precio_x = sr_param('precio_x', '0');
+				$precio_y = sr_param('precio_y', '0');
+				$precio_alcance = sr_param('precio_alcance', '0');
+				$precio_renglon = sr_param('precio_renglon', '0');
+				$precio_titulo = sr_param('precio_titulo', '');
 
+				$fecha_font = sr_param('fecha_font', '');
+				$fecha_bold = sr_param('fecha_bold', '');
+				$fecha_x = sr_param('fecha_x', '0');
+				$fecha_y = sr_param('fecha_y', '0');
+				$fecha_alcance = sr_param('fecha_alcance', '0');
+				$fecha_renglon = sr_param('fecha_renglon', '0');
+				$fecha_titulo = sr_param('fecha_titulo', '');
 
-				$precio_font = @$precio_font = $_GET['precio_font'];
-				$precio_bold = @$precio_bold = $_GET['precio_bold'];
-				$precio_x = @$precio_x = $_GET['precio_x'];
-				$precio_y = @$precio_y = $_GET['precio_y'];
-				$precio_alcance = @$precio_alcance = $_GET['precio_alcance'];
-				$precio_renglon = @$precio_renglon = $_GET['precio_renglon'];
-				$precio_titulo = @$precio_titulo = $_GET['precio_titulo'];
+				$ingredientes_font = sr_param('ingredientes_font', '');
+				$ingredientes_bold = sr_param('ingredientes_bold', '');
+				$ingredientes_x = sr_param('ingredientes_x', '0');
+				$ingredientes_y = sr_param('ingredientes_y', '0');
+				$ingredientes_alcance = sr_param('ingredientes_alcance', '0');
+				$ingredientes_renglon = sr_param('ingredientes_renglon', '0');
+				$ingredientes_titulo = sr_param('ingredientes_titulo', '');
 
-				$fecha_font = @$fecha_font = $_GET['fecha_font'];
-				$fecha_bold = @$fecha_bold = $_GET['fecha_bold'];
-				$fecha_x = @$fecha_x = $_GET['fecha_x'];
-				$fecha_y = @$fecha_y = $_GET['fecha_y'];
-				$fecha_alcance = @$fecha_alcance = $_GET['fecha_alcance'];
-				$fecha_renglon = @$fecha_renglon = $_GET['fecha_renglon'];
-				$fecha_titulo = @$fecha_titulo = $_GET['fecha_titulo'];
+				$especif_font = sr_param('especif_font', '');
+				$especif_bold = sr_param('especif_bold', '');
+				$especif_x = sr_param('especif_x', '0');
+				$especif_y = sr_param('especif_y', '0');
+				$especif_alcance = sr_param('especif_alcance', '0');
+				$especif_renglon = sr_param('especif_renglon', '0');
+				$especif_titulo = sr_param('especif_titulo', '');
 
-				$ingredientes_font =  @$ingredientes_font = $_GET['ingredientes_font'];
-				$ingredientes_bold =  @$ingredientes_bold = $_GET['ingredientes_bold'];
-				$ingredientes_x =  @$ingredientes_x = $_GET['ingredientes_x'];
-				$ingredientes_y =  @$ingredientes_y = $_GET['ingredientes_y'];
-				$ingredientes_alcance =  @$ingredientes_alcance = $_GET['ingredientes_alcance'];
-				$ingredientes_renglon =  @$ingredientes_renglon = $_GET['ingredientes_renglon'];
-				$ingredientes_titulo =  @$ingredientes_titulo = $_GET['ingredientes_titulo'];
+				$reg_sanitario_font = sr_param('reg_sanitario_font', '');
+				$reg_sanitario_bold = sr_param('reg_sanitario_bold', '');
+				$reg_sanitario_x = sr_param('reg_sanitario_x', '0');
+				$reg_sanitario_y = sr_param('reg_sanitario_y', '0');
+				$reg_sanitario_alcance = sr_param('reg_sanitario_alcance', '0');
+				$reg_sanitario_renglon = sr_param('reg_sanitario_renglon', '0');
+				$reg_sanitario_titulo = sr_param('reg_sanitario_titulo', '');
 
-				$especif_font =  @$especif_font = $_GET['especif_font'];
-				$especif_bold =  @$especif_bold = $_GET['especif_bold'];
-				$especif_x =  @$especif_x = $_GET['especif_x'];
-				$especif_y =  @$specif_y = $_GET['especif_y'];
-				$especif_alcance =  @$especif_alcance = $_GET['especif_alcance'];
-				$especif_renglon =  @$especif_renglon = $_GET['especif_renglon'];
-				$especif_titulo =  @$especif_titulo = $_GET['especif_titulo'];
+				$obs_font = sr_param('obs_font', '');
+				$obs_bold = sr_param('obs_bold', '');
+				$obs_x = sr_param('obs_x', '0');
+				$obs_y = sr_param('obs_y', '0');
+				$obs_alcance = sr_param('obs_alcance', '0');
+				$obs_renglon = sr_param('obs_renglon', '0');
+				$obs_titulo = sr_param('obs_titulo', '');
 
-				$reg_sanitario_font =  @$reg_sanitario_font = $_GET['reg_sanitario_font'];
-				$reg_sanitario_bold =  @$reg_sanitario_bold = $_GET['reg_sanitario_bold'];
-				$reg_sanitario_x =  @$reg_sanitario_x = $_GET['reg_sanitario_x'];
-				$reg_sanitario_y =  @$reg_sanitario_y = $_GET['reg_sanitario_y'];
-				$reg_sanitario_alcance =  @$reg_sanitario_alcance = $_GET['reg_sanitario_alcance'];
-				$reg_sanitario_renglon =  @$reg_sanitario_renglon = $_GET['reg_sanitario_renglon'];
-				$reg_sanitario_titulo =  @$reg_sanitario_titulo = $_GET['reg_sanitario_titulo'];
-
-				$obs_font =  @$obs_font = $_GET['obs_font'];
-				$obs_bold =  @$obs_bold = $_GET['obs_bold'];
-				$obs_x =  @$obs_x = $_GET['obs_x'];
-				$obs_y =  @$obs_y = $_GET['obs_y'];
-				$obs_alcance =  @$obs_alcance = $_GET['obs_alcance'];
-				$obs_renglon =  @$obs_renglon = $_GET['obs_renglon'];
-				$obs_titulo =  @$obs_titulo = $_GET['obs_titulo'];
-
-
-
-				$reg_sanitario =  @$reg_sanitario = $_GET['reg_sanitario'];
-				$etiqueta =  @$etiqueta = $_GET['etiqueta'];
-				$printer =  @$printer = $_GET['printer'];
-				$orientacion =  @$orientacion = $_GET['orientacion'];
-
-				$width =  @$width = $_GET['width'];
-				$height =  @$height = $_GET['height'];
-
-
-
-
+				$reg_sanitario = sr_param('reg_sanitario', '');
+				$etiqueta = sr_param('etiqueta', '');
+				$printer = sr_param('printer', '');
+				$orientacion = sr_param('orientacion', '');
+				$width = sr_int_param('width', 0);
+				$height = sr_int_param('height', 0);
+				$bar_x = sr_int_param('bar_x', 0);
+				$bar_y = sr_int_param('bar_y', 0);
+				$bar_width = sr_int_param('bar_width', 0);
+				$bar_height = sr_int_param('bar_height', 0);
+				$bar_x2 = sr_int_param('bar_x2', 0);
+				$bar_y2 = sr_int_param('bar_y2', 0);
+				$bar_width2 = sr_int_param('bar_width2', 0);
+				$bar_height2 = sr_int_param('bar_height2', 0);
+				$design_x = sr_int_param('design_x', 0);
+				$design_y = sr_int_param('design_y', 0);
+				$design_width = sr_int_param('design_width', 0);
+				$design_height = sr_int_param('design_height', 0);
 
 				$contenido = '';
 				$archivo = '';
@@ -493,215 +522,84 @@ $txt_codigo2 =  @$txt_codigo2 = $_GET['txt_codigo2'];
 					}
 				}
 
-				$img_set = $hay_imagen ? "`img_prd`='" . $contenido . "', " : '';
+				$codeEsc = sr_sql_str($link, $code);
+				include_once __DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php';
 
-				$query_update = "
-				UPDATE 
-				`mypastelito`.`items` 
-				SET 
-				`especif`='" . $instruc . "',
-				`ingredientes`='" . $ingre . "',
-				`descrip3`='" . $descrip . "',
-				`etiqueta`='" . $etiqueta . "',
-				`reg_sanitario`='" . $reg_sanitario . "',
-				`obs`='" . $obs . "' ,
-				" . $img_set . "
-				`precio2`=  ". $txt_precio." ,
-				`codigo2`=  '". $txt_codigo2."',
-				`exp`=  ".(int)$dias_exp_post."
-				WHERE
-				`codigo`='" . $code . "'";
-
-				$result_item = mysqli_query($link, $query_update);
-
-
-				$query_update_lbl = "
-			UPDATE 
-			`mypastelito`.`lbls` 
-			SET 
-			`width`= " . $width . ",
-			`height`=" . $height . ",
-			`printer`= '" . $printer . "',
-			`orientacion`= '" . $orientacion . "',
-			`bar_x`= " . $bar_x . ",
-			`bar_y`= " . $bar_y . ",
-			`bar_width`= " . $bar_width . ",	
-			`bar_height`= " . $bar_height . ",
-			`FM_bar_x`= " . $bar_x2 . ",
-			`FM_bar_y`= " . $bar_y2 . ",
-			`FM_bar_width`= " . $bar_width2 . ",	
-			`FM_bar_height`= " . $bar_height2 . ",
-			`design_x`= " . $design_x . ",
-			`design_y`= " . $design_y . ",
-			`design_width`= " . $design_width . ",	
-			`design_height`= " . $design_height . " 	 	 						 
-			WHERE
-			`id`='" . $code . "'";
-
-				$result_item_update_lbl = mysqli_query($link, $query_update_lbl);
-
-
-
-
-
-				$query_lbl_config_update = "
-			UPDATE 
-			`mypastelito`.`lbl_lines`
-			SET
-			`font`='$descripcion_font',
-			`bold`='$descripcion_bold', 
-			`x`='$descripcion_x', 
-			`y`='$descripcion_y',
-			`alcance`='$descripcion_alcance', 
-			`renglon`='$descripcion_renglon', 
-			`titulo`='$descripcion_titulo' 
-			WHERE `lblid` = '" . $code . "'
-			AND
-			descrip = 'descripcion'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-
-				$query_lbl_config_update = "
-			UPDATE 
-			`mypastelito`.`lbl_lines`
-			SET
-			`font`='$itemid_font',
-			`bold`='$itemid_bold', 
-			`x`='$itemid_x', 
-			`y`='$itemid_y',
-			`alcance`='$itemid_alcance', 
-			`renglon`='$itemid_renglon', 
-			`titulo`='$itemid_titulo' 
-			
-			WHERE `lblid`='" . $code . "'
-			AND
-			descrip = 'itemid'
-			
-			";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-				$query_lbl_config_update = "
-			UPDATE 
-			`mypastelito`.`lbl_lines`
-			SET
-			`font`='$precio_font',
-			`bold`='$precio_bold', 
-			`x`='$precio_x', 
-			`y`='$precio_y',
-			`alcance`='$precio_alcance', 
-			`renglon`='$precio_renglon', 
-			`titulo`='$precio_titulo' 
-			
-			WHERE `lblid`='" . $code . "'
-			AND
-			descrip = 'precio'
-			
-			";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-
-
-				$query_lbl_config_update = "
-		  UPDATE 
-		  `mypastelito`.`lbl_lines`
-		  SET
-		  `font`='$fecha_font',
-		  `bold`='$fecha_bold', 
-		  `x`='$fecha_x', 
-		  `y`='$fecha_y',
-		  `alcance`='$fecha_alcance', 
-		  `renglon`='$fecha_renglon', 
-		  `titulo`='$fecha_titulo' 
-		  
-		  WHERE `lblid`='" . $code . "'
-		  AND
-		  descrip = 'fecha'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-
-				$query_lbl_config_update = "
-		  UPDATE 
-		  `mypastelito`.`lbl_lines`
-		  SET
-		  `font`='$ingredientes_font',
-		  `bold`='$ingredientes_bold', 
-		  `x`='$ingredientes_x', 
-		  `y`='$ingredientes_y',
-		  `alcance`='$ingredientes_alcance', 
-		  `renglon`='$ingredientes_renglon', 
-		  `titulo`='$ingredientes_titulo' 
-		  
-		  WHERE `lblid`='" . $code . "'
-		  AND
-		  descrip = 'ingredientes'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-
-
-				$query_lbl_config_update = "
-		  UPDATE 
-		  `mypastelito`.`lbl_lines`
-		  SET
-		  `font`='$especif_font',
-		  `bold`='$especif_bold', 
-		  `x`='$especif_x', 
-		  `y`='$especif_y',
-		  `alcance`='$especif_alcance', 
-		  `renglon`='$especif_renglon', 
-		  `titulo`='$especif_titulo' 
-		  
-		  WHERE `lblid`='" . $code . "'
-		  AND
-		  descrip = 'especif'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-
-				$query_lbl_config_update = "
-		  UPDATE 
-		  `mypastelito`.`lbl_lines`
-		  SET
-		  `font`='$reg_sanitario_font',
-		  `bold`='$reg_sanitario_bold', 
-		  `x`='$reg_sanitario_x', 
-		  `y`='$reg_sanitario_y',
-		  `alcance`='$reg_sanitario_alcance', 
-		  `renglon`='$reg_sanitario_renglon', 
-		  `titulo`='$reg_sanitario_titulo' 
-		  WHERE `lblid`='" . $code . "'
-		  AND
-		  descrip = 'reg_sanitario'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
-
-				$query_lbl_config_update = "
-		  UPDATE 
-		  `mypastelito`.`lbl_lines`
-		  SET
-		  `font`='$obs_font',
-		  `bold`='$obs_bold', 
-		  `x`='$obs_x', 
-		  `y`='$obs_y',
-		  `alcance`='$obs_alcance', 
-		  `renglon`='$obs_renglon', 
-		  `titulo`='$obs_titulo' 
-		  WHERE `lblid`='" . $code . "'
-		  AND
-		  descrip = 'obs'";
-
-				$result_lbl_config_update = mysqli_query($link, $query_lbl_config_update);
+				$itemJson = array(
+					'codigo' => $code,
+					'codigo2' => $txt_codigo2,
+					'descrip3' => $descrip,
+					'ingredientes' => $ingre,
+					'especif' => $instruc,
+					'obs' => $obs,
+					'reg_sanitario' => $reg_sanitario,
+					'precio2' => is_numeric($txt_precio) ? $txt_precio : 0,
+					'etiqueta' => $etiqueta,
+					'exp' => ($dias_exp_post === null) ? 0 : (int)$dias_exp_post,
+				);
+				$lblsJson = array(
+					'printer' => $printer,
+					'width' => (int)$width,
+					'height' => (int)$height,
+					'orientacion' => $orientacion,
+					'bar_x' => (int)$bar_x,
+					'bar_y' => (int)$bar_y,
+					'bar_width' => (int)$bar_width,
+					'bar_height' => (int)$bar_height,
+					'design_x' => (int)$design_x,
+					'design_y' => (int)$design_y,
+					'design_width' => (int)$design_width,
+					'design_height' => (int)$design_height,
+					'FM_bar_x' => (int)$bar_x2,
+					'FM_bar_y' => (int)$bar_y2,
+					'FM_bar_width' => (int)$bar_width2,
+					'FM_bar_height' => (int)$bar_height2,
+				);
+				$mkField = function ($font, $bold, $x, $y, $alcance, $renglon, $titulo) {
+					return array(
+						'font' => $font,
+						'bold' => ($bold === 'true' || $bold === '1' || $bold === 1 || $bold === true),
+						'x' => (int)$x,
+						'y' => (int)$y,
+						'alcance' => (int)$alcance,
+						'renglon' => (int)$renglon,
+						'titulo' => (string)$titulo,
+					);
+				};
+				$fieldsJson = array(
+					'descripcion' => $mkField($descripcion_font, $descripcion_bold, $descripcion_x, $descripcion_y, $descripcion_alcance, $descripcion_renglon, $descripcion_titulo),
+					'itemid' => $mkField($itemid_font, $itemid_bold, $itemid_x, $itemid_y, $itemid_alcance, $itemid_renglon, $itemid_titulo),
+					'precio' => $mkField($precio_font, $precio_bold, $precio_x, $precio_y, $precio_alcance, $precio_renglon, $precio_titulo),
+					'fecha' => $mkField($fecha_font, $fecha_bold, $fecha_x, $fecha_y, $fecha_alcance, $fecha_renglon, $fecha_titulo),
+					'ingredientes' => $mkField($ingredientes_font, $ingredientes_bold, $ingredientes_x, $ingredientes_y, $ingredientes_alcance, $ingredientes_renglon, $ingredientes_titulo),
+					'especif' => $mkField($especif_font, $especif_bold, $especif_x, $especif_y, $especif_alcance, $especif_renglon, $especif_titulo),
+					'reg_sanitario' => $mkField($reg_sanitario_font, $reg_sanitario_bold, $reg_sanitario_x, $reg_sanitario_y, $reg_sanitario_alcance, $reg_sanitario_renglon, $reg_sanitario_titulo),
+					'obs' => $mkField($obs_font, $obs_bold, $obs_x, $obs_y, $obs_alcance, $obs_renglon, $obs_titulo),
+				);
+				$okJson = label_layout_save_product($code, $itemJson, $lblsJson, $fieldsJson, $etiqueta);
+				$GLOBALS['barcode_json_save_msg'] = $okJson
+					? 'Guardado en JSON local (label_layouts/items/). MySQL de produccion no se modifico.'
+					: 'Error: no se pudo escribir el JSON local.';
+				if ($hay_imagen) {
+					$GLOBALS['barcode_json_save_msg'] .= ' La imagen img_prd no se guarda en esta version (use Imagen diseno / printserver).';
+				}
 			}
 
 
 
 
 			if ($action_clone == 'Clonar') {
-
+				include_once __DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php';
+				$cloneto = sr_param('code_clone', '');
+				$src = label_layout_read_json_file(label_layout_item_path($code));
+				if (is_array($src) && $cloneto !== '') {
+					label_layout_save_item($cloneto, $src);
+					$GLOBALS['barcode_json_save_msg'] = 'Clonado a JSON local ' . label_layout_pad_codigo($cloneto) . '. MySQL no se toco.';
+				} else {
+					$GLOBALS['barcode_json_save_msg'] = 'No hay JSON de origen para clonar. Pulse Actualizar en el item primero.';
+				}
+			}
+			if (false && $action_clone == 'Clonar') {
 
 				$cloneto = @$code_clone = $_GET['code_clone'];
 
@@ -1053,8 +951,12 @@ codigo2 = '" . mysqli_real_escape_string($link, (string)$temp_codigo2) . "'";
 		}
 
 		$result_item = mysqli_query($link, $query_id_items);
-		$row = mysqli_fetch_array($result_item);
-
+		$row = $result_item ? mysqli_fetch_array($result_item) : null;
+		if (!is_array($row)) {
+			echo '<p style="color:#900">No se encontro el item <strong>' . htmlspecialchars((string)$temp_id, ENT_QUOTES, 'UTF-8') . '</strong>.</p>';
+			echo '<p><a href="index.php">Volver</a></p>';
+			exit;
+		}
 
 		$query_lbl_items = "
 SELECT 
@@ -1062,12 +964,23 @@ SELECT
 FROM
 lbls
 WHERE 
-id = '" . $temp_id . "'";
+id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 
 
 		$result_lbl_items = mysqli_query($link, $query_lbl_items);
 
-		$row_lbl_items = mysqli_fetch_array($result_lbl_items);
+		$row_lbl_items = ($result_lbl_items ? mysqli_fetch_array($result_lbl_items) : null);
+		if (!is_array($row_lbl_items)) {
+			$row_lbl_items = array();
+		}
+
+		include_once __DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php';
+		$__ov = label_overlay_from_json($link, isset($row['codigo']) ? $row['codigo'] : $temp_id, $row, $row_lbl_items);
+		$row = $__ov['row'];
+		$row_lbl_items = $__ov['lbls'];
+		if (!is_array($row_lbl_items)) {
+			$row_lbl_items = array();
+		}
 
 		$dias_exp = isset($row['exp']) && $row['exp'] !== '' && $row['exp'] !== null ? (int)$row['exp'] : 0;
 		$elab_today = date('Y-m-d');
@@ -1079,6 +992,12 @@ id = '" . $temp_id . "'";
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 			<body bgcolor="#FFFFFF" onload="check_elab();">
+				<?php if (!empty($GLOBALS['barcode_json_save_msg'])) { ?>
+				<p style="margin:8px;padding:8px;border:1px solid #2b6cb0;background:#eef6ff;color:#123;">
+					<?php echo htmlspecialchars($GLOBALS['barcode_json_save_msg'], ENT_QUOTES, 'UTF-8'); ?>
+				</p>
+				<?php } ?>
+				<p style="margin:8px;font-size:12px;color:#666;">Copia local: los cambios se guardan en JSON (<code>label_layouts/items/</code>). No se escribe MySQL de produccion.</p>
 				<SCRIPT language=JavaScript>
 					<!-- 
 					function win() {
@@ -1179,12 +1098,12 @@ id = '" . $temp_id . "'";
               		
                     
                     <table width="1000" border="0">  
-				<form>
+				<form method="get" action="search_results.php">
 			 
               		
                     
                     <table width="1000" border="0">  
-				<form>
+				<form method="get" action="search_results.php">
 			
 <tr>			<td align="left"><strong>Cod. Proveedor/GTIN13:</strong></td><td>
                         <strong><input 	type="text"  name="txt_codigo2" id="txt_codigo2" value="<?php echo $row['codigo2'] ?>" />
@@ -1235,35 +1154,35 @@ id = '" . $temp_id . "'";
 								</strong></td>
 							<td width="48" bgcolor="#CCCCCC">X:</td>
 							<td width="35" bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_x" id="bar_x" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['bar_x']); ?>" size="5" align="left" />
+									<input type="text" name="bar_x" id="bar_x" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'bar_x', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td width="47" bgcolor="#CCCCCC">X: </td>
 							<td width="31" bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_x2" id="bar_x2" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['FM_bar_x']); ?>" size="5" align="left" />
+									<input type="text" name="bar_x2" id="bar_x2" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'FM_bar_x', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td width="59" bgcolor="#CCCCCC">X: </td>
 							<td width="60" bgcolor="#CCCCCC"><strong>
-									<input type="text" name="design_x" id="design_x" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['design_x']); ?>" size="5" align="left" />
+									<input type="text" name="design_x" id="design_x" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'design_x', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td>&nbsp;</td>
 						</tr>
 						<tr>
 							<td height="27">Impresora:</td>
 							<td><strong>
-									<input type="text" name="printer" id="printer" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['printer']); ?>" size="15" align="left" />
+									<input type="text" name="printer" id="printer" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'printer', ''); ?>" size="15" align="left" />
 								</strong></td>
 
 							<td bgcolor="#CCCCCC">Y:</td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_y" id="bar_y" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['bar_y']); ?>" size="5" align="left" />
+									<input type="text" name="bar_y" id="bar_y" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'bar_y', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Y: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_y2" id="bar_y2" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['FM_bar_y']); ?>" size="5" align="left" />
+									<input type="text" name="bar_y2" id="bar_y2" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'FM_bar_y', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Y: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="design_y" id="design_y" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['design_y']); ?>" size="5" align="left" />
+									<input type="text" name="design_y" id="design_y" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'design_y', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td><strong>
 									<label for="checkbox"></label>
@@ -1272,38 +1191,38 @@ id = '" . $temp_id . "'";
 						<tr>
 							<td height="30">Ancho:</td>
 							<td><strong>
-									<input type="text" name="width" id="width" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['width']); ?>" size="5" align="left" />
+									<input type="text" name="width" id="width" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'width', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Ancho:</td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_width" id="bar_width" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['bar_width']); ?>" size="5" align="left" />
+									<input type="text" name="bar_width" id="bar_width" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'bar_width', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Ancho: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_width2" id="bar_width2" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['FM_bar_width']); ?>" size="5" align="left" />
+									<input type="text" name="bar_width2" id="bar_width2" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'FM_bar_width', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Ancho: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="design_width" id="design_width" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['design_width']); ?>" size="5" align="left" />
+									<input type="text" name="design_width" id="design_width" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'design_width', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td>&nbsp;</td>
 						</tr>
 						<tr>
 							<td height="25">Alto:</td>
 							<td><strong>
-									<input type="text" name="height" id="height" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['height']); ?>" size="5" align="left" />
+									<input type="text" name="height" id="height" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'height', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Alto: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_height" id="bar_height" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['bar_height']); ?>" size="5" align="left" />
+									<input type="text" name="bar_height" id="bar_height" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'bar_height', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Alto: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="bar_height2" id="bar_height2" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['FM_bar_height']); ?>" size="5" align="left" />
+									<input type="text" name="bar_height2" id="bar_height2" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'FM_bar_height', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td bgcolor="#CCCCCC">Alto: </td>
 							<td bgcolor="#CCCCCC"><strong>
-									<input type="text" name="design_height" id="design_height" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['design_height']); ?>" size="5" align="left" />
+									<input type="text" name="design_height" id="design_height" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'design_height', '0'); ?>" size="5" align="left" />
 								</strong></td>
 							<td>&nbsp;</td>
 
@@ -1311,7 +1230,7 @@ id = '" . $temp_id . "'";
 						<tr>
 							<td height="27">Orientación:</td>
 							<td><strong>
-									<input type="text" name="orientacion" id="orientacion" min="0" autocomplete="off" value="<?php echo ($row_lbl_items['orientacion']); ?>" size="5" align="left" />
+									<input type="text" name="orientacion" id="orientacion" min="0" autocomplete="off" value="<?php echo sr_cell($row_lbl_items, 'orientacion', ''); ?>" size="5" align="left" />
 								</strong></td>
 						</tr>
 
@@ -1772,6 +1691,24 @@ lblid = '" . $temp_id . "'";
 									layout_read_inputs_to_state();
 									preview_zpl_label();
 								}
+								function layout_gv(id) {
+									var el = document.getElementById(id);
+									return el ? el.value : '';
+								}
+								function layout_collect_item() {
+									return {
+										codigo: layout_codigo(),
+										codigo2: layout_gv('txt_codigo2'),
+										precio2: layout_gv('txt_precio'),
+										descrip3: layout_gv('descrip'),
+										ingredientes: layout_gv('ingre'),
+										especif: layout_gv('instruc'),
+										obs: layout_gv('obs'),
+										reg_sanitario: layout_gv('reg_sanitario'),
+										etiqueta: layout_gv('etiqueta'),
+										exp: layout_gv('exp')
+									};
+								}
 								function layout_save_json(cb) {
 									if (!LAYOUT_STATE.layout) {
 										layout_load_json(function () { layout_save_json(cb); });
@@ -1779,6 +1716,9 @@ lblid = '" . $temp_id . "'";
 									}
 									layout_read_inputs_to_state();
 									LAYOUT_STATE.layout.codigo = layout_codigo();
+									LAYOUT_STATE.layout.item = layout_collect_item();
+									var et = document.getElementById('etiqueta');
+									if (et && et.value) LAYOUT_STATE.layout.etiqueta = et.value;
 									layout_set_status('Guardando JSON...');
 									var xhr = new XMLHttpRequest();
 									xhr.open('POST', 'api_label_layout.php?action=save', true);
