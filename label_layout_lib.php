@@ -1,7 +1,7 @@
 <?php
 /**
- * Layouts de etiqueta en JSON local (pruebas / WYSIWYG).
- * No escribe MySQL: la impresion de produccion sigue leyendo lbls/lbl_lines.
+ * Layouts + datos de producto en JSON local.
+ * Esta copia NO escribe MySQL (no toca produccion). Solo lee items/lbls para sembrar.
  *
  * Estructura:
  *   label_layouts/items/{codigo}.json   → por producto (tipicamente tipo 10/14)
@@ -188,16 +188,154 @@ function label_layout_seed_from_mysql($link, $codigo)
 			$lblOut[$k] = $lbls[$k];
 		}
 	}
+	$item = array();
+	if ($link) {
+		$codeEsc = mysqli_real_escape_string($link, $code);
+		$res = mysqli_query($link, "SELECT * FROM items WHERE codigo='$codeEsc' LIMIT 1");
+		if ($res && ($row = mysqli_fetch_assoc($res))) {
+			$item = label_item_from_row($row);
+			mysqli_free_result($res);
+		}
+	}
 	return array(
 		'version' => 1,
 		'codigo' => $code,
-		'etiqueta' => '',
+		'etiqueta' => isset($item['etiqueta']) ? (string)$item['etiqueta'] : '',
 		'shared' => false,
 		'unit' => 'twips',
 		'lbls' => $lblOut,
 		'fields' => $fields,
+		'item' => $item,
 		'from_mysql' => true,
 	);
+}
+
+function label_item_keys()
+{
+	return array(
+		'codigo', 'codigo2', 'descrip', 'descrip2', 'descrip3',
+		'ingredientes', 'especif', 'obs', 'reg_sanitario',
+		'precio1', 'precio2', 'etiqueta', 'exp',
+	);
+}
+
+function label_item_from_row($row)
+{
+	$out = array();
+	if (!is_array($row)) {
+		return $out;
+	}
+	foreach (label_item_keys() as $k) {
+		if (array_key_exists($k, $row)) {
+			$out[$k] = $row[$k];
+		}
+	}
+	return $out;
+}
+
+/** Superpone datos JSON sobre una fila de items (MySQL queda intacto). */
+function label_item_apply_to_row($row, $layout)
+{
+	if (!is_array($row)) {
+		$row = array();
+	}
+	if (!is_array($layout)) {
+		return $row;
+	}
+	if (!empty($layout['item']) && is_array($layout['item'])) {
+		foreach ($layout['item'] as $k => $v) {
+			$row[$k] = $v;
+		}
+	}
+	if (isset($layout['etiqueta']) && (string)$layout['etiqueta'] !== '') {
+		$row['etiqueta'] = $layout['etiqueta'];
+	}
+	return $row;
+}
+
+function label_item_apply_to_lbls($lbls, $layout)
+{
+	if (!is_array($lbls)) {
+		$lbls = array();
+	}
+	if (is_array($layout) && !empty($layout['lbls']) && is_array($layout['lbls'])) {
+		foreach ($layout['lbls'] as $k => $v) {
+			$lbls[$k] = $v;
+		}
+	}
+	return $lbls;
+}
+
+/** Carga JSON del producto y lo aplica a row + lbls. */
+function label_overlay_from_json($link, $codigo, $row, $lbls = array())
+{
+	include_once __DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php';
+	$layout = label_layout_load_item($link, $codigo, true);
+	if (!$layout) {
+		return array('row' => $row, 'lbls' => $lbls, 'layout' => null);
+	}
+	return array(
+		'row' => label_item_apply_to_row($row, $layout),
+		'lbls' => label_item_apply_to_lbls($lbls, $layout),
+		'layout' => $layout,
+	);
+}
+
+/**
+ * Guarda producto + geometria + campos de texto en JSON por codigo.
+ * No toca MySQL.
+ */
+function label_layout_save_product($codigo, $item, $lbls = array(), $fields = array(), $etiqueta = '')
+{
+	$code = label_layout_pad_codigo($codigo);
+	$existing = label_layout_read_json_file(label_layout_item_path($code));
+	if (!is_array($existing)) {
+		$existing = array(
+			'version' => 1,
+			'codigo' => $code,
+			'shared' => false,
+			'unit' => 'twips',
+			'fields' => array(),
+			'lbls' => array(),
+			'item' => array(),
+		);
+	}
+	if (!isset($existing['item']) || !is_array($existing['item'])) {
+		$existing['item'] = array();
+	}
+	if (is_array($item)) {
+		foreach ($item as $k => $v) {
+			$existing['item'][$k] = $v;
+		}
+	}
+	$existing['item']['codigo'] = $code;
+	if ($etiqueta !== '') {
+		$existing['etiqueta'] = (string)$etiqueta;
+		$existing['item']['etiqueta'] = (string)$etiqueta;
+	} elseif (isset($existing['item']['etiqueta'])) {
+		$existing['etiqueta'] = (string)$existing['item']['etiqueta'];
+	}
+	if (is_array($lbls) && count($lbls)) {
+		if (!isset($existing['lbls']) || !is_array($existing['lbls'])) {
+			$existing['lbls'] = array();
+		}
+		foreach ($lbls as $k => $v) {
+			$existing['lbls'][$k] = $v;
+		}
+	}
+	if (is_array($fields) && count($fields)) {
+		if (!isset($existing['fields']) || !is_array($existing['fields'])) {
+			$existing['fields'] = array();
+		}
+		foreach ($fields as $name => $f) {
+			if (!is_array($f)) {
+				continue;
+			}
+			$existing['fields'][$name] = $f;
+		}
+	}
+	$existing['shared'] = false;
+	return label_layout_save_item($code, $existing);
 }
 
 /**
@@ -208,6 +346,16 @@ function label_layout_load_item($link, $codigo, $autoSeed = true)
 	$path = label_layout_item_path($codigo);
 	$data = label_layout_read_json_file($path);
 	if ($data) {
+		if ((empty($data['item']) || !is_array($data['item'])) && $link) {
+			$seed = label_layout_seed_from_mysql($link, $codigo);
+			if (!empty($seed['item'])) {
+				$data['item'] = $seed['item'];
+				if (empty($data['etiqueta']) && !empty($seed['etiqueta'])) {
+					$data['etiqueta'] = $seed['etiqueta'];
+				}
+				label_layout_save_item($codigo, $data);
+			}
+		}
 		$data['path'] = $path;
 		$data['exists'] = true;
 		return $data;

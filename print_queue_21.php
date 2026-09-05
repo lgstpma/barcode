@@ -14,6 +14,11 @@ $QUEUE_KEY = "barcode21";
 
 function ensure_zpl_queue($link)
 {
+	return true;
+}
+
+function ensure_zpl_queue_mysql($link)
+{
 	$sql = "CREATE TABLE IF NOT EXISTS `isabel_zpl_queue` (
 		`id` INT NOT NULL AUTO_INCREMENT,
 		`etiqueta` VARCHAR(10) NOT NULL,
@@ -63,6 +68,17 @@ function lookup_item_printer($link, $itemid)
 }
 
 function enqueue_zpl($link, $etiqueta, $itemid, $zpl, $printer = '')
+{
+	$dir = __DIR__ . DIRECTORY_SEPARATOR . 'label_layouts' . DIRECTORY_SEPARATOR . 'queue';
+	if (!is_dir($dir)) {
+		@mkdir($dir, 0775, true);
+	}
+	$safe = preg_replace('/[^\w.-]/', '_', (string)$etiqueta . '_' . (string)$itemid . '_' . date('Ymd_His'));
+	@file_put_contents($dir . DIRECTORY_SEPARATOR . $safe . '.zpl', (string)$zpl);
+	return 1;
+}
+
+function enqueue_zpl_mysql_disabled($link, $etiqueta, $itemid, $zpl, $printer = '')
 {
 	ensure_zpl_queue($link);
 	$etiqueta = (string)$etiqueta;

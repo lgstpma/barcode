@@ -58,7 +58,50 @@ function preview_zpl_inches($dots)
 	return round($dots / 203.0, 3);
 }
 
-function preview_zpl_labelary_png($zpl, $pw, $ll)
+function preview_zpl_for_labelary($zpl)
+{
+	$zpl = (string)$zpl;
+	$zpl = preg_replace('/\^CWZ,[^\r\n^]*/', '', $zpl);
+	$zpl = preg_replace('/\^AZ([NRIB])/', '^A0$1', $zpl);
+	return $zpl;
+}
+
+function preview_zpl_png_size($bin)
+{
+	if (!is_string($bin) || strlen($bin) < 24) {
+		return null;
+	}
+	$w = unpack('N', substr($bin, 16, 4));
+	$h = unpack('N', substr($bin, 20, 4));
+	if (!$w || !$h) {
+		return null;
+	}
+	return array((int)$w[1], (int)$h[1]);
+}
+
+function preview_zpl_rotate_png($bin, $degCcw)
+{
+	if (!function_exists('imagecreatefromstring') || !function_exists('imagerotate')) {
+		return $bin;
+	}
+	$im = @imagecreatefromstring($bin);
+	if (!$im) {
+		return $bin;
+	}
+	$bg = imagecolorallocate($im, 255, 255, 255);
+	$rot = imagerotate($im, (float)$degCcw, $bg);
+	imagedestroy($im);
+	if (!$rot) {
+		return $bin;
+	}
+	ob_start();
+	imagepng($rot);
+	$out = ob_get_clean();
+	imagedestroy($rot);
+	return ($out !== false && $out !== '') ? $out : $bin;
+}
+
+function preview_zpl_labelary_png($zpl, $pw, $ll, $rotateCw = 0)
 {
 	$wIn = preview_zpl_inches($pw);
 	$hIn = preview_zpl_inches($ll);
@@ -75,10 +118,15 @@ function preview_zpl_labelary_png($zpl, $pw, $ll)
 		$hIn = 15;
 	}
 	$url = 'http://api.labelary.com/v1/printers/8dpmm/labels/' . $wIn . 'x' . $hIn . '/0/';
+	$header = "Content-Type: application/x-www-form-urlencoded\r\nAccept: image/png\r\n";
+	$rotateCw = (int)$rotateCw;
+	if ($rotateCw === 90 || $rotateCw === 180 || $rotateCw === 270) {
+		$header .= 'X-Rotation: ' . $rotateCw . "\r\n";
+	}
 	$ctx = stream_context_create(array(
 		'http' => array(
 			'method' => 'POST',
-			'header' => "Content-Type: application/x-www-form-urlencoded\r\nAccept: image/png\r\n",
+			'header' => $header,
 			'content' => $zpl,
 			'timeout' => 45,
 			'ignore_errors' => true,
@@ -110,6 +158,10 @@ if (!$row) {
 	preview_zpl_fail($fmt, 'Item no encontrado: ' . $codigo);
 }
 
+include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+$ov = label_overlay_from_json($link, $codigo, $row, array());
+$row = $ov['row'];
+
 $etiqueta = isset($row['etiqueta']) ? trim((string)$row['etiqueta']) : '';
 $zpl = '';
 $pw = 0;
@@ -117,6 +169,8 @@ $ll = 0;
 $printer = '';
 $err = '';
 $previewLocalPng = null;
+$previewRotateCw = 0;
+$previewEt13 = null;
 
 if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
@@ -213,6 +267,8 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$pw = 183;
 	$ll = 495;
 	$printer = 'IP:' . etiqueta13_printer_ip();
+	$previewRotateCw = 270;
+	$previewEt13 = array($descrip, $descrip2, $precio, $caducidad, $elab_day);
 } elseif ($etiqueta === '21' || $etiqueta === 21) {
 	$err = 'Tipo 21 no tiene generador ZPL en preview (usa cola dedicada).';
 } else {
@@ -249,19 +305,53 @@ if ($fmt === 'png') {
 	while (ob_get_level() > 0) {
 		ob_end_clean();
 	}
+	$cacheOk = isset($_REQUEST['cache']) && (string)$_REQUEST['cache'] === '1';
+	$cacheHdr = $cacheOk ? 'public, max-age=300' : 'no-store';
 	if ($previewLocalPng) {
 		header('Content-Type: image/png');
-		header('Cache-Control: no-store');
+		header('Cache-Control: ' . $cacheHdr);
 		echo $previewLocalPng;
 		exit;
 	}
-	$rend = preview_zpl_labelary_png($zpl, $pw, $ll);
-	if (empty($rend['ok'])) {
+	$zplRender = $zpl;
+	$rotCw = isset($previewRotateCw) ? (int)$previewRotateCw : 0;
+	$embeddedFont = false;
+	if ($rotCw !== 0 && function_exists('etiqueta13_zpl_with_embedded_ttf')) {
+		$withFont = etiqueta13_zpl_with_embedded_ttf($zpl);
+		if ($withFont !== '') {
+			$zplRender = $withFont;
+			$embeddedFont = true;
+		}
+	}
+	if ($rotCw !== 0 && !$embeddedFont) {
+		$zplRender = preview_zpl_for_labelary($zpl);
+	}
+	$rend = preview_zpl_labelary_png($zplRender, $pw, $ll, $rotCw);
+	if (empty($rend['ok']) && $embeddedFont) {
+		$rend = preview_zpl_labelary_png(preview_zpl_for_labelary($zpl), $pw, $ll, $rotCw);
+	}
+	$png = (!empty($rend['ok']) && !empty($rend['png'])) ? $rend['png'] : null;
+	if ($png) {
+		$sz = preview_zpl_png_size($png);
+		if ($rotCw === 270 && $sz && $sz[1] > $sz[0]) {
+			$png = preview_zpl_rotate_png($png, 90);
+		}
+	}
+	if ($png === null && is_array($previewEt13) && function_exists('etiqueta13_preview_png')) {
+		$png = etiqueta13_preview_png(
+			$previewEt13[0],
+			$previewEt13[1],
+			$previewEt13[2],
+			$previewEt13[3],
+			$previewEt13[4]
+		);
+	}
+	if ($png === null || $png === '') {
 		preview_zpl_fail('png', isset($rend['error']) ? $rend['error'] : 'Error render');
 	}
 	header('Content-Type: image/png');
-	header('Cache-Control: no-store');
-	echo $rend['png'];
+	header('Cache-Control: ' . $cacheHdr);
+	echo $png;
 	exit;
 }
 
@@ -280,6 +370,7 @@ $payload = array(
 	'll' => $ll,
 	'width_in' => preview_zpl_inches($pw),
 	'height_in' => preview_zpl_inches($ll),
+	'preview_rotate_cw' => isset($previewRotateCw) ? (int)$previewRotateCw : 0,
 	'zpl_len' => $zplLen,
 );
 // No devolver ^GFA completo por defecto (congela el navegador).

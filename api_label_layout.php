@@ -48,16 +48,25 @@ if ($action === 'get') {
 			mysqli_free_result($res);
 		}
 	}
+	$itemLayout = label_layout_load_item($link, $codigo, true);
+	if ($itemLayout && !empty($itemLayout['item']['etiqueta'])) {
+		$etiquetaItem = trim((string)$itemLayout['item']['etiqueta']);
+	} elseif ($itemLayout && !empty($itemLayout['etiqueta'])) {
+		$etiquetaItem = trim((string)$itemLayout['etiqueta']);
+	}
 	if (in_array($etiquetaItem, array('1', '5', '9'), true)) {
 		$layout = label_layout_ensure_shared((int)$etiquetaItem);
 		$layout['codigo'] = label_layout_pad_codigo($codigo);
 		$layout['etiqueta'] = $etiquetaItem;
 		$layout['exists'] = true;
+		if ($itemLayout && !empty($itemLayout['item'])) {
+			$layout['item'] = $itemLayout['item'];
+		}
 		api_layout_out(array(
 			'ok' => true,
 			'layout' => $layout,
 			'mode' => 'json_shared',
-			'note' => 'Layout compartido tipo ' . $etiquetaItem . ' (label_layouts/shared/). MySQL no se modifica.',
+			'note' => 'Layout compartido tipo ' . $etiquetaItem . '; datos de producto en items JSON. MySQL no se modifica.',
 		));
 	}
 	$layout = label_layout_load_item($link, $codigo, true);
@@ -99,26 +108,35 @@ if ($action === 'save') {
 	if (!is_array($data)) {
 		api_layout_out(array('ok' => false, 'error' => 'JSON layout invalido'), 400);
 	}
-	$codigo = isset($data['codigo']) ? $data['codigo'] : (isset($_REQUEST['codigo']) ? $_REQUEST['codigo'] : '');
 	$etiq = isset($data['etiqueta']) ? (string)$data['etiqueta'] : '';
-	// Shared 1/5/9
+	$codigo = isset($data['codigo']) ? $data['codigo'] : (isset($_REQUEST['codigo']) ? $_REQUEST['codigo'] : '');
+	if ($codigo === '' && isset($data['item']['codigo'])) {
+		$codigo = $data['item']['codigo'];
+	}
+	// Shared 1/5/9: layout fijo aparte; datos de producto siempre por codigo
 	if (!empty($data['shared']) || in_array($etiq, array('1', '5', '9'), true)) {
 		$tipo = (int)$etiq;
 		if (!in_array($tipo, array(1, 5, 9), true)) {
 			api_layout_out(array('ok' => false, 'error' => 'tipo shared invalido'), 400);
 		}
-		$data['etiqueta'] = (string)$tipo;
-		$data['shared'] = true;
-		unset($data['path'], $data['exists'], $data['seeded'], $data['from_mysql'], $data['codigo']);
-		$ok = label_layout_write_json_file(label_layout_shared_path($tipo), $data);
+		$itemPart = isset($data['item']) && is_array($data['item']) ? $data['item'] : array();
+		$shared = $data;
+		$shared['etiqueta'] = (string)$tipo;
+		$shared['shared'] = true;
+		unset($shared['path'], $shared['exists'], $shared['seeded'], $shared['from_mysql'], $shared['codigo'], $shared['item']);
+		$ok = label_layout_write_json_file(label_layout_shared_path($tipo), $shared);
 		if (!$ok) {
 			api_layout_out(array('ok' => false, 'error' => 'No se pudo escribir shared JSON'), 500);
+		}
+		if ($codigo !== '') {
+			label_layout_save_product($codigo, $itemPart, isset($data['lbls']) ? $data['lbls'] : array(), array(), (string)$tipo);
 		}
 		api_layout_out(array(
 			'ok' => true,
 			'path' => label_layout_shared_path($tipo),
+			'item_path' => $codigo !== '' ? label_layout_item_path($codigo) : null,
 			'tipo' => $tipo,
-			'mode' => 'shared',
+			'mode' => 'shared+item',
 		));
 	}
 	if ($codigo === '') {

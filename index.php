@@ -20,6 +20,16 @@ function mysqli_stmt_bind_params_dynamic(mysqli_stmt $stmt, $types, array &$para
 
 function html($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
+function html_item_kanban_attrs($codigo, $codigo2, $descrip, $etiqueta, $exp)
+{
+  return ' class="item-row"'
+    . ' data-codigo="' . html($codigo) . '"'
+    . ' data-codigo2="' . html($codigo2) . '"'
+    . ' data-descrip="' . html($descrip) . '"'
+    . ' data-etiqueta="' . html($etiqueta) . '"'
+    . ' data-exp="' . html($exp) . '"';
+}
+
 function build_search_table_html($link, $q)
 {
   $q = trim((string)$q);
@@ -81,7 +91,7 @@ function build_search_table_html($link, $q)
 
       $codigo = (string)$r['codigo'];
       $codigo2 = (string)$r['codigo2'];
-      $out .= '<tr' . $bg . '>'
+      $out .= '<tr' . $bg . html_item_kanban_attrs($codigo, $codigo2, $desc, $r['etiqueta'], $r['exp']) . '>'
         . '<td align="center"><a href="search_results.php?code=' . html($codigo) . '&bttn_actualizar=FM&txt_codigo2=' . html($codigo2) . ' ">' . html($codigo) . '</a></td>'
         . '<td>' . html($r['precio2']) . '</td>'
         . '<td align="center">' . html($r['exp']) . '</td>'
@@ -170,6 +180,18 @@ if (isset($_POST['clave'])) {
 }
 
 if ($action === 'apply_fm') {
+  $table_odoo_fm_apply_result = '<div style="margin:10px 0; padding:10px; border:1px solid #a60; color:#630;">'
+    . '<b>No se aplico FM.</b> Esta copia local no escribe MySQL de produccion. Use JSON / Odoo solo como consulta.'
+    . '</div>';
+}
+
+if ($action === 'clear_fm_not_in_odoo') {
+  $table_odoo_fm_clear_result = '<div style="margin:10px 0; padding:10px; border:1px solid #a60; color:#630;">'
+    . '<b>No se quito FM.</b> Esta copia local no escribe MySQL de produccion.'
+    . '</div>';
+}
+
+if (false && $action === 'apply_fm') {
   try {
     list($byCode, $mysqlRows, $missingFM, $missingMySQL) = compute_odoo_mysql_navidad_diff($link);
 
@@ -200,7 +222,7 @@ if ($action === 'apply_fm') {
   }
 }
 
-if ($action === 'clear_fm_not_in_odoo') {
+if (false && $action === 'clear_fm_not_in_odoo') {
   try {
     list($byCode, $mysqlRows, $missingFM, $missingMySQL) = compute_odoo_mysql_navidad_diff($link);
     $odooCodesSet = array_flip(array_keys($byCode));
@@ -460,6 +482,9 @@ float: left;
 
     /* Style the tab */
     .tab {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       overflow: hidden;
       border: 1px solid #ccc;
       background-color: #f1f1f1;
@@ -468,13 +493,137 @@ float: left;
     /* Style the buttons inside the tab */
     .tab button {
       background-color: inherit;
-      float: left;
+      float: none;
       border: none;
       outline: none;
       cursor: pointer;
       padding: 14px 16px;
       transition: 0.3s;
       font-size: 17px;
+    }
+
+    .kanban-switch {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .kanban-switch input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .kanban-slider {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      background: #bbb;
+      border-radius: 11px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .kanban-slider:after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .kanban-switch input:checked + .kanban-slider {
+      background: #2b6cb0;
+    }
+    .kanban-switch input:checked + .kanban-slider:after {
+      transform: translateX(20px);
+    }
+    .kanban-switch .kanban-text strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.1;
+    }
+    .kanban-switch .kanban-text span {
+      font-size: 11px;
+      color: #666;
+    }
+    body.modo-kanban table.display,
+    body.modo-kanban .dataTables_wrapper {
+      display: none !important;
+    }
+    .kanban-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      padding: 12px 4px 20px;
+    }
+    body.modo-kanban .kanban-grid {
+      display: grid;
+    }
+    .kanban-card {
+      display: block;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #111;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .kanban-card:hover {
+      border-color: #2b6cb0;
+      box-shadow: 0 2px 8px rgba(43,108,176,0.25);
+    }
+    .kanban-card .kanban-preview {
+      background: #ececec;
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .kanban-card .kanban-preview img {
+      max-width: 100%;
+      max-height: 220px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      background: #fff;
+      box-shadow: 0 0 0 1px #ddd;
+    }
+    .kanban-card .kanban-meta {
+      padding: 8px 10px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .kanban-card .kanban-code {
+      font-weight: bold;
+      color: #2b6cb0;
+    }
+    .kanban-card .kanban-name {
+      display: block;
+      margin-top: 2px;
+      color: #222;
+    }
+    .kanban-card .kanban-tipo {
+      display: block;
+      margin-top: 4px;
+      color: #666;
+    }
+    .kanban-ph {
+      color: #888;
+      font-size: 12px;
+      text-align: center;
+      padding: 24px 8px;
     }
 
     /* Change background color of buttons on hover */
@@ -517,7 +666,12 @@ float: left;
       document.getElementById(cityName).style.display = "block";
       evt.currentTarget.className += " active";
 	  
-	  makeTableHTM(items);
+	  if (typeof window.kanbanOnTabChange === 'function') {
+	    window.kanbanOnTabChange();
+	  }
+	  if (typeof makeTableHTM === 'function') {
+	    makeTableHTM(items);
+	  }
     }
   </script>
 
@@ -673,13 +827,28 @@ else {
 <button class="tablinks" onClick="openCity(event, 'Y')">Y</button>
 <button class="tablinks" onClick="openCity(event, 'Z')">Z</button>
 <button class="tablinks" onClick="openCity(event, 'London')">TODOS</button>
+<label class="kanban-switch" title="Ver las etiquetas como imagen de impresión">
+  <input type="checkbox" id="kanbanToggle" />
+  <span class="kanban-slider"></span>
+  <span class="kanban-text"><strong>Kanban</strong><span>vista de etiquetas</span></span>
+</label>
 
 <!-- (moved) resultados de búsqueda se imprimen debajo del abecedario -->
 
  
 <?php 
 
-			if (	$action == "help")
+			if ($action == "help")
+			{
+				echo '<p style="color:#630;padding:8px;">Ayuda de emergencia no escribe MySQL en esta copia local.</p>';
+			}
+	
+				if ($action == "add_items")
+			{
+				echo '<p style="color:#630;padding:8px;">add_items no escribe MySQL en esta copia local.</p>';
+			}
+
+			if (false && $action == "help")
 			{
 		 
 			$fm_criter_help=  "UPDATE 
@@ -691,7 +860,7 @@ else {
 			
 			}
 	
-				if (	$action == "add_items")
+				if (false && $action == "add_items")
 			{
 		 
 		 
@@ -756,8 +925,9 @@ $abcd = '-';
 
       }
 
+        $descrip_row = trim((string)$fm_row["descripI"] . ' ' . (string)$fm_row["descrip2"]);
         $fm_table = $fm_table . '
-		<tr ' . $bgcolor . '><td align=center><a  href="search_results.php?code=' . $fm_row["codigo"] . '&bttn_actualizar=FM&txt_codigo2=' . $fm_row["codigo2"] . ' ">' . $fm_row["codigo"] . '</a></td>
+		<tr ' . $bgcolor . html_item_kanban_attrs($fm_row["codigo"], $fm_row["codigo2"], $descrip_row, $fm_row["etiqueta"], $fm_row["exp"]) . '><td align=center><a  href="search_results.php?code=' . $fm_row["codigo"] . '&bttn_actualizar=FM&txt_codigo2=' . $fm_row["codigo2"] . ' ">' . $fm_row["codigo"] . '</a></td>
 	   <td>' . $fm_row["precio2"]   . ' </td> <td align=center>' . htmlspecialchars((string)$fm_row["exp"], ENT_QUOTES, 'UTF-8') . '</td> <td>'  .' '. $fm_row["descripI"] . $fm_row["descrip2"] . '</span></td><td>' . htmlspecialchars((string)$fm_row["printer"], ENT_QUOTES, 'UTF-8') . '</td><td>'   . $fm_row["etiqueta"] . '</span></td></tr>';
       }
 
@@ -861,7 +1031,8 @@ $abcd = '-';
 
       }
 
-        $fm_table = $fm_table . '<tr ' . $bgcolor . '><td align=center><a  href="search_results.php?code=' . $fm_row["codigo"] . '&bttn_actualizar=FM&txt_codigo2=' . $fm_row["codigo2"] . ' ">-' . $fm_row["codigo"] . '</a></td>
+        $descrip_row = trim((string)$fm_row["descripI"] . ' ' . (string)$fm_row["descrip2"]);
+        $fm_table = $fm_table . '<tr ' . $bgcolor . html_item_kanban_attrs($fm_row["codigo"], $fm_row["codigo2"], $descrip_row, $fm_row["etiqueta"], $fm_row["exp"]) . '><td align=center><a  href="search_results.php?code=' . $fm_row["codigo"] . '&bttn_actualizar=FM&txt_codigo2=' . $fm_row["codigo2"] . ' ">-' . $fm_row["codigo"] . '</a></td>
 		<td align=center><a  href="search_results.php?code=' . $fm_row["codigo"] . '&bttn_actualizar=FM&code2=' . $fm_row["codigo2"] . ' ">' . $fm_row["codigo2"] . '</a></td>
       <td>' . $fm_row["precio1"]   . ' </td> <td>' . $fm_row["precio2"]   . ' </td> <td align=center>' . htmlspecialchars((string)$fm_row["exp"], ENT_QUOTES, 'UTF-8') . '</td> <td>'  .' '. $fm_row["descripI"] . $fm_row["descrip2"] . '</span></td><td>' . htmlspecialchars((string)$fm_row["printer"], ENT_QUOTES, 'UTF-8') . '</td><td>'   . $fm_row["etiqueta"] . '</span></td></tr>';
       }
@@ -874,4 +1045,145 @@ $abcd = '-';
 
       
     </div>
-    
+
+<script>
+(function () {
+  var KEY = 'barcode_modo_kanban';
+  var MAX_INFLIGHT = 2;
+  var queue = [];
+  var inflight = 0;
+  var observer = null;
+
+  function isKanban() {
+    try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+  }
+  function setKanban(on) {
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    if (on) document.body.classList.add('modo-kanban');
+    else document.body.classList.remove('modo-kanban');
+    var t = document.getElementById('kanbanToggle');
+    if (t) t.checked = !!on;
+    if (on) fillVisibleKanban();
+  }
+
+  function visiblePanels() {
+    var panels = document.querySelectorAll('.tabcontent');
+    var out = [];
+    for (var i = 0; i < panels.length; i++) {
+      var d = panels[i].style.display;
+      if (d === 'block' || (d === '' && panels[i].offsetParent !== null)) out.push(panels[i]);
+      else if (panels[i].getAttribute('style') && panels[i].getAttribute('style').indexOf('display:block') !== -1 && d !== 'none') out.push(panels[i]);
+    }
+    return out;
+  }
+
+  function previewUrl(row) {
+    var code = (row.getAttribute('data-codigo') || '').replace(/\D/g, '');
+    if (!code) return '';
+    var exp = parseInt(row.getAttribute('data-exp') || '0', 10) || 0;
+    var u = 'preview_zpl.php?fmt=png&cache=1&v=13lex&codigo=' + encodeURIComponent(code);
+    if (exp > 0) u += '&caducidad=' + exp;
+    return u;
+  }
+
+  function pump() {
+    while (inflight < MAX_INFLIGHT && queue.length) {
+      var img = queue.shift();
+      if (!img || img.getAttribute('data-loaded') === '1') continue;
+      var src = img.getAttribute('data-src');
+      if (!src) continue;
+      inflight++;
+      img.onload = img.onerror = function () {
+        this.setAttribute('data-loaded', '1');
+        if (!this.naturalWidth) {
+          var ph = document.createElement('div');
+          ph.className = 'kanban-ph';
+          ph.textContent = 'Sin vista previa';
+          if (this.parentNode) this.parentNode.replaceChild(ph, this);
+        }
+        inflight--;
+        pump();
+      };
+      img.src = src;
+    }
+  }
+
+  function observe(img) {
+    if (!observer) {
+      if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (!entries[i].isIntersecting) continue;
+            observer.unobserve(entries[i].target);
+            queue.push(entries[i].target);
+            pump();
+          }
+        }, { rootMargin: '120px' });
+      }
+    }
+    if (observer) observer.observe(img);
+    else {
+      queue.push(img);
+      pump();
+    }
+  }
+
+  function fillPanel(panel) {
+    if (!panel || panel.querySelector('.kanban-grid')) return;
+    var rows = panel.querySelectorAll('tr.item-row');
+    if (!rows.length) return;
+    var grid = document.createElement('div');
+    grid.className = 'kanban-grid';
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var code = row.getAttribute('data-codigo') || '';
+      var name = row.getAttribute('data-descrip') || '';
+      var tipo = row.getAttribute('data-etiqueta') || '';
+      var hrefA = row.querySelector('a[href*="search_results.php"]');
+      var href = hrefA ? hrefA.getAttribute('href') : ('search_results.php?code=' + encodeURIComponent(code) + '&bttn_actualizar=FM');
+      var card = document.createElement('a');
+      card.className = 'kanban-card';
+      card.href = href;
+      var preview = document.createElement('div');
+      preview.className = 'kanban-preview';
+      var img = document.createElement('img');
+      img.alt = name || code;
+      img.setAttribute('data-src', previewUrl(row));
+      preview.appendChild(img);
+      var meta = document.createElement('div');
+      meta.className = 'kanban-meta';
+      meta.innerHTML = '<span class="kanban-code">' + code + '</span>'
+        + '<span class="kanban-name"></span>'
+        + '<span class="kanban-tipo">Etiqueta ' + tipo + '</span>';
+      meta.querySelector('.kanban-name').textContent = name;
+      card.appendChild(preview);
+      card.appendChild(meta);
+      grid.appendChild(card);
+      observe(img);
+    }
+    panel.appendChild(grid);
+  }
+
+  function fillVisibleKanban() {
+    if (!document.body.classList.contains('modo-kanban')) return;
+    var panels = visiblePanels();
+    for (var i = 0; i < panels.length; i++) fillPanel(panels[i]);
+  }
+
+  window.kanbanOnTabChange = function () {
+    fillVisibleKanban();
+  };
+
+  function init() {
+    var t = document.getElementById('kanbanToggle');
+    if (t) {
+      t.checked = isKanban();
+      t.onchange = function () { setKanban(t.checked); };
+    }
+    setKanban(isKanban());
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>

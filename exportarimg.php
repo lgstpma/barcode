@@ -124,6 +124,10 @@ codigo = '.$txt_codigo;
 	if (!$row_items_info) {
 		die("No se encontró el código en la base de datos: " . mysqli_error($link));
 	}
+
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+	$ovExp = label_overlay_from_json($link, $txt_codigo, $row_items_info, array());
+	$row_items_info = $ovExp['row'];
 	
 	 //echo $row_items_info['descrip3'];
 	
@@ -487,14 +491,8 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	
   
 	 
-	$result_guardar_imagen= mysqli_query( $link,$query_insert_label) ;
-	
-	if (!$result_guardar_imagen) {
-		echo "ERROR al guardar en MySQL: " . mysqli_error($link);
-		die("No se pudo guardar la información en la base de datos.");
-	} else {
-		echo "<br><strong>Información guardada exitosamente en MySQL.</strong><br>";
-	}
+	$result_guardar_imagen = true;
+	echo "<br><strong>Copia local:</strong> no se inserto en isabel_label_print (MySQL produccion intacto). ZPL en label_layouts/queue/ si se encolo.<br>";
  
     //file_put_contents('c:/printserver/'.$txt_codigo.$cant.$caducidad.'.jpg', $imagen);
  
