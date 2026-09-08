@@ -6,6 +6,10 @@ set "PHP=%~dp0tools\php\php.exe"
 set "HOST=127.0.0.1"
 set "PORT=8080"
 
+if exist "%~dp0tools\update_from_github.bat" (
+  call "%~dp0tools\update_from_github.bat"
+)
+
 if not exist "%PHP%" (
   echo No esta tools\php\php.exe ^(GitHub no lo sube^).
   echo Se va a descargar PHP portable ahora...

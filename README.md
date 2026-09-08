@@ -21,14 +21,13 @@ Así se instala y se mantiene actualizado **por GitHub**, no con USB.
 
 PHP **no** está en GitHub (`tools\php\` está en `.gitignore`). Por eso el paso 6 es obligatorio en cada PC nueva.
 
-### Actualizar esa PC (cuando haya cambios)
+### Actualizar esa PC
 
-En GitHub Desktop, con el repo abierto:
+`start.bat` hace **Pull automatico** al abrir (si hay internet y Git/GitHub Desktop).
 
-1. **Fetch origin**
-2. **Pull origin**
+La primera vez hay que traer ese cambio a mano: en GitHub Desktop, **Fetch origin** y **Pull origin**. Desde entonces, cada vez que abran `start.bat` se actualiza sola.
 
-Luego vuelva a abrir `start.bat` si el servidor estaba corriendo.
+Si el Pull automatico falla (sin red o cambios locales), el sistema arranca igual con lo que ya tiene.
 
 ### Red
 
@@ -38,7 +37,7 @@ La PC debe alcanzar:
 - Odoo
 - Impresora #13: IP en `print_ip_13.cfg`
 
-Si la sucursal usa otra Zebra, edite `print_ip_13.cfg` (ese archivo sí se puede cambiar local y no hace falta subirlo).
+Si la sucursal usa otra Zebra, edite `print_ip_13.cfg` en esa PC. Un Pull no deberia pisarlo si solo cambia la IP y no hay conflicto; si Git avisa conflicto, dejen la IP local.
 
 ### Fotos de etiquetas 10 / 14
 
