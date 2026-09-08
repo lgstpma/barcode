@@ -7,10 +7,20 @@ set "HOST=127.0.0.1"
 set "PORT=8080"
 
 if not exist "%PHP%" (
-  echo [ERROR] No se encontro PHP portable en tools\php\php.exe
-  echo Ejecute tools\install_php.bat o copie PHP NTS a tools\php\
-  pause
-  exit /b 1
+  echo No esta tools\php\php.exe ^(GitHub no lo sube^).
+  echo Se va a descargar PHP portable ahora...
+  echo.
+  if not exist "%~dp0tools\install_php.bat" (
+    echo [ERROR] Falta tools\install_php.bat
+    pause
+    exit /b 1
+  )
+  call "%~dp0tools\install_php.bat" /nopause
+  if not exist "%PHP%" (
+    echo [ERROR] Sigue faltando PHP. Ejecute tools\install_php.bat a mano.
+    pause
+    exit /b 1
+  )
 )
 
 if not exist "%~dp0router.php" (
