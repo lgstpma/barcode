@@ -1,0 +1,308 @@
+/* Capa visual: no cambia flujos ni textos. Solo look. */
+html,
+body {
+  color: #1f2937;
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  background: #eef2f6;
+  margin: 0;
+  min-height: 100%;
+}
+body {
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 0 16px 28px;
+}
+a {
+  color: #1d4f8c;
+  text-decoration: none;
+}
+a:hover {
+  color: #163d6d;
+  text-decoration: underline;
+}
+p {
+  font-size: 14px;
+}
+
+.app-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  padding: 14px 18px 10px;
+  margin: 14px 0 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.app-topbar form {
+  flex: 1;
+  min-width: 280px;
+  margin: 0;
+  order: 1;
+}
+.app-topbar form > p:first-child {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 650;
+  color: #0f2744;
+  letter-spacing: -0.02em;
+}
+.app-topbar form > p:first-child strong {
+  font-weight: 650;
+}
+
+.menu-ajustes {
+  float: none;
+  margin: 0;
+  order: 2;
+}
+.menu-ajustes summary {
+  border: 1px solid #c5d0de;
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.menu-ajustes summary:hover {
+  background: #eef3f9;
+}
+.menu-ajustes .menu-panel {
+  border-radius: 10px;
+  border-color: #d7dee8;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+.menu-ajustes .menu-panel a:hover {
+  background: #2b6cb0;
+}
+.menu-ajustes .btn-sync-odoo {
+  border-radius: 8px;
+}
+
+#caja_busqueda,
+input.busca,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+  border: 1px solid #c5d0de !important;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  height: auto;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+#caja_busqueda,
+input.busca {
+  width: min(420px, 100%);
+  min-height: 40px;
+  font-size: 16px !important;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  background-color: #fff !important;
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+  border-color: #2b6cb0 !important;
+}
+
+input[type="submit"],
+input[type="button"],
+input[type="Submit"],
+button:not(.tablinks) {
+  appearance: none;
+  background: #2b6cb0;
+  color: #fff;
+  border: 1px solid #1e558c;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+}
+input[type="submit"]:hover,
+input[type="button"]:hover,
+button:not(.tablinks):hover {
+  background: #1e558c;
+}
+input[value="Guardar layout"],
+input[value="Ver etiqueta"] {
+  background: #334155;
+  border-color: #1f2937;
+}
+input[value="Guardar layout"]:hover,
+input[value="Ver etiqueta"]:hover {
+  background: #1f2937;
+}
+
+.tab {
+  border: 1px solid #d7dee8;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  padding: 6px 6px 0;
+  gap: 2px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.tab button.tablinks {
+  background: transparent;
+  border-radius: 8px 8px 0 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  min-width: 36px;
+}
+.tab button.tablinks:hover {
+  background: #eef3f9;
+  color: #0f2744;
+}
+.tab button.tablinks.active {
+  background: #2b6cb0;
+  color: #fff;
+}
+.tabcontent {
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 12px 14px 18px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.kanban-switch {
+  color: #334155;
+}
+.kanban-slider {
+  background: #cbd5e1;
+}
+.kanban-switch input:checked + .kanban-slider {
+  background: #2b6cb0;
+}
+
+table.display,
+table[border],
+form table {
+  border-collapse: collapse;
+  background: #fff;
+}
+table.display td,
+table[border] td,
+form table td {
+  border-color: #e5eaf1 !important;
+  padding: 7px 8px;
+  vertical-align: middle;
+}
+table.display thead td,
+table.display tr:first-child td {
+  font-weight: 700;
+  color: #334155;
+  background: #f4f7fb;
+}
+tr[bgcolor="#C0C0C0"],
+tr[bgcolor="#c0c0c0"] {
+  background: #f4f7fb !important;
+}
+tr[bgcolor="#FFFFFF"],
+tr[bgcolor="#ffffff"] {
+  background: #fff !important;
+}
+td[bgcolor="#CCCCCC"],
+td[bgcolor="#cccccc"] {
+  background: #e8eef6 !important;
+  color: #1f2937;
+  font-weight: 650;
+}
+td[bgcolor="#E8E8E8"],
+td[bgcolor="#e8e8e8"] {
+  background: #f4f7fb !important;
+}
+td[bgcolor="#999999"],
+table[bgcolor="#999999"] {
+  background: #eef3f9 !important;
+  border-color: #d7dee8 !important;
+}
+table.display a {
+  font-weight: 700;
+}
+
+.kanban-card {
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+.kanban-card:hover {
+  border-color: #2b6cb0;
+  box-shadow: 0 8px 20px rgba(43, 108, 176, 0.16);
+}
+.kanban-card .kanban-preview {
+  background: #f1f5f9;
+}
+.kanban-card .kanban-code {
+  color: #1d4f8c;
+}
+
+.txt-heading a,
+a#btnEmpty {
+  display: inline-block;
+  background: #fff;
+  border: 1px solid #c5d0de;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #1d4f8c;
+  font-weight: 650;
+  text-decoration: none;
+}
+.txt-heading a:hover,
+a#btnEmpty:hover {
+  background: #eef3f9;
+}
+
+body.ui-item {
+  background: #eef2f6;
+}
+body.ui-item form {
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+body.ui-item h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f2744;
+  font-weight: 650;
+}
+body.ui-item table[border="1"],
+body.ui-item table[border="2"] {
+  border: 0 !important;
+  width: 100%;
+}
+#zpl_preview_img {
+  background: #fff;
+  border: 1px solid #d7dee8 !important;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* avisos locales: mismo texto, recuadro más limpio */
+body > p[style*="color:#666"],
+body p[style*="color:#666"] {
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  padding: 8px 12px !important;
+}

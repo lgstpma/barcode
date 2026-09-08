@@ -100,6 +100,7 @@
 	<body>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link rel="stylesheet" type="text/css" href="css/default.css" />
+		<link rel="stylesheet" type="text/css" href="css/ui_modern.css" />
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<script language="JavaScript" src="jquery-1.5.1.min.js">
 			// Select your input element.
@@ -991,7 +992,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 		<html>
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-			<body bgcolor="#FFFFFF" onload="check_elab();">
+			<body bgcolor="#FFFFFF" class="ui-modern ui-item" onload="check_elab();">
 				<?php if (!empty($GLOBALS['barcode_json_save_msg'])) { ?>
 				<p style="margin:8px;padding:8px;border:1px solid #2b6cb0;background:#eef6ff;color:#123;">
 					<?php echo htmlspecialchars($GLOBALS['barcode_json_save_msg'], ENT_QUOTES, 'UTF-8'); ?>

@@ -695,6 +695,7 @@ document.body.insertAdjacentHTML('beforeend', createTable(data));
  
   
   <link rel="stylesheet" type="text/css" href="css/default.css" />
+  <link rel="stylesheet" type="text/css" href="css/ui_modern.css" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   
 <body>
@@ -760,7 +761,7 @@ document.body.insertAdjacentHTML('beforeend', createTable(data));
   <title>Buscar Items</title>
   </head>
 
-  <body>
+  <body class="ui-modern">
   <p>
   <?php
 
@@ -785,6 +786,7 @@ else {
   }
    
     ;?>
+  <div class="app-topbar">
   <details class="menu-ajustes">
     <summary>Ajustes ▾</summary>
     <div class="menu-panel">
@@ -798,6 +800,7 @@ else {
         <input type="text" class="busca" id="caja_busqueda" name="clave" autocomplete="off" required onKeyDown="settab()" placeholder="Código o nombre" />
         <input type="submit" name="button" id="button" value="Buscar">
 </form>
+  </div>
  
  <div class="tab">
 <button class="tablinks" onClick="openCity(event, 'A')">A</button>
