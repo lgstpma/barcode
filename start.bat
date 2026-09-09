@@ -21,7 +21,10 @@ if not exist "%PHP%" (
   )
   call "%~dp0tools\install_php.bat" /nopause
   if not exist "%PHP%" (
-    echo [ERROR] Sigue faltando PHP. Ejecute tools\install_php.bat a mano.
+    echo [ERROR] Sigue faltando PHP.
+    echo Copie tools\php de la PC que ya imprime, a:
+    echo   %~dp0tools\php
+    echo Debe existir: %PHP%
     pause
     exit /b 1
   )
