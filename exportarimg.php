@@ -201,7 +201,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
 		$qid = enqueue_zpl_21($link, (string)$txt_codigo, $zpl);
 		if ($qid) {
-			echo "<br>Etiqueta 21 en cola local (id $qid). La PC de la impresora la tomará con el servicio print_service_21.<br>";
+			echo enqueue_zpl_path_html($qid, 'GK420t_chica');
 		} else {
 			echo "<br>No se pudo encolar ZPL 21: " . mysqli_error($link) . "<br>";
 		}
@@ -225,7 +225,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 		$qid = enqueue_zpl_1($link, (string)$txt_codigo, $zpl);
 		if ($qid) {
 			$estado_label_print = 1;
-			echo "<br>Etiqueta 1 en cola (id $qid) → impresora <strong>GK420t_chica</strong>. La toma print_service_21 en tu PC.<br>";
+			echo enqueue_zpl_path_html($qid, 'GK420t_chica');
 		} else {
 			echo "<br>No se pudo encolar ZPL 1: " . mysqli_error($link) . "<br>";
 		}
@@ -246,7 +246,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 		$qid = enqueue_zpl($link, '9', (string)$txt_codigo, $zpl);
 		if ($qid) {
 			$estado_label_print = 1;
-			echo "<br>Etiqueta 9 en cola (id $qid).<br>";
+			echo enqueue_zpl_path_html($qid, 'GK420t_chica');
 		} else {
 			echo "<br>No se pudo encolar ZPL 9: " . mysqli_error($link) . "<br>";
 		}
@@ -268,7 +268,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 		$qid = enqueue_zpl($link, '5', (string)$txt_codigo, $zpl, 'GK420t_grande');
 		if ($qid) {
 			$estado_label_print = 1;
-			echo "<br>Etiqueta 5 en cola (id $qid) → <strong>GK420t_grande</strong> (en tu PC se mapea a GK420t_3x2).<br>";
+			echo enqueue_zpl_path_html($qid, 'GK420t_grande');
 		} else {
 			echo "<br>No se pudo encolar ZPL 5: " . mysqli_error($link) . "<br>";
 		}
@@ -312,7 +312,8 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 			if ($qid) {
 				$estado_label_print = 1;
 				$nLines = isset($built10['lines']) ? (int)$built10['lines'] : 0;
-				echo "<br>Etiqueta 10 en cola (id $qid). Imagen: " . htmlspecialchars(basename($built10['path'])) . ". lbl_lines: $nLines.<br>";
+				echo enqueue_zpl_path_html($qid, $printer10);
+				echo "<br>Imagen: " . htmlspecialchars(basename($built10['path'])) . ". lbl_lines: $nLines.<br>";
 			} else {
 				echo "<br>No se pudo encolar ZPL 10: " . mysqli_error($link) . "<br>";
 			}
@@ -361,7 +362,8 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 			$qid = enqueue_zpl($link, '14', (string)$txt_codigo, $zpl, $printer14);
 			if ($qid) {
 				$estado_label_print = 1;
-				echo "<br>Etiqueta 14 en cola (id $qid). Barras: " . htmlspecialchars((string)$codigo2_14) . ".<br>";
+				echo enqueue_zpl_path_html($qid, $printer14);
+				echo "<br>Barras: " . htmlspecialchars((string)$codigo2_14) . ".<br>";
 			} else {
 				echo "<br>No se pudo encolar ZPL 14: " . mysqli_error($link) . "<br>";
 			}
@@ -491,8 +493,20 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	
   
 	 
-	$result_guardar_imagen = true;
-	echo "<br><strong>Copia local:</strong> no se inserto en isabel_label_print (MySQL produccion intacto). ZPL en label_layouts/queue/ si se encolo.<br>";
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
+	$printerLegacy = enqueue_zpl_resolve_printer($link, (string)$etiqueta_tipo, (string)$txt_codigo, '');
+	if ($etiqueta_tipo == '13' || $etiqueta_tipo == 13) {
+		echo "<br>Formato #13: impreso por IP, sin isabel_label_print.<br>";
+	} elseif (print_migrate_uses_new_queue($printerLegacy)) {
+		echo "<br>Impresora <strong>" . htmlspecialchars($printerLegacy) . "</strong> migrada: no se inserta en <code>isabel_label_print</code> (el legacy no debe imprimir esta etiqueta).<br>";
+	} else {
+		$result_guardar_imagen = mysqli_query($link, $query_insert_label);
+		if ($result_guardar_imagen) {
+			echo "<br>Encolado en <code>isabel_label_print</code> (servicio legacy). Impresora: " . htmlspecialchars($printerLegacy !== '' ? $printerLegacy : '(lbls/default)') . ".<br>";
+		} else {
+			echo "<br>Error al insertar isabel_label_print: " . htmlspecialchars(mysqli_error($link)) . "<br>";
+		}
+	}
  
     //file_put_contents('c:/printserver/'.$txt_codigo.$cant.$caducidad.'.jpg', $imagen);
  

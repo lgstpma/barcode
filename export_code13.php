@@ -49,8 +49,8 @@ file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'chica_gti13.zpl', $zpl);
 $printerGtin = 'GK420t_chica';
 $qid = enqueue_zpl($link, 'gtin', $itemid, $zpl, $printerGtin);
 if ($qid) {
-	echo '<br>GTIN chica en cola (id ' . (int)$qid . ', etiqueta=<strong>gtin</strong>). Impresora: ' . htmlspecialchars($printerGtin) . '.<br>';
-	echo 'Esto <strong>no</strong> es el formato #13 (ese va rotado por IP).<br>';
+	echo enqueue_zpl_path_html($qid, $printerGtin);
+	echo 'Etiqueta=<strong>gtin</strong>. Esto <strong>no</strong> es el formato #13 (ese va rotado por IP).<br>';
 } else {
 	echo '<br>No se pudo encolar GTIN: ' . htmlspecialchars(mysqli_error($link)) . '<br>';
 }

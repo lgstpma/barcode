@@ -14,7 +14,85 @@ $QUEUE_KEY = "barcode21";
 
 function ensure_zpl_queue($link)
 {
-	return true;
+	return ensure_zpl_queue_mysql($link);
+}
+
+function print_migrate_cfg_path()
+{
+	return __DIR__ . DIRECTORY_SEPARATOR . 'print_migrate.cfg';
+}
+
+/** Impresoras que van a isabel_zpl_queue + print_service_21 (una por linea en print_migrate.cfg). */
+function print_migrate_printers()
+{
+	static $list = null;
+	if ($list !== null) {
+		return $list;
+	}
+	$list = array();
+	$path = print_migrate_cfg_path();
+	if (!is_readable($path)) {
+		return $list;
+	}
+	$lines = file($path, FILE_IGNORE_NEW_LINES);
+	if (!is_array($lines)) {
+		return $list;
+	}
+	foreach ($lines as $line) {
+		$line = trim((string)$line);
+		if ($line === '' || $line[0] === '#') {
+			continue;
+		}
+		$list[] = $line;
+	}
+	return $list;
+}
+
+function print_migrate_uses_new_queue($printer)
+{
+	$p = trim((string)$printer);
+	if ($p === '') {
+		return false;
+	}
+	foreach (print_migrate_printers() as $name) {
+		if (strcasecmp($name, $p) === 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
+{
+	$etiqueta = (string)$etiqueta;
+	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin') {
+		return 'GK420t_chica';
+	}
+	if ($etiqueta === '5') {
+		return 'GK420t_grande';
+	}
+	if ($etiqueta === '13') {
+		if ($printer === '' || $printer === null) {
+			return 'IP';
+		}
+		return (string)$printer;
+	}
+	if ($printer === '' || $printer === null) {
+		return lookup_item_printer($link, $itemid);
+	}
+	return (string)$printer;
+}
+
+function enqueue_zpl_path_html($qid, $printer)
+{
+	$p = htmlspecialchars((string)$printer);
+	if (!$qid) {
+		return '';
+	}
+	if (print_migrate_uses_new_queue($printer)) {
+		return '<br>Encolado en MySQL <code>isabel_zpl_queue</code> (id ' . (int)$qid . ') → <strong>' . $p . '</strong>. Lo toma print_service_21.<br>';
+	}
+	return '<br>ZPL en archivo local (id ' . (int)$qid . '). Impresora <strong>' . $p . '</strong> no esta en print_migrate.cfg; el legacy sigue con <code>isabel_label_print</code>.<br>';
 }
 
 function ensure_zpl_queue_mysql($link)
@@ -75,26 +153,19 @@ function enqueue_zpl($link, $etiqueta, $itemid, $zpl, $printer = '')
 	}
 	$safe = preg_replace('/[^\w.-]/', '_', (string)$etiqueta . '_' . (string)$itemid . '_' . date('Ymd_His'));
 	@file_put_contents($dir . DIRECTORY_SEPARATOR . $safe . '.zpl', (string)$zpl);
-	return 1;
+
+	$printer = enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer);
+	if (!print_migrate_uses_new_queue($printer)) {
+		return 1;
+	}
+	return enqueue_zpl_mysql($link, $etiqueta, $itemid, $zpl, $printer);
 }
 
-function enqueue_zpl_mysql_disabled($link, $etiqueta, $itemid, $zpl, $printer = '')
+function enqueue_zpl_mysql($link, $etiqueta, $itemid, $zpl, $printer = '')
 {
 	ensure_zpl_queue($link);
 	$etiqueta = (string)$etiqueta;
-	// SoftShop / chica: siempre GK420t_chica; #5 mediana → GK420t_grande
-	// #13 va por IP (printer = IP:x.x.x.x); gtin = chica SoftShop
-	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin') {
-		$printer = 'GK420t_chica';
-	} elseif ($etiqueta === '5') {
-		$printer = 'GK420t_grande';
-	} elseif ($etiqueta === '13') {
-		if ($printer === '' || $printer === null) {
-			$printer = 'IP';
-		}
-	} elseif ($printer === '' || $printer === null) {
-		$printer = lookup_item_printer($link, $itemid);
-	}
+	$printer = enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer);
 	$st = mysqli_prepare($link, "INSERT INTO isabel_zpl_queue (etiqueta, itemid, printer, zpl, estado, created_at) VALUES (?, ?, ?, ?, 0, NOW())");
 	if (!$st) {
 		return false;
@@ -186,7 +257,16 @@ function zpl_queue_claim($link, $etiqIn, $worker, $limit = 20, $printerFilter = 
 			}
 		}
 		if (count($names) > 0) {
-			$where .= " AND (printer IN (" . implode(',', $names) . ") OR printer IS NULL OR printer='')";
+			$where .= " AND printer IN (" . implode(',', $names) . ")";
+		}
+	} else {
+		$migrated = print_migrate_printers();
+		if (count($migrated) > 0) {
+			$ex = array();
+			foreach ($migrated as $n) {
+				$ex[] = "'" . mysqli_real_escape_string($link, $n) . "'";
+			}
+			$where .= " AND (printer IS NULL OR printer='' OR printer NOT IN (" . implode(',', $ex) . "))";
 		}
 	}
 

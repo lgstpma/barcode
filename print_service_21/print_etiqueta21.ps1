@@ -6,16 +6,19 @@
 #   - Si esta PC no tiene la impresora del job, lo LIBERA para otro worker
 #   - Claims viejos (>5 min) vuelven a pendientes solos
 #
+# Migracion hibrida: print_migrate.cfg (impresoras del servicio NUEVO).
 # Prueba: config.local.ps1 + probar.bat
-# Produccion: install_tarea.bat (NO copia config.local.ps1)
+# Produccion: install_tarea.bat (copia print_migrate.cfg; no pisa config.local.ps1)
 
-$ApiUrl          = "http://winsrvr2012xamp/barcode4.0/api_print_21.php"
+# API de ESTA copia (start.bat en 8080). Alternativa IIS/XAMPP:
+# $ApiUrl = "http://winsrvr2012xamp/barcode4.0/api_print_21.php"
+$ApiUrl          = "http://127.0.0.1:8080/api_print_21.php"
 $LocalQueueDir   = ""
 $PrinterDefault  = "GK420t_chica"
 $PrinterForce    = ""
 $PrinterFilter   = ""
-# Solo toma jobs de estas impresoras (vacio = todas). Evita robar jobs de otras PCs.
-$AcceptPrinters  = "GK420t_chica,GK420t_3x1.25,GK420t_3x2,GK420t_grande,VirtualZPLPrinter_Sistemas"
+# Fallback si no hay print_migrate.cfg. El cfg (y luego config.local.ps1) lo pisan.
+$AcceptPrinters  = "GK420t_chica"
 $PrinterAliases  = @{}
 $SkipUncPrinters = $true
 $ShowPrinterList = $true
@@ -25,6 +28,25 @@ $WorkerId        = $env:COMPUTERNAME + "-zpl"
 $TempZpl         = Join-Path $env:TEMP ("etiqueta_zpl_" + $PID + ".zpl")
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$migrateCfg = Join-Path $scriptDir "print_migrate.cfg"
+if (-not (Test-Path $migrateCfg)) {
+    $parentDir = Split-Path $scriptDir -Parent
+    if ($parentDir) {
+        $migrateCfg = Join-Path $parentDir "print_migrate.cfg"
+    }
+}
+if (Test-Path $migrateCfg) {
+    $migNames = @()
+    foreach ($line in (Get-Content $migrateCfg)) {
+        $t = ([string]$line).Trim()
+        if ($t -eq "") { continue }
+        if ($t.StartsWith("#")) { continue }
+        $migNames += $t
+    }
+    if ($migNames.Count -gt 0) {
+        $AcceptPrinters = [string]::Join(",", $migNames)
+    }
+}
 $localCfg = Join-Path $scriptDir "config.local.ps1"
 if (Test-Path $localCfg) {
     . $localCfg
@@ -371,7 +393,7 @@ if ($LocalQueueDir -ne "") {
     Write-Log "Modo LOCAL (sin servidor): cola de archivos"
     Write-Log ("Carpeta cola: " + $LocalQueueDir)
 } elseif ($ApiUrl -ne "") {
-    Write-Log "Cola ZPL unificada (1/9/10/13/14/21): $ApiUrl"
+    Write-Log "Cola ZPL (migracion hibrida): $ApiUrl"
 } else {
     Write-Log "ERROR: configura LocalQueueDir (prueba) o ApiUrl (API)."
     exit 1

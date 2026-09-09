@@ -55,7 +55,32 @@ MySQL sigue siendo el remoto de `conections.php` (no hace falta MySQL local).
 
 - Generación ZPL formatos 1, 5, 9, 10, 13, 14, 21, GTIN
 - Cola local / `print_service_21`
+- Migración híbrida por impresora (`print_migrate.cfg`)
 - Editor JSON de layouts (`label_layouts/`)
+
+## Migración híbrida (impresora por impresora)
+
+La PC nueva usa `print_service_21` y MySQL `isabel_zpl_queue`. La PC vieja puede dejar el Label_Printserver / `isabel_label_print` hasta mover cada impresora.
+
+Control: archivo `print_migrate.cfg` (una impresora por linea).
+
+- **Listada** → el job va a `isabel_zpl_queue` y lo imprime el servicio nuevo. No se inserta en `isabel_label_print`.
+- **No listada** → no escribe la cola ZPL; se inserta `isabel_label_print` para el legacy.
+
+Inicio: `GK420t_chica` (formatos **1, 9, 21 y GTIN**). Cuando mueva `GK420t_grande` u otra, agregue el nombre en el cfg, haga pull, y vuelva a ejecutar `print_service_21\install_tarea.bat` como Administrador en la PC nueva.
+
+En la PC nueva: `start.bat` abierto (API `http://127.0.0.1:8080/api_print_21.php`) y la impresora chica instalada con el mismo nombre Windows (`GK420t_chica`).
+
+### Actualizar la otra PC (despues de push a GitHub)
+
+```bat
+cd C:\Servicios\barcode
+git pull --ff-only origin master
+```
+
+O GitHub Desktop: **Fetch origin** → **Pull origin**. O solo `start.bat` (hace pull automatico).
+
+Luego, si cambio el servicio de impresion: clic derecho `print_service_21\install_tarea.bat` → Ejecutar como administrador.
 
 ## Notas
 
