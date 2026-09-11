@@ -38,8 +38,39 @@ if not exist "%~dp0router.php" (
   exit /b 1
 )
 
+echo.
 echo ============================================
-echo  BARCODE - servidor (sin XAMPP)
+echo  BARCODE - arranque unificado
+echo ============================================
+echo  1^) Chequeo impresoras migradas + formatos
+echo  2^) Worker cola ZPL ^(print_service_21^)
+echo  3^) Servidor web en :%PORT%
+echo ============================================
+echo.
+
+"%PHP%" "%~dp0tools\check_migrate_printers.php"
+set "CHK=%ERRORLEVEL%"
+if not "%CHK%"=="0" (
+  echo.
+  echo [AVISO] Hay problemas con la impresora migrada.
+  echo Si acaba de conectar la Zebra, instalela como GK420t_chica y reabra start.bat.
+  echo.
+  choice /C SN /M "Continuar de todos modos (S=Si N=No)"
+  if errorlevel 2 exit /b 1
+  if errorlevel 1 goto :after_check
+)
+:after_check
+
+echo.
+if exist "%~dp0print_service_21\arrancar_worker.bat" (
+  call "%~dp0print_service_21\arrancar_worker.bat"
+) else (
+  echo [AVISO] Falta print_service_21\arrancar_worker.bat
+)
+
+echo.
+echo ============================================
+echo  Servidor web
 echo  En esta PC:  %LOCALURL%
 echo  Puerto:      %PORT%  (escucha en todas las IPs)
 echo  Carpeta:     %CD%
@@ -49,11 +80,10 @@ for /f "tokens=2 delims=:" %%J in ('ipconfig ^| findstr /i /c:"IPv4"') do (
   set "IP=!IP: =!"
   if not "!IP!"=="" echo    http://!IP!:%PORT%/
 )
-echo  Ctrl+C para detener
+echo  Ctrl+C detiene el web ^(el worker sigue en segundo plano^)
 echo ============================================
 echo.
-echo Si otra PC no entra, ejecute como Administrador:
-echo   tools\abrir_red_8080.bat
+echo Si otra PC no entra: tools\abrir_red_8080.bat ^(Admin, una vez^)
 echo.
 
 start "" "%LOCALURL%"

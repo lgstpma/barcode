@@ -46,10 +46,10 @@ Los `.bmp` de `printserver\` no van en GitHub (pesan mucho). Si esa PC imprime e
 
 ## Arranque rápido (esta PC)
 
-1. Doble clic en `start.bat`
+1. Doble clic en `start.bat` (hace todo: pull, chequeo Zebra + formatos, worker de cola, web)
 2. Se abre el navegador en `http://127.0.0.1:8080/`
 3. Otras PCs: `http://IP:8080/` (si el firewall bloquea, `tools\abrir_red_8080.bat` como Administrador)
-4. Para detener: Ctrl+C en la consola, o `stop.bat`
+4. Para detener el web: Ctrl+C en la consola, o `stop.bat` (el worker puede seguir en segundo plano)
 
 MySQL sigue siendo el remoto de `conections.php` (no hace falta MySQL local).
 
