@@ -17,7 +17,8 @@ Así se instala y se mantiene actualizado **por GitHub**, no con USB.
 5. Clone
 6. En esa carpeta, doble clic en `tools\install_php.bat` (una sola vez; baja PHP portable; necesita internet).
 7. Doble clic en `start.bat`
-8. Se abre `http://127.0.0.1:8080/`
+8. Se abre `http://127.0.0.1:8080/` en esa PC
+9. Desde otra PC de la red: `http://IP-DE-ESA-MAQUINA:8080/` (la consola de `start.bat` muestra la IP). Si no entra, una vez como Administrador: `tools\abrir_red_8080.bat`
 
 PHP **no** está en GitHub (`tools\php\` está en `.gitignore`). Por eso el paso 6 es obligatorio en cada PC nueva.
 
@@ -47,7 +48,8 @@ Los `.bmp` de `printserver\` no van en GitHub (pesan mucho). Si esa PC imprime e
 
 1. Doble clic en `start.bat`
 2. Se abre el navegador en `http://127.0.0.1:8080/`
-3. Para detener: Ctrl+C en la consola, o `stop.bat`
+3. Otras PCs: `http://IP:8080/` (si el firewall bloquea, `tools\abrir_red_8080.bat` como Administrador)
+4. Para detener: Ctrl+C en la consola, o `stop.bat`
 
 MySQL sigue siendo el remoto de `conections.php` (no hace falta MySQL local).
 

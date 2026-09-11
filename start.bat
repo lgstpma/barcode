@@ -1,10 +1,12 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "PHP=%~dp0tools\php\php.exe"
-set "HOST=127.0.0.1"
+REM 0.0.0.0 = accesible desde otras PCs de la red. El navegador local usa 127.0.0.1.
+set "HOST=0.0.0.0"
 set "PORT=8080"
+set "LOCALURL=http://127.0.0.1:%PORT%/"
 
 if exist "%~dp0tools\update_from_github.bat" (
   call "%~dp0tools\update_from_github.bat"
@@ -37,17 +39,25 @@ if not exist "%~dp0router.php" (
 )
 
 echo ============================================
-echo  BARCODE - servidor local (sin XAMPP)
-echo  URL: http://%HOST%:%PORT%/
-echo  Carpeta: %CD%
+echo  BARCODE - servidor (sin XAMPP)
+echo  En esta PC:  %LOCALURL%
+echo  Puerto:      %PORT%  (escucha en todas las IPs)
+echo  Carpeta:     %CD%
+echo  Desde otra PC:
+for /f "tokens=2 delims=:" %%J in ('ipconfig ^| findstr /i /c:"IPv4"') do (
+  set "IP=%%J"
+  set "IP=!IP: =!"
+  if not "!IP!"=="" echo    http://!IP!:%PORT%/
+)
 echo  Ctrl+C para detener
 echo ============================================
 echo.
+echo Si otra PC no entra, ejecute como Administrador:
+echo   tools\abrir_red_8080.bat
+echo.
 
-REM Abrir navegador
-start "" "http://%HOST%:%PORT%/"
+start "" "%LOCALURL%"
 
-REM Usar -t . (ya estamos en la carpeta) para evitar el bug de \" al final de %%~dp0
 "%PHP%" -c "%~dp0tools\php\php.ini" -S %HOST%:%PORT% -t . router.php
 set ERR=%ERRORLEVEL%
 if not "%ERR%"=="0" (
