@@ -103,7 +103,7 @@ function print_report_render($ctx)
 	if ($qid > 0) {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL encolado (Labelary)</p>';
 		echo '<img class="pr-preview-img" id="prPreviewImg" alt="Vista previa" src="preview_job_zpl.php?key=barcode21&amp;id=' . (int)$qid . '&amp;t=' . time() . '" onerror="this.style.display=\'none\';var e=document.getElementById(\'prPrevErr\');if(e)e.style.display=\'block\';">';
-		echo '<p id="prPrevErr" class="pr-notes" style="display:none">No se pudo renderizar la vista previa.</p></div>';
+		echo '<p id="prPrevErr" class="pr-notes" style="display:none">Vista previa online no disponible (esta PC no llega a Labelary). <b>No afecta la impresión</b> — revise el estado del job o Print Viewer.</p></div>';
 	} elseif ($zpl !== '') {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL generado</p>';
 		echo '<p class="pr-notes">Sin id de cola; vea ZPL abajo o Print Viewer.</p></div>';
