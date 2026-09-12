@@ -35,10 +35,58 @@ function migrate_printers_from_cfg($path)
 	return $list;
 }
 
-function windows_printers()
+function windows_wmic_bin()
+{
+	$candidates = array(
+		(isset($_SERVER['SystemRoot']) ? $_SERVER['SystemRoot'] : 'C:\\Windows') . '\\System32\\wbem\\wmic.exe',
+		'C:\\Windows\\System32\\wbem\\wmic.exe',
+		'wmic',
+	);
+	foreach ($candidates as $c) {
+		if ($c === 'wmic') {
+			return $c;
+		}
+		if (is_file($c)) {
+			return $c;
+		}
+	}
+	return 'wmic';
+}
+
+/** Lista impresoras via COM WMI (no necesita wmic en PATH). */
+function windows_printers_com()
 {
 	$out = array();
-	$cmd = 'wmic printer get Name,PortName,PrinterStatus,WorkOffline /FORMAT:CSV';
+	if (!class_exists('COM')) {
+		return $out;
+	}
+	try {
+		$locator = new COM('WbemScripting.SWbemLocator');
+		$svc = $locator->ConnectServer('.', 'root\\cimv2');
+		$printers = $svc->ExecQuery('SELECT Name,PortName,PrinterStatus,WorkOffline FROM Win32_Printer');
+		foreach ($printers as $p) {
+			$name = trim((string)$p->Name);
+			if ($name === '' || strpos($name, '\\\\') === 0) {
+				continue;
+			}
+			$out[$name] = array(
+				'port' => trim((string)$p->PortName),
+				'status' => (string)$p->PrinterStatus,
+				'offline' => ((bool)$p->WorkOffline) ? 'TRUE' : 'FALSE',
+			);
+		}
+	} catch (Exception $e) {
+		return array();
+	}
+	return $out;
+}
+
+function windows_printers_wmic()
+{
+	$out = array();
+	$wmic = windows_wmic_bin();
+	$cmd = '"' . $wmic . '" printer get Name,PortName,PrinterStatus,WorkOffline /FORMAT:CSV';
+	$lines = array();
 	exec($cmd, $lines);
 	foreach ($lines as $line) {
 		$line = trim($line);
@@ -49,7 +97,6 @@ function windows_printers()
 		if (count($parts) < 4) {
 			continue;
 		}
-		// CSV: Node,Name,PortName,PrinterStatus,WorkOffline  OR Name,PortName,...
 		$name = '';
 		$port = '';
 		$status = '';
@@ -75,6 +122,15 @@ function windows_printers()
 		);
 	}
 	return $out;
+}
+
+function windows_printers()
+{
+	$out = windows_printers_com();
+	if (count($out) > 0) {
+		return $out;
+	}
+	return windows_printers_wmic();
 }
 
 function status_label($code)
@@ -119,6 +175,11 @@ if (count($wanted) === 0) {
 }
 
 $installed = windows_printers();
+if (count($installed) === 0) {
+	echo "\nAVISO: no se pudo listar impresoras Windows (COM/wmic).\n";
+	echo "Revise que la Zebra este instalada como GK420t_chica.\n";
+}
+
 $fail = 0;
 
 foreach ($wanted as $prn) {

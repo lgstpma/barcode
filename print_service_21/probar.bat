@@ -9,5 +9,11 @@ echo  #10 #14 -^> impresora del job (lbls)
 echo.
 echo  Ctrl+C para parar. NO instala tarea.
 echo.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0print_etiqueta21.ps1"
+call "%~dp0..\tools\win_paths.bat"
+if not defined PSHEXE (
+  echo ERROR: no se encontro powershell.exe
+  pause
+  exit /b 1
+)
+"%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0print_etiqueta21.ps1"
 pause

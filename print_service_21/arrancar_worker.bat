@@ -1,8 +1,8 @@
 @echo off
 REM Arranca el worker de cola ZPL en esta sesion (ve impresoras USB en Win7).
-REM No requiere Admin. Si ya hay una instancia, no abre otra.
 setlocal
 cd /d "%~dp0"
+call "%~dp0..\tools\win_paths.bat"
 
 set "DST=%ProgramData%\BarcodeEtiqueta21"
 if not exist "%DST%" mkdir "%DST%" >nul 2>&1
@@ -15,10 +15,12 @@ if not exist "%DST%\config.local.ps1" (
 )
 
 REM Evitar duplicados
-wmic process where "CommandLine like '%%print_etiqueta21.ps1%%'" get ProcessId 2>nul | findstr /r "[0-9]" >nul
-if not errorlevel 1 (
-  echo  Worker print_service_21: ya estaba corriendo.
-  exit /b 0
+if defined WMICEXE (
+  "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" get ProcessId 2>nul | findstr /r "[0-9]" >nul
+  if not errorlevel 1 (
+    echo  Worker print_service_21: ya estaba corriendo.
+    exit /b 0
+  )
 )
 
 wscript.exe //B "%DST%\run_hidden.vbs"
