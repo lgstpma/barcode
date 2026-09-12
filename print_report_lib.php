@@ -88,6 +88,24 @@ function print_report_render($ctx)
 	echo '</article>';
 	echo '</section>';
 
+	echo '<section class="pr-card pr-preview-card">';
+	echo '<h2>Lo que salió / vista previa</h2>';
+	echo '<div class="pr-preview-grid">';
+	if ($qid > 0) {
+		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL encolado (Labelary)</p>';
+		echo '<img class="pr-preview-img" id="prPreviewImg" alt="Vista previa" src="preview_job_zpl.php?key=barcode21&amp;id=' . (int)$qid . '&amp;t=' . time() . '" onerror="this.style.display=\'none\';var e=document.getElementById(\'prPrevErr\');if(e)e.style.display=\'block\';">';
+		echo '<p id="prPrevErr" class="pr-notes" style="display:none">No se pudo renderizar la vista previa (red/Labelary).</p></div>';
+	} elseif ($zpl !== '') {
+		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL generado</p>';
+		echo '<p class="pr-notes">Job sin id de cola; abra el ZPL abajo o use Print Viewer.</p></div>';
+	}
+	echo '<div class="pr-preview-box"><p class="pr-preview-cap">Spooler Windows (proyecto viejo)</p>';
+	echo '<p class="pr-notes">El tool <code>print_viewer_zebra</code> mira <code>C:\\Windows\\System32\\spool\\PRINTERS</code> (archivos .SPL) y muestra lo que Windows mandó a la Zebra.</p>';
+	echo '<p class="pr-notes">En la impresora active: Propiedades → Avanzadas → <b>Conservar documentos impresos</b>.</p>';
+	echo '<p><a class="pr-btn pr-btn-ghost" href="http://127.0.0.1:8088/" target="_blank" rel="noopener">Abrir Print Viewer :8088</a></p>';
+	echo '<p class="pr-notes">Arranque: <code>print_viewer_zebra\\print_viewer\\ejecutar.bat</code></p>';
+	echo '</div></div></section>';
+
 	echo '<section class="pr-card pr-recent">';
 	echo '<h2>Últimos jobs en spooler' . ($printer !== '' ? (' · ' . $h($printer)) : '') . '</h2>';
 	echo '<div class="pr-table-wrap"><table class="pr-table" id="prRecent"><thead><tr>';

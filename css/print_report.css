@@ -196,3 +196,34 @@
   border: 1px solid #c5d0de;
 }
 .pr-btn-ghost:hover { background: #eef3f9; color: #163d6d; }
+
+.pr-preview-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 720px) {
+  .pr-preview-grid { grid-template-columns: 1fr; }
+}
+.pr-preview-cap {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pr-preview-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+}
+.pr-preview-img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  image-rendering: auto;
+}
