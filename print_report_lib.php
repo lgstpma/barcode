@@ -54,14 +54,7 @@ function print_report_render($ctx)
 	echo '</head><body class="pr-body">';
 
 	echo '<div class="pr-wrap pr-wrap-simple">';
-	echo '<header class="pr-header pr-header-simple">';
-	echo '<div><p class="pr-eyebrow">Etiqueta enviada</p>';
-	echo '<h1>' . $h($descrip !== '' ? $descrip : ('Código ' . $codigo)) . '</h1>';
-	echo '<p class="pr-sub">#' . $h($codigo) . ' · Formato ' . $h($tipo) . ' · Cant. ' . $h($cant) . '</p></div>';
-	echo '<div class="' . $badgeClass . '" id="prStatusBadge">' . $h($initialStatus) . '</div>';
-	echo '</header>';
-
-	echo '<form class="pr-actions pr-actions-main" method="post" action="index.php">';
+	echo '<form class="pr-actions" method="post" action="index.php">';
 	echo '<button type="submit" class="pr-btn">Nueva búsqueda</button>';
 	echo '<a class="pr-btn pr-btn-ghost" href="index.php">Inicio</a>';
 	echo '</form>';
@@ -69,6 +62,13 @@ function print_report_render($ctx)
 	echo '<details class="pr-card pr-tech pr-tech-block">';
 	echo '<summary>Detalle técnico</summary>';
 	echo '<div class="pr-tech-inner">';
+
+	echo '<header class="pr-header">';
+	echo '<div><p class="pr-eyebrow">Etiqueta enviada</p>';
+	echo '<h1>' . $h($descrip !== '' ? $descrip : ('Código ' . $codigo)) . '</h1>';
+	echo '<p class="pr-sub">#' . $h($codigo) . ' · Formato ' . $h($tipo) . ' · Cant. ' . $h($cant) . '</p></div>';
+	echo '<div class="' . $badgeClass . '" id="prStatusBadge">' . $h($initialStatus) . '</div>';
+	echo '</header>';
 
 	echo '<section class="pr-grid">';
 	echo '<article class="pr-subcard"><h2>Destino</h2>';

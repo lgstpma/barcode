@@ -199,19 +199,10 @@
 
 .pr-wrap-simple {
   max-width: 560px;
+  padding-top: 28px;
 }
-.pr-header-simple {
-  margin-bottom: 18px;
-}
-.pr-actions-main {
-  margin: 0 0 18px;
-  justify-content: stretch;
-}
-.pr-actions-main .pr-btn {
-  flex: 1;
-  text-align: center;
-  padding: 14px 16px;
-  font-size: 16px;
+.pr-wrap-simple > .pr-actions {
+  margin: 0 0 16px;
 }
 .pr-tech-block {
   margin-top: 8px;
@@ -232,6 +223,9 @@
 .pr-tech-block[open] > summary::before { content: "▾ "; }
 .pr-tech-inner {
   margin-top: 12px;
+}
+.pr-tech-inner .pr-header {
+  margin-bottom: 12px;
 }
 .pr-subcard {
   background: #fff;
