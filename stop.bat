@@ -1,8 +1,5 @@
 @echo off
-REM Detiene el servidor PHP en el puerto 8080 (BARCODE)
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080" ^| findstr "LISTENING"') do (
-  echo Cerrando PID %%a ...
-  taskkill /PID %%a /F >nul 2>&1
-)
+REM Detiene el servidor PHP y el worker de impresion BARCODE
+call "%~dp0tools\stop_barcode_runtime.bat"
 echo Listo.
 pause

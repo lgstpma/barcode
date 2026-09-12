@@ -2,6 +2,8 @@
 Thumbs.db
 Desktop.ini
 *.zpl.bak
+.barcode_deploy
+tools/.skip_update_once
 tools/php/
 print_service_21/config.local.ps1
 Label_Printserver/

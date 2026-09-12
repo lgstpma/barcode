@@ -1,0 +1,5 @@
+# PC de servicio / impresion.
+# Si este archivo existe como ".barcode_deploy", tools\auto_sync.bat
+# iguala la copia a origin/master (conserva print_ip_13.cfg),
+# y si hay update cierra start.bat/PHP/worker y los reinicia.
+# No crear en la PC de desarrollo.

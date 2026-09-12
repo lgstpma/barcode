@@ -22,13 +22,20 @@ Así se instala y se mantiene actualizado **por GitHub**, no con USB.
 
 PHP **no** está en GitHub (`tools\php\` está en `.gitignore`). Por eso el paso 6 es obligatorio en cada PC nueva.
 
-### Actualizar esa PC
+### Actualizar esa PC (rapido, sin pull a mano)
 
-`start.bat` hace **Pull automatico** al abrir (si hay internet y Git/GitHub Desktop).
+GitHub **no empuja** solo a las PCs: cada PC debe hacer pull. Para que sea automatico:
 
-La primera vez hay que traer ese cambio a mano: en GitHub Desktop, **Fetch origin** y **Pull origin**. Desde entonces, cada vez que abran `start.bat` se actualiza sola.
+1. En la PC de Servicios (`C:\Servicios\barcode`), una vez:
+   - Doble clic `tools\marcar_pc_servicio.bat` (crea `.barcode_deploy`)
+   - Clic derecho `tools\install_auto_sync.bat` → Ejecutar como administrador
+2. Desde entonces: usted hace **push** en la PC de desarrollo.
+3. En ~5 minutos la tarea `BarcodeAutoSync` detecta commits nuevos, **cierra** `start.bat` / PHP / worker, actualiza y **vuelve a abrir** `start.bat`. No hay que cerrar a mano.
+4. Log: `tools\auto_sync.log`
 
-Si el Pull automatico falla (sin red o cambios locales), el sistema arranca igual con lo que ya tiene.
+Sin la tarea: solo se actualiza al abrir `start.bat` (pull automatico).
+
+**No** cree `.barcode_deploy` en la PC donde edita codigo (`D:\GITHUB\BARCODE`).
 
 ### Red
 
@@ -75,14 +82,16 @@ En la PC nueva: `start.bat` abierto (API `http://127.0.0.1:8080/api_print_21.php
 
 ### Actualizar la otra PC (despues de push a GitHub)
 
+Si ya marco la PC con `tools\marcar_pc_servicio.bat` + `tools\install_auto_sync.bat`, **no hace falta pull a mano** (cada ~5 min).
+
+Si aun no:
+
 ```bat
 cd C:\Servicios\barcode
 git pull --ff-only origin master
 ```
 
-O GitHub Desktop: **Fetch origin** → **Pull origin**. O solo `start.bat` (hace pull automatico).
-
-Luego, si cambio el servicio de impresion: clic derecho `print_service_21\install_tarea.bat` → Ejecutar como administrador.
+O solo abra `start.bat`. Luego, si cambio el worker: `print_service_21\install_tarea.bat` (Admin) o deje que `arrancar_worker.bat` lo refresque al sincronizar.
 
 ## Notas
 
