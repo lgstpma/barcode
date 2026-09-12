@@ -1,2 +1,3 @@
-flask
-pillow
+# Ya no se usa (visor es stdlib). Se deja por referencia.
+# flask
+# pillow
