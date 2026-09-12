@@ -42,18 +42,38 @@ echo.
 echo ============================================
 echo  BARCODE - arranque unificado
 echo ============================================
-echo  1^) Chequeo impresoras migradas + formatos
-echo  2^) Worker cola ZPL ^(print_service_21^)
-echo  3^) Servidor web en :%PORT%
+echo  1^) Zebras: prueba + detectar formato + renombrar
+echo  2^) Chequeo impresoras migradas
+echo  3^) Worker cola ZPL ^(print_service_21^)
+echo  4^) Servidor web en :%PORT%
 echo ============================================
 echo.
 
+REM Si falta GK420t_chica ^(u otra migrada^), ofrecer setup automatico
+set "NEED_ZEBRA=0"
+"%PHP%" "%~dp0tools\check_migrate_printers.php" >nul 2>&1
+if errorlevel 1 set "NEED_ZEBRA=1"
+
+if "%NEED_ZEBRA%"=="1" (
+  echo Falta alguna impresora migrada con el nombre BARCODE.
+  choice /C SN /M "Sondear Zebras, imprimir prueba y renombrar ahora"
+  if not errorlevel 2 (
+    call "%~dp0tools\setup_zebra_printers.bat"
+  )
+) else (
+  choice /C SN /D N /T 8 /M "Probar/renombrar Zebras otra vez ^(Enter=No en 8s^)"
+  if not errorlevel 2 (
+    if errorlevel 1 call "%~dp0tools\setup_zebra_printers.bat"
+  )
+)
+
+echo.
 "%PHP%" "%~dp0tools\check_migrate_printers.php"
 set "CHK=%ERRORLEVEL%"
 if not "%CHK%"=="0" (
   echo.
-  echo [AVISO] Hay problemas con la impresora migrada.
-  echo Si acaba de conectar la Zebra, instalela como GK420t_chica y reabra start.bat.
+  echo [AVISO] Sigue faltando impresora migrada con el nombre correcto.
+  echo Ejecute tools\setup_zebra_printers.bat o renombre manual a GK420t_chica.
   echo.
   choice /C SN /M "Continuar de todos modos (S=Si N=No)"
   if errorlevel 2 exit /b 1

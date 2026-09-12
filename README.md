@@ -53,10 +53,12 @@ Los `.bmp` de `printserver\` no van en GitHub (pesan mucho). Si esa PC imprime e
 
 ## Arranque rápido (esta PC)
 
-1. Doble clic en `start.bat` (hace todo: pull, chequeo Zebra + formatos, worker de cola, web)
+1. Doble clic en `start.bat` (pull, opcional setup Zebras con prueba/renombre, chequeo formatos, worker, web)
 2. Se abre el navegador en `http://127.0.0.1:8080/`
 3. Otras PCs: `http://IP:8080/` (si el firewall bloquea, `tools\abrir_red_8080.bat` como Administrador)
 4. Para detener el web: Ctrl+C en la consola, o `stop.bat` (el worker puede seguir en segundo plano)
+
+Si falta `GK420t_chica` (u otra migrada), `start.bat` ofrece sondear Zebras: imprime una etiqueta de prueba, detecta el tamaño de media (TCP/SGD) o pregunta el formato, y renombra a `GK420t_chica` / `GK420t_grande` / `GK420t_3x1.25` / `GK420t_3x2`. Tambien: `tools\setup_zebra_printers.bat`.
 
 MySQL sigue siendo el remoto de `conections.php` (no hace falta MySQL local).
 
