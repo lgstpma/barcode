@@ -101,7 +101,8 @@ if ($method === 'POST' || $estadoReq === 'impreso' || $estadoReq === 'error' || 
 	}
 
 	$nuevo = ($estadoReq === 'error') ? 2 : 1;
-	$st = mysqli_prepare($link, "UPDATE isabel_zpl_queue SET estado=?, printed_at=NOW(), locked_by=NULL, locked_at=NULL WHERE id=? AND etiqueta IN ($etiqIn) AND estado IN (0,3)");
+	// No filtrar por etiqueta: el job ya está en cola; si no, se queda en "enviando" eterno.
+	$st = mysqli_prepare($link, "UPDATE isabel_zpl_queue SET estado=?, printed_at=NOW(), locked_by=NULL, locked_at=NULL WHERE id=? AND estado IN (0,3)");
 	mysqli_stmt_bind_param($st, "ii", $nuevo, $id);
 	mysqli_stmt_execute($st);
 	$n = mysqli_stmt_affected_rows($st);

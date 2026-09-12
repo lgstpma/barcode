@@ -1,5 +1,5 @@
 @echo off
-REM Arranca el worker de cola ZPL en esta sesion (ve impresoras USB en Win7).
+REM Arranca (o reinicia) el worker de cola ZPL en esta sesion (ve impresoras USB en Win7).
 setlocal
 cd /d "%~dp0"
 call "%~dp0..\tools\win_paths.bat"
@@ -14,15 +14,13 @@ if not exist "%DST%\config.local.ps1" (
   if exist "%~dp0config.example.ps1" copy /Y "%~dp0config.example.ps1" "%DST%\config.local.ps1" >nul
 )
 
-REM Evitar duplicados
+REM Matar worker viejo para cargar script nuevo (evita quedar en estado 3 eterno)
 if defined WMICEXE (
-  "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" get ProcessId 2>nul | findstr /r "[0-9]" >nul
-  if not errorlevel 1 (
-    echo  Worker print_service_21: ya estaba corriendo.
-    exit /b 0
-  )
+  "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" call terminate >nul 2>&1
 )
+ping -n 2 127.0.0.1 >nul
 
 wscript.exe //B "%DST%\run_hidden.vbs"
-echo  Worker print_service_21: iniciado (cola MySQL / GK420t_chica).
+echo  Worker print_service_21: reiniciado (cola MySQL / GK420t_chica).
+echo  Log: %DST%\print_service.log
 exit /b 0

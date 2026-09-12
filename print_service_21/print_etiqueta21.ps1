@@ -225,12 +225,16 @@ function Find-WindowsPrinterName([string]$hint) {
 
 function Test-LocalPrinterExists([string]$name) {
     if ([string]::IsNullOrEmpty($name)) { return $false }
+    # Get-Printer no existe en Win7 / PS2; usar WMI como respaldo.
     try {
         $null = Get-Printer -Name $name -ErrorAction Stop
         return $true
-    } catch {
-        return $false
-    }
+    } catch {}
+    try {
+        $p = Get-WmiObject -Class Win32_Printer -Filter ("Name='" + $name.Replace("'", "''") + "'") -ErrorAction SilentlyContinue
+        if ($p) { return $true }
+    } catch {}
+    return $false
 }
 
 function Get-TargetPrinter([string]$jobPrinter) {
@@ -248,11 +252,17 @@ function Get-TargetPrinter([string]$jobPrinter) {
 }
 
 function Send-ZplTcp([string]$hostAddr, [int]$port, [string]$zpl) {
+    $client = $null
     try {
         $client = New-Object System.Net.Sockets.TcpClient
+        $ar = $client.BeginConnect($hostAddr, $port, $null, $null)
+        if (-not $ar.AsyncWaitHandle.WaitOne(3000, $false)) {
+            try { $client.Close() } catch {}
+            return ("TCP failed {0}:{1} err=connect timeout" -f $hostAddr, $port)
+        }
+        $client.EndConnect($ar)
         $client.ReceiveTimeout = 3000
         $client.SendTimeout = 3000
-        $client.Connect($hostAddr, $port)
         $stream = $client.GetStream()
         $bytes = [System.Text.Encoding]::ASCII.GetBytes($zpl)
         $stream.Write($bytes, 0, $bytes.Length)
@@ -261,6 +271,7 @@ function Send-ZplTcp([string]$hostAddr, [int]$port, [string]$zpl) {
         $client.Close()
         return ("OK tcp={0}:{1} written={2}" -f $hostAddr, $port, $bytes.Length)
     } catch {
+        if ($client) { try { $client.Close() } catch {} }
         return ("TCP failed {0}:{1} err={2}" -f $hostAddr, $port, $_.Exception.Message)
     }
 }
@@ -334,6 +345,26 @@ function Process-LocalQueue {
     }
 }
 
+function Post-JobEstado([string]$base, $jobId, [string]$estado) {
+    $postUrl = $base + "?key=" + [System.Uri]::EscapeDataString($script:ApiKey)
+    $body = "{`"id`":$jobId,`"estado`":`"$estado`",`"worker`":`"" + $script:WorkerId.Replace('"','') + "`"}"
+    $attempt = 0
+    while ($attempt -lt 3) {
+        $attempt++
+        try {
+            $mark = Invoke-PrintApiLegacy -Url $postUrl -Method "POST" -Body $body
+            if ([bool](Get-DictValue $mark "ok")) {
+                return $true
+            }
+            Write-Log ("POST estado=$estado id=$jobId intento=$attempt ok=false")
+        } catch {
+            Write-Log ("POST estado=$estado id=$jobId intento=$attempt err=" + $_.Exception.Message)
+        }
+        Start-Sleep -Milliseconds 400
+    }
+    return $false
+}
+
 function Process-RemoteApi {
     $base = Get-ApiBaseUrl
     $pendingUrl = $base + "?key=" + [System.Uri]::EscapeDataString($script:ApiKey)
@@ -344,7 +375,12 @@ function Process-RemoteApi {
     } elseif ($script:AcceptPrinters -ne "") {
         $pendingUrl = $pendingUrl + "&printers=" + [System.Uri]::EscapeDataString($script:AcceptPrinters)
     }
-    $data = Invoke-PrintApiLegacy -Url $pendingUrl -Method "GET"
+    try {
+        $data = Invoke-PrintApiLegacy -Url $pendingUrl -Method "GET"
+    } catch {
+        Write-Log ("API claim fallo: " + $_.Exception.Message)
+        return
+    }
     $ok = [bool](Get-DictValue $data "ok")
     $count = [int](Get-DictValue $data "count")
     if (-not $ok) {
@@ -359,32 +395,33 @@ function Process-RemoteApi {
         $etiq = [string](Get-DictValue $job "etiqueta")
         $printer = [string](Get-DictValue $job "printer")
         $zpl = [string](Get-DictValue $job "zpl")
+        # Find-WindowsPrinterName ya valida (WMI en Win7). No exigir Get-Printer.
         $winName = Get-TargetPrinter $printer
-        if (-not $winName -or -not (Test-LocalPrinterExists $winName)) {
+        if (-not $winName) {
             Write-Log ("Liberar id={0} etiq={1}: impresora '{2}' no esta en esta PC" -f $jobId, $etiq, $printer)
-            $relBody = "{`"id`":$jobId,`"estado`":`"liberar`",`"worker`":`"" + $script:WorkerId.Replace('"','') + "`"}"
-            try { Invoke-PrintApiLegacy -Url $base -Method "POST" -Body $relBody | Out-Null } catch {}
+            [void](Post-JobEstado $base $jobId "liberar")
             continue
         }
         Write-Log ("Tomado id={0} etiq={1} item={2} jsonPrinter={3} winPrinter={4}" -f $jobId, $etiq, $itemId, $printer, $winName)
         try {
             [System.IO.File]::WriteAllText($script:TempZpl, $zpl, [System.Text.Encoding]::ASCII)
         } catch {}
-        $result = Send-ZplRaw $winName $zpl
+        $result = "ERROR"
+        try {
+            $result = Send-ZplRaw $winName $zpl
+        } catch {
+            $result = ("EXC " + $_.Exception.Message)
+        }
         Write-Log ("RAW result: " + $result)
         if ($result -notlike "OK*") {
             Write-Log "ERROR de impresora RAW, se marca error"
-            $errBody = "{`"id`":$jobId,`"estado`":`"error`",`"worker`":`"" + $script:WorkerId.Replace('"','') + "`"}"
-            try { Invoke-PrintApiLegacy -Url $base -Method "POST" -Body $errBody | Out-Null } catch {}
+            [void](Post-JobEstado $base $jobId "error")
             continue
         }
-        $okBody = "{`"id`":$jobId,`"estado`":`"impreso`",`"worker`":`"" + $script:WorkerId.Replace('"','') + "`"}"
-        $mark = Invoke-PrintApiLegacy -Url $base -Method "POST" -Body $okBody
-        $markOk = [bool](Get-DictValue $mark "ok")
-        if ($markOk) {
+        if (Post-JobEstado $base $jobId "impreso") {
             Write-Log ("Marcado impreso id={0}" -f $jobId)
         } else {
-            Write-Log ("No se pudo marcar impreso id={0}" -f $jobId)
+            Write-Log ("No se pudo marcar impreso id={0} (reintento en siguiente ciclo)" -f $jobId)
         }
     }
 }

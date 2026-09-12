@@ -213,11 +213,11 @@ function zpl_queue_sql_in_etiquetas($list)
 }
 
 /** Libera claims viejos (servicio caído) para que otro worker los tome. */
-function zpl_queue_release_stale($link, $minutes = 5)
+function zpl_queue_release_stale($link, $minutes = 2)
 {
 	$m = (int)$minutes;
 	if ($m < 1) {
-		$m = 5;
+		$m = 2;
 	}
 	mysqli_query($link, "UPDATE isabel_zpl_queue SET estado=0, locked_by=NULL, locked_at=NULL WHERE estado=3 AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL $m MINUTE))");
 }
@@ -231,7 +231,7 @@ function zpl_queue_release_stale($link, $minutes = 5)
 function zpl_queue_claim($link, $etiqIn, $worker, $limit = 20, $printerFilter = '', $printersCsv = '')
 {
 	ensure_zpl_queue($link);
-	zpl_queue_release_stale($link, 5);
+	zpl_queue_release_stale($link, 2);
 	$worker = substr(preg_replace('/[^\w.\-:@]/', '', (string)$worker), 0, 64);
 	if ($worker === '') {
 		$worker = 'worker';
@@ -272,9 +272,14 @@ function zpl_queue_claim($link, $etiqIn, $worker, $limit = 20, $printerFilter = 
 
 	$sql = "UPDATE isabel_zpl_queue SET estado=3, locked_by='$wEsc', locked_at=NOW() WHERE $where ORDER BY id ASC LIMIT $limit";
 	mysqli_query($link, $sql);
+	$claimed = (int)mysqli_affected_rows($link);
+	if ($claimed < 1) {
+		return array();
+	}
 
+	// Solo los que acabamos de tomar (no reenviar claims viejos del mismo worker).
 	$jobs = array();
-	$res = mysqli_query($link, "SELECT id, itemid, etiqueta, printer, zpl, created_at FROM isabel_zpl_queue WHERE estado=3 AND locked_by='$wEsc' ORDER BY id ASC");
+	$res = mysqli_query($link, "SELECT id, itemid, etiqueta, printer, zpl, created_at FROM isabel_zpl_queue WHERE estado=3 AND locked_by='$wEsc' ORDER BY locked_at DESC, id ASC LIMIT $claimed");
 	if ($res) {
 		while ($row = mysqli_fetch_assoc($res)) {
 			$jobs[] = $row;
