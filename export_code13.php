@@ -6,6 +6,7 @@
 include("conections.php");
 include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_gtin.php');
 include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
+include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
 
 $link = conec_mysql();
 
@@ -48,15 +49,19 @@ file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'chica_gti13.zpl', $zpl);
 
 $printerGtin = 'GK420t_chica';
 $qid = enqueue_zpl($link, 'gtin', $itemid, $zpl, $printerGtin);
-if ($qid) {
-	echo enqueue_zpl_path_html($qid, $printerGtin);
-	echo 'Etiqueta=<strong>gtin</strong>. Esto <strong>no</strong> es el formato #13 (ese va rotado por IP).<br>';
-} else {
-	echo '<br>No se pudo encolar GTIN: ' . htmlspecialchars(mysqli_error($link)) . '<br>';
-}
+$notes = 'GTIN chica (no es formato #13).';
+$path = print_migrate_uses_new_queue($printerGtin) ? 'mysql' : 'legacy';
+$title = trim($descrip . ' ' . $descrip2);
 
-echo '<br><pre>' . htmlspecialchars(substr($zpl, 0, 500)) . (strlen($zpl) > 500 ? '...' : '') . '</pre>';
-?>
-<form name="form1" method="post" action="index.php" target="_self">
-<input type="submit" value="Nueva Busqueda">
-</form>
+print_report_render(array(
+	'codigo' => (string)$itemid,
+	'descrip' => $title !== '' ? $title : ('GTIN ' . $codigo2),
+	'tipo' => 'gtin',
+	'cant' => (string)$cant,
+	'printer' => $printerGtin,
+	'qid' => $qid ? (int)$qid : 0,
+	'path' => $path,
+	'notes' => $notes,
+	'zpl' => $zpl,
+	'raw_log' => '',
+));

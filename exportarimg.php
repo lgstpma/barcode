@@ -15,8 +15,9 @@ if (empty($_POST['txt_codigo']) || empty($_POST['cant'])) {
 }
 	
 $txt_codigo =  isset($_POST['txt_codigo']) ? $_POST['txt_codigo'] : '';
-echo $txt_codigo ;
 //$txt_codigo2 =  $_POST['txt_codigo2'];  
+ob_start();
+echo $txt_codigo ;
 
 $cant =  isset($_POST['cant']) ? $_POST['cant'] : 0;  
 
@@ -495,25 +496,65 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	 
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
 	$printerLegacy = enqueue_zpl_resolve_printer($link, (string)$etiqueta_tipo, (string)$txt_codigo, '');
+	$report_path = 'legacy';
+	$report_notes = '';
+	$report_qid = 0;
+	$report_printer = $printerLegacy;
+	$report_zpl = '';
+
 	if ($etiqueta_tipo == '13' || $etiqueta_tipo == 13) {
 		echo "<br>Formato #13: impreso por IP, sin isabel_label_print.<br>";
+		$report_path = 'ip';
+		$report_printer = 'IP:' . (function_exists('etiqueta13_printer_ip') ? etiqueta13_printer_ip() : '');
+		$report_notes = 'Envío directo TCP :9100';
+		if (isset($qid) && $qid) {
+			$report_qid = (int)$qid;
+		}
+		if (isset($zpl)) {
+			$report_zpl = (string)$zpl;
+		}
 	} elseif (print_migrate_uses_new_queue($printerLegacy)) {
 		echo "<br>Impresora <strong>" . htmlspecialchars($printerLegacy) . "</strong> migrada: no se inserta en <code>isabel_label_print</code> (el legacy no debe imprimir esta etiqueta).<br>";
+		$report_path = 'mysql';
+		$report_notes = 'Cola unificada isabel_zpl_queue → print_service_21';
+		if (isset($qid) && $qid) {
+			$report_qid = (int)$qid;
+		}
+		if (isset($zpl)) {
+			$report_zpl = (string)$zpl;
+		}
 	} else {
 		$result_guardar_imagen = mysqli_query($link, $query_insert_label);
 		if ($result_guardar_imagen) {
 			echo "<br>Encolado en <code>isabel_label_print</code> (servicio legacy). Impresora: " . htmlspecialchars($printerLegacy !== '' ? $printerLegacy : '(lbls/default)') . ".<br>";
+			$report_notes = 'Legacy Label_Printserver / isabel_label_print';
 		} else {
 			echo "<br>Error al insertar isabel_label_print: " . htmlspecialchars(mysqli_error($link)) . "<br>";
+			$report_notes = 'Error al encolar legacy';
+		}
+		if (isset($zpl)) {
+			$report_zpl = (string)$zpl;
 		}
 	}
- 
-    //file_put_contents('c:/printserver/'.$txt_codigo.$cant.$caducidad.'.jpg', $imagen);
- 
-?>
 
-<form name="form1" method="post" action= "index.php"  target="_self">
-
-<input  type=submit  value="Nueva Busqueda" >
-
-</form>
+	$raw_log = ob_get_clean();
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
+	$descripR = '';
+	if (isset($row_items_info['descrip3']) && trim((string)$row_items_info['descrip3']) !== '') {
+		$descripR = $row_items_info['descrip3'];
+	} elseif (isset($row_items_info['descrip'])) {
+		$descripR = $row_items_info['descrip'];
+	}
+	print_report_render(array(
+		'codigo' => (string)$txt_codigo,
+		'descrip' => (string)$descripR,
+		'tipo' => (string)$etiqueta_tipo,
+		'cant' => (string)$cant,
+		'printer' => (string)$report_printer,
+		'qid' => (int)$report_qid,
+		'path' => $report_path,
+		'notes' => $report_notes,
+		'zpl' => $report_zpl,
+		'raw_log' => $raw_log,
+	));
+	exit;
