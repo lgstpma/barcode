@@ -20,7 +20,14 @@ if not exist ".barcode_deploy" (
 
 set "TASK=BarcodeAutoSync"
 set "HERE=%CD%"
-set "TR=cmd.exe /c \"cd /d \"%HERE%\" ^&^& call tools\auto_sync.bat\""
+REM Ruta absoluta simple (sin comillas anidadas; auto_sync.bat hace cd a la raiz)
+set "TR=%HERE%\tools\auto_sync.bat"
+
+if not exist "%TR%" (
+  echo ERROR: no existe %TR%
+  pause
+  exit /b 1
+)
 
 schtasks /Delete /TN "%TASK%" /F >nul 2>&1
 schtasks /Create /TN "%TASK%" /SC MINUTE /MO 5 /RL HIGHEST /F /TR "%TR%"
@@ -32,7 +39,8 @@ if errorlevel 1 (
 
 echo.
 echo Listo. Tarea: %TASK% cada 5 minutos.
-echo Log: tools\auto_sync.log
+echo Comando: %TR%
+echo Log: %HERE%\tools\auto_sync.log
 echo.
 echo Probar ahora ^(si hay update cierra y reinicia^):
 call "%HERE%\tools\auto_sync.bat"
