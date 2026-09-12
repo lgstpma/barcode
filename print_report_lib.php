@@ -1,6 +1,6 @@
 <?php
 /**
- * Reporte visual de impresión + live status de isabel_zpl_queue (spooler).
+ * Confirmación de impresión (vista operativa) + detalle técnico plegable.
  */
 function print_report_estado_txt($est)
 {
@@ -43,26 +43,35 @@ function print_report_render($ctx)
 		$pathLabel = 'Envío directo por IP';
 	}
 
-	$initialStatus = $qid > 0 ? 'Consultando spooler…' : ($path === 'ip' ? 'Enviado por IP' : 'Sin job en cola ZPL');
+	$initialStatus = $qid > 0 ? 'Enviando…' : ($path === 'ip' ? 'Enviado' : 'Enviado');
 	$badgeClass = $qid > 0 ? 'pr-badge pr-badge-wait' : 'pr-badge pr-badge-ok';
 
 	echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-	echo '<title>Reporte impresión ' . $h($codigo) . '</title>';
+	echo '<title>Impresión ' . $h($codigo) . '</title>';
 	echo '<link rel="stylesheet" href="css/ui_modern.css">';
 	echo '<link rel="stylesheet" href="css/print_report.css">';
 	echo '</head><body class="pr-body">';
 
-	echo '<div class="pr-wrap">';
-	echo '<header class="pr-header">';
-	echo '<div><p class="pr-eyebrow">Reporte de impresión</p>';
+	echo '<div class="pr-wrap pr-wrap-simple">';
+	echo '<header class="pr-header pr-header-simple">';
+	echo '<div><p class="pr-eyebrow">Etiqueta enviada</p>';
 	echo '<h1>' . $h($descrip !== '' ? $descrip : ('Código ' . $codigo)) . '</h1>';
 	echo '<p class="pr-sub">#' . $h($codigo) . ' · Formato ' . $h($tipo) . ' · Cant. ' . $h($cant) . '</p></div>';
 	echo '<div class="' . $badgeClass . '" id="prStatusBadge">' . $h($initialStatus) . '</div>';
 	echo '</header>';
 
+	echo '<form class="pr-actions pr-actions-main" method="post" action="index.php">';
+	echo '<button type="submit" class="pr-btn">Nueva búsqueda</button>';
+	echo '<a class="pr-btn pr-btn-ghost" href="index.php">Inicio</a>';
+	echo '</form>';
+
+	echo '<details class="pr-card pr-tech pr-tech-block">';
+	echo '<summary>Detalle técnico</summary>';
+	echo '<div class="pr-tech-inner">';
+
 	echo '<section class="pr-grid">';
-	echo '<article class="pr-card"><h2>Destino</h2>';
+	echo '<article class="pr-subcard"><h2>Destino</h2>';
 	echo '<dl class="pr-dl">';
 	echo '<div><dt>Impresora</dt><dd>' . $h($printer !== '' ? $printer : '—') . '</dd></div>';
 	echo '<div><dt>Ruta</dt><dd>' . $h($pathLabel) . '</dd></div>';
@@ -71,10 +80,10 @@ function print_report_render($ctx)
 	}
 	echo '</dl></article>';
 
-	echo '<article class="pr-card"><h2>Spooler</h2>';
+	echo '<article class="pr-subcard"><h2>Spooler</h2>';
 	echo '<p class="pr-spool-line" id="prSpoolLine">';
 	if ($qid > 0) {
-		echo 'Seguimiento en vivo de <code>isabel_zpl_queue</code> (pendiente → enviado → impreso).';
+		echo 'Seguimiento en vivo de <code>isabel_zpl_queue</code>.';
 	} else {
 		echo 'Este trabajo no pasó por la cola ZPL unificada.';
 	}
@@ -88,44 +97,38 @@ function print_report_render($ctx)
 	echo '</article>';
 	echo '</section>';
 
-	echo '<section class="pr-card pr-preview-card">';
-	echo '<h2>Lo que salió / vista previa</h2>';
+	echo '<section class="pr-subcard pr-preview-card">';
+	echo '<h2>Vista previa / spooler Windows</h2>';
 	echo '<div class="pr-preview-grid">';
 	if ($qid > 0) {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL encolado (Labelary)</p>';
 		echo '<img class="pr-preview-img" id="prPreviewImg" alt="Vista previa" src="preview_job_zpl.php?key=barcode21&amp;id=' . (int)$qid . '&amp;t=' . time() . '" onerror="this.style.display=\'none\';var e=document.getElementById(\'prPrevErr\');if(e)e.style.display=\'block\';">';
-		echo '<p id="prPrevErr" class="pr-notes" style="display:none">No se pudo renderizar la vista previa (red/Labelary).</p></div>';
+		echo '<p id="prPrevErr" class="pr-notes" style="display:none">No se pudo renderizar la vista previa.</p></div>';
 	} elseif ($zpl !== '') {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL generado</p>';
-		echo '<p class="pr-notes">Job sin id de cola; abra el ZPL abajo o use Print Viewer.</p></div>';
+		echo '<p class="pr-notes">Sin id de cola; vea ZPL abajo o Print Viewer.</p></div>';
 	}
-	echo '<div class="pr-preview-box"><p class="pr-preview-cap">Spooler Windows (proyecto viejo)</p>';
-	echo '<p class="pr-notes">El tool <code>print_viewer_zebra</code> mira <code>C:\\Windows\\System32\\spool\\PRINTERS</code> (archivos .SPL) y muestra lo que Windows mandó a la Zebra.</p>';
-	echo '<p class="pr-notes">En la impresora active: Propiedades → Avanzadas → <b>Conservar documentos impresos</b>.</p>';
-	echo '<p><a class="pr-btn pr-btn-ghost" href="http://127.0.0.1:8088/" target="_blank" rel="noopener">Abrir Print Viewer :8088</a></p>';
-	echo '<p class="pr-notes">Arranque: <code>print_viewer_zebra\\print_viewer\\ejecutar.bat</code></p>';
+	echo '<div class="pr-preview-box"><p class="pr-preview-cap">Print Viewer</p>';
+	echo '<p class="pr-notes">Spool Windows: <code>print_viewer_zebra</code> → <a href="http://127.0.0.1:8088/" target="_blank" rel="noopener">:8088</a></p>';
 	echo '</div></div></section>';
 
-	echo '<section class="pr-card pr-recent">';
-	echo '<h2>Últimos jobs en spooler' . ($printer !== '' ? (' · ' . $h($printer)) : '') . '</h2>';
+	echo '<section class="pr-subcard pr-recent">';
+	echo '<h2>Últimos jobs' . ($printer !== '' ? (' · ' . $h($printer)) : '') . '</h2>';
 	echo '<div class="pr-table-wrap"><table class="pr-table" id="prRecent"><thead><tr>';
 	echo '<th>ID</th><th>Item</th><th>Fmt</th><th>Estado</th><th>Hora</th>';
 	echo '</tr></thead><tbody><tr><td colspan="5">Cargando…</td></tr></tbody></table></div>';
 	echo '</section>';
 
 	if ($zpl !== '') {
-		echo '<details class="pr-card pr-tech"><summary>ZPL generado</summary>';
+		echo '<details class="pr-nested"><summary>ZPL generado</summary>';
 		echo '<pre class="pr-pre">' . $h($zpl) . '</pre></details>';
 	}
 	if (trim($raw) !== '') {
-		echo '<details class="pr-card pr-tech"><summary>Log técnico</summary>';
+		echo '<details class="pr-nested"><summary>Log técnico</summary>';
 		echo '<pre class="pr-pre">' . $h($raw) . '</pre></details>';
 	}
 
-	echo '<form class="pr-actions" method="post" action="index.php">';
-	echo '<button type="submit" class="pr-btn">Nueva búsqueda</button>';
-	echo '<a class="pr-btn pr-btn-ghost" href="index.php">Inicio</a>';
-	echo '</form>';
+	echo '</div></details>';
 	echo '</div>';
 
 	$qidJs = (int)$qid;
@@ -157,7 +160,7 @@ function print_report_render($ctx)
   function paintJob(job){
     if(!job) return;
     var txt = job.estado_txt || "";
-    var map = {pendiente:"En cola",en_spooler:"Enviando a impresora",impreso:"Impreso",error:"Error"};
+    var map = {pendiente:"En cola",en_spooler:"Enviando…",impreso:"Impreso",error:"Error"};
     var label = map[txt] || txt;
     badge.className = "pr-badge";
     if(job.estado===1){ badge.className += " pr-badge-ok"; done = true; }
@@ -166,6 +169,7 @@ function print_report_render($ctx)
     else { badge.className += " pr-badge-wait"; }
     badge.textContent = label;
     setSteps(job.estado);
+    if(!line) return;
     var extra = "";
     if(job.locked_by) extra = " · worker " + job.locked_by;
     if(job.printed_at) extra += " · " + job.printed_at;
