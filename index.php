@@ -1,10 +1,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es">
+  <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <script>
+  (function () {
+    var w = Math.min(screen.width || 9999, window.innerWidth || 9999);
+    if (w <= 820) document.documentElement.className += ' is-phone';
+  })();
+  </script>
   <?php
 
   include("conections.php");
   $link = conec_mysql();
   
-  
+   
 $alphabet = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
 
 $action   =  @$action = $_GET['action']; 
@@ -695,7 +704,7 @@ document.body.insertAdjacentHTML('beforeend', createTable(data));
  
   
   <link rel="stylesheet" type="text/css" href="css/default.css" />
-  <link rel="stylesheet" type="text/css" href="css/ui_modern.css" />
+  <link rel="stylesheet" type="text/css" href="css/ui_modern.css?v=m2" />
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   
 <body>

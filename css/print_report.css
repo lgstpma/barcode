@@ -224,6 +224,25 @@
 .pr-tech-inner {
   margin-top: 12px;
 }
+
+@media (max-width: 720px) {
+  .pr-wrap-simple {
+    padding: 16px 12px 32px;
+  }
+  .pr-wrap-simple > .pr-actions {
+    flex-direction: column;
+  }
+  .pr-wrap-simple .pr-btn {
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .pr-header h1 {
+    font-size: 18px;
+  }
+}
+
 .pr-tech-inner .pr-header {
   margin-bottom: 12px;
 }

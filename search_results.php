@@ -3,6 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es">
 
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+	<meta name="mobile-web-app-capable" content="yes" />
 
 <body>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -101,6 +103,8 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<link rel="stylesheet" type="text/css" href="css/default.css" />
 		<link rel="stylesheet" type="text/css" href="css/ui_modern.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="mobile-web-app-capable" content="yes" />
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<script language="JavaScript" src="jquery-1.5.1.min.js">
 			// Select your input element.
@@ -989,16 +993,69 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 
 
 		?>
-		<html>
-			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
+		<!DOCTYPE html>
+		<html lang="es" class="ui-item-page">
+		<head>
+			<meta charset="utf-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+			<meta name="mobile-web-app-capable" content="yes" />
+			<meta name="theme-color" content="#eef2f6" />
+			<link rel="stylesheet" type="text/css" href="css/ui_modern.css?v=m2" />
+			<style>
+				/* Crítico: si el CSS tarda, el teléfono no se ve en miniatura */
+				@media (max-width: 820px) {
+					html, body { width: 100% !important; max-width: 100% !important; overflow-x: hidden; }
+					body.ui-item { padding: 8px !important; font-size: 16px !important; }
+					body.ui-item table[width] { width: 100% !important; max-width: 100% !important; }
+					.mobile-print-form input, .mobile-gtin-form input { font-size: 16px !important; min-height: 44px; }
+					.btn-imprimir-main { width: 100%; min-height: 48px; font-size: 17px !important; }
+				}
+				html.is-phone .mobile-advanced:not([open]) > *:not(summary) { display: none !important; }
+				html.is-phone .mobile-advanced > summary { display: block !important; }
+			</style>
+			<script>
+			(function () {
+				var w = Math.min(screen.width || 9999, window.innerWidth || 9999);
+				if (w <= 820) document.documentElement.className += ' is-phone';
+			})();
+			function check_elab() {
+				var el = document.getElementById('etiqueta');
+				var num_label = el ? el.value : '';
+				if (num_label === '9' || num_label === '12') {
+					var ed = document.getElementById('elab_day');
+					var c1 = document.getElementById('caducidad1');
+					if (ed) ed.disabled = true;
+					if (c1) c1.disabled = true;
+				}
+				if (num_label === '7') {
+					var ed2 = document.getElementById('elab_day');
+					if (ed2) ed2.required = true;
+				}
+			}
+			function calcular() {
+				var numero = document.getElementById('caducidad1');
+				var elab = document.getElementById('elab_day');
+				if (!numero || !elab) return;
+				var TuFecha1 = new Date(elab.value);
+				var dias = parseInt(numero.value, 10);
+				if (isNaN(dias)) dias = 0;
+				TuFecha1.setDate(TuFecha1.getDate() + dias);
+				var res = document.getElementById('resultado');
+				if (res) {
+					res.innerText = TuFecha1.getUTCDate() + '/' + (TuFecha1.getUTCMonth() + 1) + '/' + TuFecha1.getUTCFullYear();
+				}
+				var hidden = document.getElementById('caja_busqueda1');
+				if (hidden) hidden.value = dias;
+			}
+			</script>
+		</head>
 			<body bgcolor="#FFFFFF" class="ui-modern ui-item" onload="check_elab();">
 				<?php if (!empty($GLOBALS['barcode_json_save_msg'])) { ?>
 				<p style="margin:8px;padding:8px;border:1px solid #2b6cb0;background:#eef6ff;color:#123;">
 					<?php echo htmlspecialchars($GLOBALS['barcode_json_save_msg'], ENT_QUOTES, 'UTF-8'); ?>
 				</p>
 				<?php } ?>
-				<p style="margin:8px;font-size:12px;color:#666;">Copia local: los cambios se guardan en JSON (<code>label_layouts/items/</code>). No se escribe MySQL de produccion.</p>
+				<p class="desktop-hint" style="margin:8px;font-size:12px;color:#666;">Copia local: los cambios se guardan en JSON (<code>label_layouts/items/</code>). No se escribe MySQL de produccion.</p>
 				<SCRIPT language=JavaScript>
 					<!-- 
 					function win() {
@@ -1008,8 +1065,8 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 					-->
 					}
 				</SCRIPT>
-				<form name="form1" method="post" action="exportarimg.php" target="_self">
-					<table width="445" height="136" border="1" cellspacing="1">
+				<form name="form1" method="post" action="exportarimg.php" target="_self" class="mobile-print-form">
+					<table class="mobile-card-table" width="445" height="136" border="1" cellspacing="1">
 						<tr>
 							<td height="27" colspan="2" bgcolor="#FFFFFF">  <h3><?php echo ($row['descrip'] .' '.$row['descrip2']); ?></td>
 						</tr>
@@ -1032,7 +1089,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 							   
 						</tr>
 					</table>
-					<table width="574" border="0">
+					<table class="mobile-print-fields" width="574" border="0">
 						<tr>
 						  <td align="left">	<div class="txt-heading"><a id="btnEmpty" href="index.php">[Nueva Busqueda]</a></div></td>
 						  <td></td>
@@ -1047,7 +1104,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 							<td width="191" align="left"><strong> Cantidad:
 								</strong></td>
 							<td width="348"><strong>
-									<input type="number" min="0" align="left" name="cant" id="caja_busqueda" value="" autocomplete="off" required />
+									<input type="number" min="0" inputmode="numeric" align="left" name="cant" id="caja_busqueda" value="" autocomplete="off" required />
 								</strong></td>
 							<td width="21">&nbsp;</td>
 						</tr>
@@ -1059,14 +1116,14 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 						<tr>
 							<td height="28"><strong> Dias de vencimiento: </strong></td>
 							<td colspan="2"><strong>
-									<input type="number" min="0" align="left" name="caducidad1" id="caducidad1" value="" autocomplete="off"  required onKeyUp="calcular()" onChange="calcular()" />
+									<input type="number" min="0" inputmode="numeric" align="left" name="caducidad1" id="caducidad1" value="" autocomplete="off"  required onKeyUp="calcular()" onChange="calcular()" />
 									<em>Caduca:&nbsp;<span id="resultado"></span></em></strong></td>
 						</tr>
 						<tr>
 							<td height="28">&nbsp;</td>
 							<td colspan="2"><strong>
 									<input hidden type="number" min="0" align="left" name="caducidad" id="caja_busqueda1" value="" autocomplete="off" />
-							    <input name="Submit" type=submit onClick="if(!document.getElementById('caja_busqueda1').value || document.getElementById('caja_busqueda1').value === '') document.getElementById('caja_busqueda1').value = document.getElementById('caducidad1').value;" value="Imprimir" />
+							    <input name="Submit" type=submit class="btn-imprimir-main" onClick="if(!document.getElementById('caja_busqueda1').value || document.getElementById('caja_busqueda1').value === '') document.getElementById('caja_busqueda1').value = document.getElementById('caducidad1').value;" value="Imprimir" />
 							</strong></td>
 						</tr>
 						<tr>
@@ -1080,32 +1137,27 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 				  </table>
 </form>
                          
-<form     method="post" action="export_code13.php" target="_self">
+<form     method="post" action="export_code13.php" target="_self" class="mobile-gtin-form">
 									<div>
 										<p>&nbsp;</p>
-										<table bgcolor="#999999" width="929" height="44" border="2">
+										<table class="mobile-gtin-table" bgcolor="#999999" width="929" height="44" border="2">
 										  <tr>
 										    <td width="160">GTIN (chica SoftShop):</td>
 										    <td width="167"><input type="text" name="txt_codigo2" id="txt_codigo2_gtin" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
 										    <td width="60">Cantidad:</td>
-										    <td width="80"><input type="number" min="1" name="cant2" id="cant2" value="1" size="4" required /></td>
+										    <td width="80"><input type="number" min="1" inputmode="numeric" name="cant2" id="cant2" value="1" size="4" required /></td>
 										    <td width="291"><input type="Submit" name="gtin13" id="gtin13" value="Imprimir GTIN" title="GTIN chica — distinto del formato #13 por IP" /></td>
 									      </tr>
 									  </table>
-										<p style="margin:4px 0 0 0;font-size:11px;">Imprimir GTIN = etiqueta chica SoftShop (cola <code>gtin</code> → GK420t_chica). El formato <strong>#13</strong> del producto es otra etiqueta (ZPL rotado por IP).</p>
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Imprimir GTIN = etiqueta chica SoftShop (cola <code>gtin</code> → GK420t_chica). El formato <strong>#13</strong> del producto es otra etiqueta (ZPL rotado por IP).</p>
 										<p>&nbsp;</p>
   </div>
 				</form>
-              		
-                    
-                    <table width="1000" border="0">  
+
+				<details class="mobile-advanced">
+					<summary>Opciones avanzadas / layout (PC)</summary>
+                    <table width="1000" border="0">
 				<form method="get" action="search_results.php">
-			 
-              		
-                    
-                    <table width="1000" border="0">  
-				<form method="get" action="search_results.php">
-			
 <tr>			<td align="left"><strong>Cod. Proveedor/GTIN13:</strong></td><td>
                         <strong><input 	type="text"  name="txt_codigo2" id="txt_codigo2" value="<?php echo $row['codigo2'] ?>" />
                         
@@ -1887,6 +1939,7 @@ lblid = '" . $temp_id . "'";
 					</table>
 
 				</form>
+				</details>
 			</body>
 
 	</html>

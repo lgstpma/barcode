@@ -229,17 +229,38 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 	$h_price = etiqueta1_vb_font($vb_price_pt);
 
 	$descrip_esc = zpl_escape_field(trim(preg_replace('/\s+/', ' ', (string)$descrip)));
-	$w_desc = (int)round($h_desc * 0.55);
-	if ($w_desc < 8) {
-		$w_desc = 8;
+	// Ancho de fuente ~igual a alto: evita letras condensadas / "apiñadas"
+	$w_desc = (int)round($h_desc * 0.92);
+	if ($w_desc < 10) {
+		$w_desc = 10;
 	}
-	$fb_w = $pw - $x_desc - 4;
+	// Márgenes laterales ~4 dots (~0.5 mm a 203 dpi)
+	$margin_x = 4;
+	if ($x_desc < $margin_x) {
+		$x_desc = $margin_x;
+	}
+	if ($x_exp < $margin_x) {
+		$x_exp = $margin_x;
+	}
+	if ($x_bc < $margin_x) {
+		$x_bc = $margin_x;
+	}
+	$fb_w = $pw - $x_desc - $margin_x;
 	if ($fb_w < 80) {
 		$fb_w = 80;
 	}
+	// Más aire entre renglones de descripción
 	$fb_gap = $dy_desc - $h_desc;
-	if ($fb_gap < 0) {
-		$fb_gap = 0;
+	if ($fb_gap < 2) {
+		$fb_gap = 2;
+	}
+	// EXP/Lote un poco más arriba del borde inferior
+	$max_exp_y = $ll - $h_exp - 6;
+	if ($y_exp > $max_exp_y) {
+		$y_exp = $max_exp_y;
+	}
+	if ($y_exp < ($y_desc + $h_desc + 4)) {
+		$y_exp = $y_desc + $h_desc + 4;
 	}
 
 	$bc_h = etiqueta1_vb_y($vb_bc_h);
