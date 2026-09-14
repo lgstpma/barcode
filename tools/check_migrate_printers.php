@@ -8,7 +8,7 @@ $root = dirname(__DIR__);
 $cfg = $root . DIRECTORY_SEPARATOR . 'print_migrate.cfg';
 
 $formatosPorPrinter = array(
-	'GK420t_chica' => 'chica: formatos 1, 9, 21 y GTIN',
+	'GK420t_chica' => 'chica: formatos 1, 9, 15, 21 y GTIN',
 	'GK420t_grande' => 'mediana SoftShop: formato 5',
 	'GK420t_3x1.25' => 'BMP / lbls (suele 10 o 14)',
 	'GK420t_3x2' => 'BMP / lbls (suele 10 o 14)',

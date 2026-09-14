@@ -211,6 +211,37 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	$estado_label_print = 0;
+	if ($etiqueta_tipo == '15' || $etiqueta_tipo == 15) {
+		echo "<br>Tipo de etiqueta: <strong>15</strong> (chica SoftShop + lote + Reg.) - Generando ZPL...<br>";
+		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_15.php');
+		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
+		$descrip15 = isset($row_items_info['descrip']) ? $row_items_info['descrip'] : '';
+		if ($descrip15 === '' && isset($row_items_info['descrip3'])) {
+			$descrip15 = $row_items_info['descrip3'];
+		}
+		$descrip2_15 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
+		$precio15 = isset($row_items_info['precio2']) ? $row_items_info['precio2'] : 0;
+		$reg15 = isset($row_items_info['reg_sanitario']) ? $row_items_info['reg_sanitario'] : '';
+		$zpl = build_zpl_etiqueta_15(
+			$txt_codigo,
+			$descrip15,
+			$descrip2_15,
+			$precio15,
+			intval($cant),
+			intval($caducidad),
+			$elab_day,
+			$reg15
+		);
+		file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta15.zpl', $zpl);
+		$qid = enqueue_zpl($link, '15', (string)$txt_codigo, $zpl, 'GK420t_chica');
+		if ($qid) {
+			$estado_label_print = 1;
+			echo enqueue_zpl_path_html($qid, 'GK420t_chica');
+		} else {
+			echo "<br>No se pudo encolar ZPL 15: " . mysqli_error($link) . "<br>";
+		}
+	}
+
 	if ($etiqueta_tipo == '1' || $etiqueta_tipo == 1) {
 		echo "<br>Tipo de etiqueta: 1 (SofyShop 1&quot; x 0.5&quot;) - Generando ZPL y encolando...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
@@ -408,7 +439,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 		if ($qid) {
 			echo "<br>También encolada (id $qid) por respaldo.<br>";
 		}
-	} elseif ($etiqueta_tipo != '21' && $etiqueta_tipo != '1' && $etiqueta_tipo != 1 && $etiqueta_tipo != '9' && $etiqueta_tipo != 9 && $etiqueta_tipo != '5' && $etiqueta_tipo != 5 && $etiqueta_tipo != '10' && $etiqueta_tipo != 10 && $etiqueta_tipo != '13' && $etiqueta_tipo != 13 && $etiqueta_tipo != '14' && $etiqueta_tipo != 14) {
+	} elseif ($etiqueta_tipo != '21' && $etiqueta_tipo != '1' && $etiqueta_tipo != 1 && $etiqueta_tipo != '9' && $etiqueta_tipo != 9 && $etiqueta_tipo != '5' && $etiqueta_tipo != 5 && $etiqueta_tipo != '10' && $etiqueta_tipo != 10 && $etiqueta_tipo != '13' && $etiqueta_tipo != 13 && $etiqueta_tipo != '14' && $etiqueta_tipo != 14 && $etiqueta_tipo != '15' && $etiqueta_tipo != 15) {
 		echo "<br>Tipo de etiqueta: $etiqueta_tipo - Solo guardando en MySQL (sin imprimir)<br>";
 	}
 

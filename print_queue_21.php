@@ -65,7 +65,7 @@ function print_migrate_uses_new_queue($printer)
 function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
 {
 	$etiqueta = (string)$etiqueta;
-	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin') {
+	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin' || $etiqueta === '15') {
 		return 'GK420t_chica';
 	}
 	if ($etiqueta === '5') {
@@ -200,7 +200,7 @@ function enqueue_zpl_gtin($link, $itemid, $zpl)
 /** Etiquetas ZPL atendidas por el servicio unificado */
 function zpl_queue_service_etiquetas_21()
 {
-	return array('21', 'gtin', '10', '14', '1', '9', '5');
+	return array('21', 'gtin', '10', '14', '1', '9', '5', '15');
 }
 
 function zpl_queue_sql_in_etiquetas($list)
