@@ -1,10 +1,10 @@
 <?php
 /**
  * Cola ZPL compartida (isabel_zpl_queue).
- * Alineado a VB6 Label_Printserver_ver2:
- *   10 = BMP + itemid | 13 = GTIN codigo2 | 14 = BMP + itemid2
- *   1 / 9 / 21 = chica SofyShop
- * Servicio unificado print_service_21 atiende todos.
+ * Web (Servicios) genera ZPL; worker unico (print_service_21) imprime RAW.
+ * Impresoras: print_migrate.cfg
+ *   1/9/21/gtin → GK420t_chica | 5 → grande | 10/14 → 3x1.25 o 3x2
+ * Formato 13: por IP (no esta cola).
  *
  * estados: 0=pendiente 1=impreso 2=error 3=tomado (claim)
  */
@@ -90,9 +90,9 @@ function enqueue_zpl_path_html($qid, $printer)
 		return '';
 	}
 	if (print_migrate_uses_new_queue($printer)) {
-		return '<br>Encolado en MySQL <code>isabel_zpl_queue</code> (id ' . (int)$qid . ') → <strong>' . $p . '</strong>. Lo toma print_service_21.<br>';
+		return '<br>Encolado en MySQL <code>isabel_zpl_queue</code> (id ' . (int)$qid . ') → <strong>' . $p . '</strong>. Lo toma el worker unico.<br>';
 	}
-	return '<br>ZPL en archivo local (id ' . (int)$qid . '). Impresora <strong>' . $p . '</strong> no esta en print_migrate.cfg; el legacy sigue con <code>isabel_label_print</code>.<br>';
+	return '<br>ZPL en archivo local (id ' . (int)$qid . '). Impresora <strong>' . $p . '</strong> no esta en print_migrate.cfg.<br>';
 }
 
 function ensure_zpl_queue_mysql($link)

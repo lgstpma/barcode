@@ -48,7 +48,8 @@ if not errorlevel 2 (
   call "%~dp0arrancar_worker.bat"
 )
 echo.
-echo Listo. Deje el worker corriendo en esta PC.
+echo Listo. Deje el worker corriendo en esta PC (todas las GK420t_*).
 echo La gente imprime desde: http://%SIP%:8080/
-echo Si "acceso denegado" al reiniciar: ejecute stop_worker.bat como Admin una vez.
+echo Formatos/imagenes: solo en Servicios. Este PC solo imprime RAW.
+echo Si "acceso denegado": desinstalar.bat como Admin una vez.
 pause

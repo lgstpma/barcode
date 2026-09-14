@@ -43,6 +43,7 @@ for /f "tokens=2 delims=:" %%J in ('ipconfig ^| findstr /i /c:"IPv4"') do (
 echo.
 echo  Si otra PC no entra: tools\abrir_red_8080.bat ^(Admin^)
 echo  En PC impresoras: print_service_21\configurar_api_servicios.bat
+echo  Imagenes 10/14: tools\copiar_imagenes_printserver.bat
 echo  Ctrl+C detiene el web
 echo ============================================
 echo.

@@ -68,10 +68,10 @@ echo Listo.
 echo  - Tarea: %TASK%
 echo  - Corre como: %RUNUSER%
 echo  - Script: %SRC%print_etiqueta21.ps1
-echo  - Cola: print_migrate.cfg ^(GK420t_chica^)
-echo  - API: config.local.ps1 o http://127.0.0.1:8080/api_print_21.php
+echo  - Impresoras: print_migrate.cfg (todas las GK420t_*)
+echo  - API: config.local.ps1 (IP Servicios) o 127.0.0.1:8080
 echo.
-echo Si "acceso denegado": stop_worker.bat como Admin, luego arrancar_worker.bat
-echo Prueba inmediata: probar.bat
-echo Diagnostico: diagnostico.bat
+echo El worker NO tiene formatos ni imagenes; los genera el web.
+echo Si "acceso denegado": desinstalar.bat como Admin, luego arrancar_worker.bat
+echo Prueba: probar.bat
 pause

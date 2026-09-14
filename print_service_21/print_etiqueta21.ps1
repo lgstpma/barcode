@@ -1,24 +1,25 @@
-# Servicio local cola ZPL UNIFICADA (PowerShell 2.0+)
-# Formatos: 1, 9, 10, 13, 14, 21 via api_print_21.php
+# Servicio UNICO de cola ZPL (PowerShell 2.0+)
+# NO genera formatos: solo toma ZPL de la API (PC Servicios) e imprime RAW.
+# Formatos: 1,5,9,10,14,21,gtin (y 13 por IP en el web).
+# Impresoras: print_migrate.cfg (todas las GK420t_* migradas).
 #
-# Multi-usuario / multi-PC:
-#   - La API hace CLAIM atómico (estado 0→3); dos workers no toman el mismo job
-#   - Si esta PC no tiene la impresora del job, lo LIBERA para otro worker
-#   - Claims viejos (>5 min) vuelven a pendientes solos
+# Multi-PC:
+#   - API claim atomico (estado 0→3)
+#   - Si esta PC no tiene la impresora del job, libera el job
+#   - Claims viejos vuelven a pendientes
 #
-# Migracion hibrida: print_migrate.cfg (impresoras del servicio NUEVO).
-# Prueba: config.local.ps1 + probar.bat
-# Produccion: install_tarea.bat (copia print_migrate.cfg; no pisa config.local.ps1)
+# PC impresoras: configurar_api_servicios.bat + arrancar_worker.bat
+# Prueba: probar.bat
 
-# API de ESTA copia (start.bat en 8080). Alternativa IIS/XAMPP:
-# $ApiUrl = "http://winsrvr2012xamp/barcode4.0/api_print_21.php"
+# API de ESTA copia (start.bat en 8080). Alternativa remota en config.local.ps1:
+# $ApiUrl = "http://IP-SERVICIOS:8080/api_print_21.php"
 $ApiUrl          = "http://127.0.0.1:8080/api_print_21.php"
 $LocalQueueDir   = ""
 $PrinterDefault  = "GK420t_chica"
 $PrinterForce    = ""
 $PrinterFilter   = ""
 # Fallback si no hay print_migrate.cfg. El cfg (y luego config.local.ps1) lo pisan.
-$AcceptPrinters  = "GK420t_chica"
+$AcceptPrinters  = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_3x2"
 $PrinterAliases  = @{}
 $SkipUncPrinters = $true
 $ShowPrinterList = $true

@@ -37,7 +37,7 @@ start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File 
 
 ping -n 2 127.0.0.1 >nul
 echo.
-echo Worker print_service_21: iniciado.
+echo Worker unico: iniciado (todas las impresoras de print_migrate.cfg).
 echo Log: %~dp0print_service.log
-echo Para parar: stop_worker.bat  ^(o cierre la ventana BARCODE-worker^)
+echo Para parar: stop_worker.bat
 exit /b 0
