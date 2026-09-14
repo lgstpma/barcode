@@ -199,8 +199,8 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	} else {
 		$zpl = build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, true, $layoutOverride);
 	}
-	$pw = 203;
-	$ll = 102;
+	$pw = 0;
+	$ll = 0;
 	$printer = 'GK420t_chica';
 } elseif ($etiqueta === '5' || $etiqueta === 5) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_5.php');
@@ -216,8 +216,8 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 		$layoutOverride = label_layout_ensure_shared(5);
 	}
 	$zpl = build_zpl_etiqueta_5($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, $ingre, $layoutOverride);
-	$pw = 609;
-	$ll = 406;
+	$pw = 0;
+	$ll = 0;
 	$printer = 'GK420t_grande';
 } elseif ($etiqueta === '10' || $etiqueta === 10 || $etiqueta === '14' || $etiqueta === 14) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_10.php');
