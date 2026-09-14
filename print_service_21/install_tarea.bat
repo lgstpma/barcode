@@ -13,22 +13,19 @@ if errorlevel 1 (
 )
 
 set "SRC=%~dp0"
-set "DST=%ProgramData%\BarcodeEtiqueta21"
+REM Corre desde el repo (git pull actualiza el script). Evita ProgramData bloqueado.
+set "DST=%SRC%"
 set "TASK=BarcodeEtiqueta21"
 set "RUNUSER=%USERDOMAIN%\%USERNAME%"
 if "%USERDOMAIN%"=="" set "RUNUSER=%COMPUTERNAME%\%USERNAME%"
 if /I "%USERNAME%"=="SYSTEM" set "RUNUSER="
 if /I "%USERNAME%"=="NETWORK SERVICE" set "RUNUSER="
 
-if not exist "%DST%" mkdir "%DST%"
-copy /Y "%SRC%print_etiqueta21.ps1" "%DST%\" >nul
-copy /Y "%SRC%run_hidden.vbs" "%DST%\" >nul
-if exist "%SRC%..\print_migrate.cfg" copy /Y "%SRC%..\print_migrate.cfg" "%DST%\" >nul
-if not exist "%DST%\config.local.ps1" (
-  if exist "%SRC%config.example.ps1" copy /Y "%SRC%config.example.ps1" "%DST%\config.local.ps1"
+if not exist "%SRC%config.local.ps1" (
+  if exist "%SRC%config.example.ps1" copy /Y "%SRC%config.example.ps1" "%SRC%config.local.ps1"
 )
 
-set "TR=wscript.exe //B \"%DST%\run_hidden.vbs\""
+set "TR=wscript.exe //B \"%SRC%run_hidden.vbs\""
 
 schtasks /End /TN "%TASK%" >nul 2>&1
 schtasks /Delete /TN "%TASK%" /F >nul 2>&1
@@ -55,22 +52,26 @@ if defined RUNUSER (
 
 if errorlevel 1 (
   echo ERROR: no se pudo crear la tarea programada.
+  echo Pruebe sin tarea: arrancar_worker.bat o probar.bat
   pause
   exit /b 1
 )
 
 echo Arrancando ahora...
 schtasks /Run /TN "%TASK%"
+if errorlevel 1 (
+  echo La tarea se creo pero /Run fallo. Use arrancar_worker.bat
+)
 
 echo.
 echo Listo.
 echo  - Tarea: %TASK%
 echo  - Corre como: %RUNUSER%
-echo  - Carpeta: %DST%
-echo  - Cola: impresoras de print_migrate.cfg (inicio: GK420t_chica)
-echo  - API: http://127.0.0.1:8080/api_print_21.php  (deje start.bat abierto)
+echo  - Script: %SRC%print_etiqueta21.ps1
+echo  - Cola: print_migrate.cfg ^(GK420t_chica^)
+echo  - API: config.local.ps1 o http://127.0.0.1:8080/api_print_21.php
 echo.
-echo Tras un git pull, vuelva a ejecutar este .bat para copiar el script y el cfg.
-echo Prueba inmediata sin tarea: print_service_21\probar.bat
-echo Diagnostico: print_service_21\diagnostico.bat
+echo Si "acceso denegado": stop_worker.bat como Admin, luego arrancar_worker.bat
+echo Prueba inmediata: probar.bat
+echo Diagnostico: diagnostico.bat
 pause

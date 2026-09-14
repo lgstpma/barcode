@@ -1,26 +1,43 @@
 @echo off
-REM Arranca (o reinicia) el worker de cola ZPL en esta sesion (ve impresoras USB en Win7).
+REM Arranca (o reinicia) el worker desde ESTA carpeta del repo.
+REM No usa ProgramData (evita "acceso denegado" en Win7).
+REM PC de impresoras: ver impresoras USB. API puede ser remota (config.local.ps1).
 setlocal
 cd /d "%~dp0"
 call "%~dp0..\tools\win_paths.bat"
 
-set "DST=%ProgramData%\BarcodeEtiqueta21"
-if not exist "%DST%" mkdir "%DST%" >nul 2>&1
-
-copy /Y "%~dp0print_etiqueta21.ps1" "%DST%\" >nul
-copy /Y "%~dp0run_hidden.vbs" "%DST%\" >nul
-if exist "%~dp0..\print_migrate.cfg" copy /Y "%~dp0..\print_migrate.cfg" "%DST%\" >nul
-if not exist "%DST%\config.local.ps1" (
-  if exist "%~dp0config.example.ps1" copy /Y "%~dp0config.example.ps1" "%DST%\config.local.ps1" >nul
+if not exist "%~dp0print_etiqueta21.ps1" (
+  echo ERROR: falta print_etiqueta21.ps1
+  pause
+  exit /b 1
 )
 
-REM Matar worker viejo para cargar script nuevo (evita quedar en estado 3 eterno)
-if defined WMICEXE (
-  "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" call terminate >nul 2>&1
+echo Deteniendo worker anterior...
+call "%~dp0stop_worker.bat"
+
+if not defined PSHEXE (
+  echo ERROR: no se encontro powershell.exe
+  pause
+  exit /b 1
 )
+
+echo Arrancando worker desde:
+echo   %~dp0print_etiqueta21.ps1
+if exist "%~dp0config.local.ps1" (
+  echo   config.local.ps1: SI
+) else (
+  echo   config.local.ps1: no ^(usa 127.0.0.1 — en PC impresoras ejecute configurar_api_servicios.bat^)
+)
+if exist "%~dp0..\print_migrate.cfg" (
+  echo   print_migrate.cfg: SI
+)
+
+REM Ventana visible minima: mas facil ver errores que VBS oculto
+start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0print_etiqueta21.ps1"
+
 ping -n 2 127.0.0.1 >nul
-
-wscript.exe //B "%DST%\run_hidden.vbs"
-echo  Worker print_service_21: reiniciado (cola MySQL / GK420t_chica).
-echo  Log: %DST%\print_service.log
+echo.
+echo Worker print_service_21: iniciado.
+echo Log: %~dp0print_service.log
+echo Para parar: stop_worker.bat  ^(o cierre la ventana BARCODE-worker^)
 exit /b 0
