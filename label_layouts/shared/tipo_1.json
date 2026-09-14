@@ -27,15 +27,16 @@
             "y": 325,
             "font": 6,
             "alcance": 24,
-            "renglon": 117,
+            "renglon": 140,
+            "font_w_ratio": 1.0,
             "titulo": ""
         },
         "fecha": {
             "x": 150,
-            "y": 590,
+            "y": 560,
             "font": 5,
             "titulo": "EXP:"
         }
     },
-    "updated_at": "2026-08-27T16:32:27-05:00"
+    "updated_at": "2026-09-08T13:14:17-05:00"
 }

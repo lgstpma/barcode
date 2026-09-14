@@ -165,6 +165,7 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 	$vb_desc_pt = 6;
 	$vb_desc_alcance = 24;
 	$vb_desc_renglon = 117;
+	$vb_desc_w_ratio = 1.0;
 	$vb_exp_x = 150;
 	$vb_exp_y = 590;
 	$vb_exp_pt = 5;
@@ -191,12 +192,13 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 			if (isset($f['precio']['y'])) $vb_price_y = (int)$f['precio']['y'];
 			if (isset($f['precio']['font'])) $vb_price_pt = (float)$f['precio']['font'];
 		}
-		if (!empty($f['descripcion'])) {
+	if (!empty($f['descripcion'])) {
 			if (isset($f['descripcion']['x'])) $vb_desc_x = (int)$f['descripcion']['x'];
 			if (isset($f['descripcion']['y'])) $vb_desc_y = (int)$f['descripcion']['y'];
 			if (isset($f['descripcion']['font'])) $vb_desc_pt = (float)$f['descripcion']['font'];
 			if (isset($f['descripcion']['alcance'])) $vb_desc_alcance = (int)$f['descripcion']['alcance'];
 			if (isset($f['descripcion']['renglon'])) $vb_desc_renglon = (int)$f['descripcion']['renglon'];
+			if (isset($f['descripcion']['font_w_ratio'])) $vb_desc_w_ratio = (float)$f['descripcion']['font_w_ratio'];
 		}
 		if (!empty($f['fecha'])) {
 			if (isset($f['fecha']['x'])) $vb_exp_x = (int)$f['fecha']['x'];
@@ -229,8 +231,15 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 	$h_price = etiqueta1_vb_font($vb_price_pt);
 
 	$descrip_esc = zpl_escape_field(trim(preg_replace('/\s+/', ' ', (string)$descrip)));
-	// Ancho de fuente ~igual a alto: evita letras condensadas / "apiñadas"
-	$w_desc = (int)round($h_desc * 0.92);
+	// Ancho de fuente: ratio editable (1.0 = normal; <1 condensado)
+	$ratio = isset($vb_desc_w_ratio) ? (float)$vb_desc_w_ratio : 1.0;
+	if ($ratio < 0.4) {
+		$ratio = 0.4;
+	}
+	if ($ratio > 1.4) {
+		$ratio = 1.4;
+	}
+	$w_desc = (int)round($h_desc * $ratio);
 	if ($w_desc < 10) {
 		$w_desc = 10;
 	}

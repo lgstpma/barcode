@@ -488,7 +488,11 @@ html.is-phone table[width="1000"] {
     min-width: 72px;
   }
   .tabcontent table.display td:nth-child(4) {
-    min-width: 160px;
+    min-width: 140px;
+  }
+  .tabcontent table.display td:nth-child(5),
+  .tabcontent table.display td:nth-child(6) {
+    min-width: 56px;
   }
   body.ui-item form.mobile-print-form,
   body.ui-item form.mobile-gtin-form {
@@ -564,11 +568,6 @@ html.is-phone table[width="1000"] {
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  /* Lista: priorizar código + descripción en pantallas chicas */
-  .tabcontent table.display td:nth-child(5),
-  .tabcontent table.display td:nth-child(6) {
-    display: none;
   }
 }
 

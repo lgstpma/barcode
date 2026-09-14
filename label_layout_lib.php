@@ -97,8 +97,8 @@ function label_layout_default_shared_1()
 			'barcode' => array('x' => 150, 'y' => 10, 'w' => 3500, 'h' => 1000),
 			'itemid' => array('x' => 1700, 'y' => 30, 'font' => 5, 'titulo' => ''),
 			'precio' => array('x' => 1495, 'y' => 137, 'font' => 9, 'titulo' => 'B/.'),
-			'descripcion' => array('x' => 120, 'y' => 325, 'font' => 6, 'alcance' => 24, 'renglon' => 117, 'titulo' => ''),
-			'fecha' => array('x' => 150, 'y' => 590, 'font' => 5, 'titulo' => 'EXP:'),
+			'descripcion' => array('x' => 120, 'y' => 325, 'font' => 6, 'alcance' => 24, 'renglon' => 140, 'font_w_ratio' => 1.0, 'titulo' => ''),
+			'fecha' => array('x' => 150, 'y' => 560, 'font' => 5, 'titulo' => 'EXP:'),
 		),
 	);
 }

@@ -1,0 +1,209 @@
+.af-body {
+  margin: 0;
+  background: #eef2f6;
+  color: #1f2937;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+.af-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 14px 40px;
+}
+.af-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.af-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.af-header h1 {
+  margin: 4px 0 6px;
+  font-size: 24px;
+  color: #0f2744;
+}
+.af-sub {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  max-width: 48ch;
+}
+.af-btn {
+  display: inline-block;
+  border: 1px solid #c5d0de;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 650;
+  color: #1d4f8c;
+  cursor: pointer;
+  text-decoration: none;
+}
+.af-btn:hover { background: #eef3f9; }
+.af-btn-primary {
+  background: #1d4f8c;
+  border-color: #1d4f8c;
+  color: #fff;
+}
+.af-btn-primary:hover { background: #163d6d; color: #fff; }
+.af-btn-ghost { background: #f7f9fc; }
+
+.af-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.af-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.af-card:hover { border-color: #1d4f8c; }
+.af-card.is-active {
+  border-color: #1d4f8c;
+  box-shadow: 0 0 0 2px rgba(29, 79, 140, 0.2);
+}
+.af-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.af-badge {
+  font-weight: 700;
+  color: #1d4f8c;
+}
+.af-tag {
+  font-size: 11px;
+  background: #e8f0fa;
+  color: #1d4f8c;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.af-meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.af-editor {
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 14px;
+  padding: 16px;
+}
+.af-editor-head h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #0f2744;
+}
+.af-editor-head p { margin: 0 0 6px; color: #475569; font-size: 14px; }
+.af-sample { font-size: 13px; }
+.af-notice {
+  background: #fff8e6;
+  border: 1px dashed #e2c46c;
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #5c4a12;
+}
+.af-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+.af-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.af-status { font-size: 13px; color: #64748b; min-height: 1.4em; }
+.af-preview-img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+.af-zpl {
+  margin-top: 10px;
+  max-height: 180px;
+  overflow: auto;
+  font-size: 11px;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10px;
+  border-radius: 8px;
+}
+.af-fields-pane label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  color: #334155;
+}
+.af-fields-pane input,
+.af-fields-pane select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  font-size: 16px;
+  padding: 6px 8px;
+  border: 1px solid #c5d0de;
+  border-radius: 8px;
+}
+.af-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 10px;
+}
+.af-nudge {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+}
+.af-nudge button {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid #c5d0de;
+  background: #f7f9fc;
+  cursor: pointer;
+  font-weight: 700;
+}
+.af-hint {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 12px;
+}
+.af-pick {
+  text-align: center;
+  color: #64748b;
+  padding: 24px;
+}
+
+@media (max-width: 820px) {
+  .af-grid { grid-template-columns: 1fr; }
+  .af-toolbar .af-btn { flex: 1 1 100%; text-align: center; }
+  .af-coords { grid-template-columns: 1fr; }
+}

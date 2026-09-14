@@ -172,6 +172,15 @@ $previewLocalPng = null;
 $previewRotateCw = 0;
 $previewEt13 = null;
 
+/** Layout en vivo desde el editor de Ajustes (POST layout_json), sin escribir disco. */
+$layoutFromPost = null;
+if (isset($_POST['layout_json']) && is_string($_POST['layout_json']) && $_POST['layout_json'] !== '') {
+	$tmp = json_decode($_POST['layout_json'], true);
+	if (is_array($tmp) && !empty($tmp['fields'])) {
+		$layoutFromPost = $tmp;
+	}
+}
+
 if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
@@ -179,7 +188,9 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$precio = isset($row['precio2']) ? $row['precio2'] : 0;
 	$useJson = !isset($_REQUEST['use_json']) || (string)$_REQUEST['use_json'] !== '0';
 	$layoutOverride = null;
-	if ($useJson) {
+	if ($layoutFromPost) {
+		$layoutOverride = $layoutFromPost;
+	} elseif ($useJson) {
 		$tipoShared = ($etiqueta === '9' || $etiqueta === 9) ? 9 : 1;
 		$layoutOverride = label_layout_ensure_shared($tipoShared);
 	}
@@ -198,7 +209,12 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$precio = isset($row['precio2']) ? $row['precio2'] : 0;
 	$ingre = isset($row['ingredientes']) ? $row['ingredientes'] : '';
 	$useJson = !isset($_REQUEST['use_json']) || (string)$_REQUEST['use_json'] !== '0';
-	$layoutOverride = $useJson ? label_layout_ensure_shared(5) : null;
+	$layoutOverride = null;
+	if ($layoutFromPost) {
+		$layoutOverride = $layoutFromPost;
+	} elseif ($useJson) {
+		$layoutOverride = label_layout_ensure_shared(5);
+	}
 	$zpl = build_zpl_etiqueta_5($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, $ingre, $layoutOverride);
 	$pw = 609;
 	$ll = 406;
