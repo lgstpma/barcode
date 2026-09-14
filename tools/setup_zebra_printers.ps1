@@ -7,7 +7,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path $scriptDir -Parent
 
 $Profiles = @(
-    @{ Name = "GK420t_chica";   Formats = "1,9,21,GTIN"; W = 203; L = 102; Tol = 50; Alt = @(@{W=494;L=183},@{W=183;L=495},@{W=183;L=102}) },
+    @{ Name = "GK420t_chica";   Formats = "1,9,21,GTIN"; W = 183; L = 495; Tol = 50; Alt = @(@{W=203;L=102},@{W=494;L=183},@{W=183;L=102}) },
     @{ Name = "GK420t_grande";  Formats = "5";           W = 479; L = 319; Tol = 80; Alt = @() },
     @{ Name = "GK420t_3x1.25";  Formats = "10/14 3x1.25"; W = 609; L = 254; Tol = 50; Alt = @() },
     @{ Name = "GK420t_3x2";     Formats = "10/14 3x2";   W = 609; L = 406; Tol = 50; Alt = @() }

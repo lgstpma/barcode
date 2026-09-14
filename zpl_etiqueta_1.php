@@ -1,22 +1,15 @@
 <?php
 /**
- * ZPL etiqueta 1 — SofyShop 1" × 0.5" (layout del VB6 Label_Printserver).
+ * ZPL etiqueta 1 / 9 — SofyShop chica (mismo rollo / orientación que se ve en VB6).
  *
- * Visual Basic Printer usa twips (ScaleMode 1): 1440 twips = 1".
- * ZPL de Zebra GK420t usa dots a 203 dpi: 203 dots = 1".
+ * La etiqueta física se LEE en vertical (como la #13): texto a lo largo,
+ * código de barras al costado. En impresora:
+ *   ^PW183 (0.90" cabezal) × ^LL495 (2.44" avance) + campos ^A0R / ^BCR.
  *
- *   dots = round(twips * 203 / 1440)
- *   font_dots = round(puntos * 203 / 72)
+ * El formulario VB (lbl1) diseña en twips paisaje ~2160×720; aquí se mapea
+ * a ese lienzo rotado para que coincida con lo que imprime Label_Printserver.
  *
- * No se copian CurrentX/CurrentY del VB como ^FO: 1700 twips no es 1700 dots
- * (serían ~8" y la etiqueta solo tiene 203 dots de ancho).
- *
- * En X el formulario VB llega a ~1700 twips (~1.18") más el texto del código,
- * así que el diseño se escala al ancho físico de 1" (203 dots).
- * En Y sí cabe en 0.5" (720 twips = 102 dots) con la conversión 1:1.
- *
- * Valores iniciales = defaults del formulario VB (pestaña lbl1).
- * Ajustes: cambiar esas constantes o, más adelante, leer por etiqueta si se guardan.
+ * Antes se usaba ^PW203×^LL102 sin rotar → salía achatado / mal orientado.
  */
 if (!function_exists('zpl_escape_field')) {
 	function zpl_escape_field($s)
@@ -42,7 +35,6 @@ function etiqueta1_mb_sub($s, $start, $len = null)
 	return $len === null ? substr($s, $start) : substr($s, $start, $len);
 }
 
-/** Equivalente a corte_renglon_lbl1 del VB (Mid 1-based, corta en el último espacio). */
 function etiqueta1_corte_renglon($cadena, $maxrenglon)
 {
 	$n = etiqueta1_mb_len($cadena);
@@ -91,21 +83,23 @@ function etiqueta1_wrap_descrip($descripcion, $alcance)
 	return array($line1, $line2);
 }
 
-function etiqueta1_vb_x($twips)
+/** VB X (twips paisaje) → Y de impresora (avance, dots). */
+function etiqueta1_map_y($twipsX)
 {
-	// Ancho físico 1" = 203 dots. El X del VB se diseñó ~1.5" (2160 twips).
-	return (int)round($twips * 203.0 / 2160.0);
+	return (int)round(((float)$twipsX) * 495.0 / 2160.0);
 }
 
-function etiqueta1_vb_y($twips)
+/** VB Y (twips paisaje) → X de impresora (cabezal, dots). */
+function etiqueta1_map_x($twipsY)
 {
-	return (int)round($twips * 203.0 / 1440.0);
+	return (int)round(((float)$twipsY) * 183.0 / 720.0);
 }
 
-function etiqueta1_vb_font($pt)
+function etiqueta1_map_font($pt)
 {
-	$h = (int)round($pt * 203.0 / 72.0);
-	return $h < 10 ? 10 : $h;
+	// Un poco más grande que 203dpi*pt/72 para llenar la chica rotada.
+	$h = (int)round(((float)$pt) * 203.0 / 72.0 * 1.15);
+	return $h < 12 ? 12 : $h;
 }
 
 function etiqueta1_lote_code($ts)
@@ -152,7 +146,7 @@ function etiqueta1_parse_fecha($fecha)
 
 function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_manufact, $con_fecha = true, $layoutOverride = null)
 {
-	// Valores del formulario VB (printserver.frm, pestaña lbl1)
+	// Defaults formulario VB (pestaña lbl1), twips
 	$vb_bc_x = 150;
 	$vb_bc_y = 10;
 	$vb_bc_w = 3500;
@@ -172,7 +166,6 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 	$vb_price_y = 137;
 	$vb_price_pt = 9;
 
-	// Solo si se pasa override (preview JSON). Impresion produccion no lee JSON.
 	if (is_array($layoutOverride) && !empty($layoutOverride['fields']) && is_array($layoutOverride['fields'])) {
 		$f = $layoutOverride['fields'];
 		if (!empty($f['barcode'])) {
@@ -205,65 +198,48 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 		}
 	}
 
-	$pw = 203;
-	$ll = 102;
+	// Media física chica (misma familia que formato 13 / VB6 en foto)
+	$pw = 183;
+	$ll = 495;
 
 	$codigo = str_pad(preg_replace('/\D/', '', (string)$codigo), 6, '0', STR_PAD_LEFT);
 	$codigo = substr($codigo, -6);
 	$code_txt = '[' . $codigo . ']';
 
-	$x_bc = etiqueta1_vb_x($vb_bc_x);
-	$y_bc = etiqueta1_vb_y($vb_bc_y);
-	$x_code = etiqueta1_vb_x($vb_code_x);
-	$y_code = etiqueta1_vb_y($vb_code_y);
-	$h_code = etiqueta1_vb_font($vb_code_pt);
-	$x_desc = etiqueta1_vb_x($vb_desc_x);
-	$y_desc = etiqueta1_vb_y($vb_desc_y);
-	$h_desc = etiqueta1_vb_font($vb_desc_pt);
-	$dy_desc = etiqueta1_vb_y($vb_desc_renglon);
-	$x_exp = etiqueta1_vb_x($vb_exp_x);
-	$y_exp = etiqueta1_vb_y($vb_exp_y);
-	$h_exp = etiqueta1_vb_font($vb_exp_pt);
-	$x_price = etiqueta1_vb_x($vb_price_x);
-	$y_price = etiqueta1_vb_y($vb_price_y);
-	$h_price = etiqueta1_vb_font($vb_price_pt);
+	// Mapa rotado 90° CW: VB(x,y) → ZPL(x'=y, y'=x)
+	$x_bc = etiqueta1_map_x($vb_bc_y);
+	$y_bc = etiqueta1_map_y($vb_bc_x);
+	$bc_h = etiqueta1_map_x($vb_bc_h); // alto de barras en eje cabezal
+	if ($bc_h < 40) {
+		$bc_h = 55;
+	}
+	if ($bc_h > $pw - 8) {
+		$bc_h = $pw - 8;
+	}
+	$bc_mod = 2;
+
+	$x_code = etiqueta1_map_x($vb_code_y);
+	$y_code = etiqueta1_map_y($vb_code_x);
+	$h_code = etiqueta1_map_font($vb_code_pt);
+
+	$x_price = etiqueta1_map_x($vb_price_y);
+	$y_price = etiqueta1_map_y($vb_price_x);
+	$h_price = etiqueta1_map_font($vb_price_pt);
+
+	$x_desc = etiqueta1_map_x($vb_desc_y);
+	$y_desc = etiqueta1_map_y($vb_desc_x);
+	$h_desc = etiqueta1_map_font($vb_desc_pt);
+	$dy_desc = etiqueta1_map_x($vb_desc_renglon);
+	if ($dy_desc < $h_desc + 2) {
+		$dy_desc = $h_desc + 4;
+	}
+
+	$x_exp = etiqueta1_map_x($vb_exp_y);
+	$y_exp = etiqueta1_map_y($vb_exp_x);
+	$h_exp = etiqueta1_map_font($vb_exp_pt);
 
 	$descrip_esc = zpl_escape_field(trim(preg_replace('/\s+/', ' ', (string)$descrip)));
-	$w_desc = (int)round($h_desc * 0.55);
-	if ($w_desc < 8) {
-		$w_desc = 8;
-	}
-	$fb_w = $pw - $x_desc - 4;
-	if ($fb_w < 80) {
-		$fb_w = 80;
-	}
-	$fb_gap = $dy_desc - $h_desc;
-	if ($fb_gap < 0) {
-		$fb_gap = 0;
-	}
-
-	$bc_h = etiqueta1_vb_y($vb_bc_h);
-	if ($bc_h > ($y_desc - $y_bc - 2)) {
-		$bc_h = $y_desc - $y_bc - 2;
-	}
-	if ($bc_h < 18) {
-		$bc_h = 18;
-	}
-	$bc_w = etiqueta1_vb_x($vb_bc_w);
-	$max_bc_w = $x_price - $x_bc - 4;
-	if ($max_bc_w < 40) {
-		$max_bc_w = 80;
-	}
-	if ($bc_w > $max_bc_w) {
-		$bc_w = $max_bc_w;
-	}
-
-	if ($x_code + 55 > $pw) {
-		$x_code = $pw - 58;
-	}
-	if ($x_price + 70 > $pw) {
-		$x_price = $pw - 72;
-	}
+	$lines = etiqueta1_wrap_descrip($descrip_esc, $vb_desc_alcance);
 
 	$precio = (float)$precio;
 	$expir = (int)$expir;
@@ -272,30 +248,34 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 		$cant = 1;
 	}
 
-	$zpl = "^XA\n^FWN\n^PON\n^CI28\n^PW" . $pw . "\n^LL" . $ll . "\n^LH0,0\n";
-	$zpl .= "^FO" . $x_bc . "," . $y_bc . "^BY1,2," . $bc_h . "\n";
-	$zpl .= "^BCN," . $bc_h . ",N,N,N\n^FD" . $codigo . "^FS\n";
-	$zpl .= "^FO" . $x_code . "," . $y_code . "^A0N," . $h_code . "," . $h_code . "^FD" . zpl_escape_field($code_txt) . "^FS\n";
+	$zpl = "^XA\n^CI28\n^PON\n^FWR\n";
+	$zpl .= "^PW" . $pw . "\n^LL" . $ll . "\n^LS0\n^LH0,0\n";
+
+	// Código de barras (rotado, a lo largo de la etiqueta)
+	$zpl .= "^FO" . $x_bc . "," . $y_bc . "^BY" . $bc_mod . ",2," . $bc_h . "\n";
+	$zpl .= "^BCR," . $bc_h . ",N,N,N\n^FD" . $codigo . "^FS\n";
+
+	$zpl .= "^FO" . $x_code . "," . $y_code . "^A0R," . $h_code . "," . $h_code . "^FD" . zpl_escape_field($code_txt) . "^FS\n";
 
 	if ($precio != 0.0) {
-		$price_txt = 'B/.' . number_format($precio, 2, '.', ',');
-		$zpl .= "^FO" . $x_price . "," . $y_price . "^A0N," . $h_price . "," . (int)round($h_price * 0.85) . "^FD" . zpl_escape_field($price_txt) . "^FS\n";
+		$price_txt = 'B/. ' . number_format($precio, 2, '.', ',');
+		$zpl .= "^FO" . $x_price . "," . $y_price . "^A0R," . $h_price . "," . (int)round($h_price * 0.9) . "^FD" . zpl_escape_field($price_txt) . "^FS\n";
 	}
 
-	$zpl .= "^FO" . $x_desc . "," . $y_desc . "^A0N," . $h_desc . "," . $w_desc . "^FB" . $fb_w . ",2," . $fb_gap . ",L,0^FD" . $descrip_esc . "^FS\n";
+	$zpl .= "^FO" . $x_desc . "," . $y_desc . "^A0R," . $h_desc . "," . (int)round($h_desc * 0.85) . "^FD" . zpl_escape_field($lines[0]) . "^FS\n";
+	if ($lines[1] !== '') {
+		$zpl .= "^FO" . ($x_desc - $dy_desc) . "," . $y_desc . "^A0R," . $h_desc . "," . (int)round($h_desc * 0.85) . "^FD" . zpl_escape_field($lines[1]) . "^FS\n";
+	}
 
 	if ($con_fecha) {
 		$base = etiqueta1_parse_fecha($fecha_manufact);
 		if ($base === false) {
 			$base = time();
 		}
-		$lote_txt = 'Lote:' . etiqueta1_lote_code($base);
-		$x_lote = $pw - 70;
-		$zpl .= "^FO" . $x_lote . "," . $y_exp . "^A0N," . $h_exp . "," . $h_exp . "^FD" . zpl_escape_field($lote_txt) . "^FS\n";
-
+		// Igual que VB6 en foto: "EXP 15/09/26" (sin Lote en SoftShop chica)
 		if ($expir != 0) {
-			$exp_txt = 'EXP:' . date('d/m/Y', strtotime('+' . $expir . ' days', $base));
-			$zpl .= "^FO" . $x_exp . "," . $y_exp . "^A0N," . $h_exp . "," . $h_exp . "^FD" . zpl_escape_field($exp_txt) . "^FS\n";
+			$exp_txt = 'EXP ' . date('d/m/y', strtotime('+' . $expir . ' days', $base));
+			$zpl .= "^FO" . $x_exp . "," . $y_exp . "^A0R," . $h_exp . "," . $h_exp . "^FD" . zpl_escape_field($exp_txt) . "^FS\n";
 		}
 	}
 

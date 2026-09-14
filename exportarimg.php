@@ -212,7 +212,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 
 	$estado_label_print = 0;
 	if ($etiqueta_tipo == '1' || $etiqueta_tipo == 1) {
-		echo "<br>Tipo de etiqueta: 1 (SofyShop 1&quot; x 0.5&quot;) - Generando ZPL y encolando...<br>";
+		echo "<br>Tipo de etiqueta: 1 (SofyShop chica rotada 0.90&quot;×2.44&quot;) - Generando ZPL y encolando...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
@@ -233,7 +233,7 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	if ($etiqueta_tipo == '9' || $etiqueta_tipo == 9) {
-		echo "<br>Tipo de etiqueta: 9 (no comestible, 1&quot; x 0.5&quot;, sin EXP/lote) - Generando ZPL y encolando...<br>";
+		echo "<br>Tipo de etiqueta: 9 (no comestible chica rotada, sin EXP) - Generando ZPL y encolando...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
