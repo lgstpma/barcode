@@ -176,7 +176,7 @@ $previewEt13 = null;
 $layoutFromPost = null;
 if (isset($_POST['layout_json']) && is_string($_POST['layout_json']) && $_POST['layout_json'] !== '') {
 	$tmp = json_decode($_POST['layout_json'], true);
-	if (is_array($tmp) && !empty($tmp['fields'])) {
+	if (is_array($tmp)) {
 		$layoutFromPost = $tmp;
 	}
 }

@@ -209,6 +209,36 @@ function build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $expir, $fecha_
 
 	$pw = 203;
 	$ll = 102;
+	// Tamaño de media editable (pulgadas o dots) desde layout compartido
+	if (is_array($layoutOverride) && !empty($layoutOverride['label']) && is_array($layoutOverride['label'])) {
+		$lab = $layoutOverride['label'];
+		if (isset($lab['width_in']) && (float)$lab['width_in'] > 0) {
+			$pw = (int)round((float)$lab['width_in'] * 203.0);
+		} elseif (isset($lab['width_dots']) && (int)$lab['width_dots'] > 0) {
+			$pw = (int)$lab['width_dots'];
+		} elseif (isset($lab['width']) && (int)$lab['width'] > 0 && isset($lab['unit']) && $lab['unit'] === 'dots') {
+			$pw = (int)$lab['width'];
+		}
+		if (isset($lab['height_in']) && (float)$lab['height_in'] > 0) {
+			$ll = (int)round((float)$lab['height_in'] * 203.0);
+		} elseif (isset($lab['height_dots']) && (int)$lab['height_dots'] > 0) {
+			$ll = (int)$lab['height_dots'];
+		} elseif (isset($lab['height']) && (int)$lab['height'] > 0 && isset($lab['unit']) && $lab['unit'] === 'dots') {
+			$ll = (int)$lab['height'];
+		}
+	}
+	if ($pw < 40) {
+		$pw = 40;
+	}
+	if ($ll < 40) {
+		$ll = 40;
+	}
+	if ($pw > 1600) {
+		$pw = 1600;
+	}
+	if ($ll > 1600) {
+		$ll = 1600;
+	}
 
 	$codigo = str_pad(preg_replace('/\D/', '', (string)$codigo), 6, '0', STR_PAD_LEFT);
 	$codigo = substr($codigo, -6);

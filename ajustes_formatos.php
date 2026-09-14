@@ -145,7 +145,7 @@ function h($s)
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 	<title>Ajustes de formatos</title>
 	<link rel="stylesheet" href="css/ui_modern.css?v=m3" />
-	<link rel="stylesheet" href="css/ajustes_formatos.css?v=1" />
+	<link rel="stylesheet" href="css/ajustes_formatos.css?v=2" />
 	<script>
 	(function () {
 		var w = Math.min(screen.width || 9999, window.innerWidth || 9999);
@@ -214,6 +214,24 @@ function h($s)
 					<pre id="afZpl" class="af-zpl" style="display:none;"></pre>
 				</div>
 				<div class="af-fields-pane">
+					<div class="af-label-size" id="afLabelSize">
+						<h3>Tamaño de etiqueta</h3>
+						<div class="af-coords">
+							<label>Ancho (pulgadas)
+								<input type="number" id="af_label_w_in" step="0.01" min="0.2" max="8" />
+							</label>
+							<label>Alto (pulgadas)
+								<input type="number" id="af_label_h_in" step="0.01" min="0.2" max="8" />
+							</label>
+							<label>Ancho (dots @203dpi)
+								<input type="number" id="af_label_w_dots" step="1" min="40" max="1600" />
+							</label>
+							<label>Alto (dots @203dpi)
+								<input type="number" id="af_label_h_dots" step="1" min="40" max="1600" />
+							</label>
+						</div>
+						<p class="af-hint" id="afLabelHint">Esto define ^PW / ^LL del ZPL (tamaño de media). Debe coincidir con el rollo en la impresora.</p>
+					</div>
 					<label>Campo
 						<select id="afFieldSel"></select>
 					</label>
@@ -236,7 +254,7 @@ function h($s)
 							<button type="button" class="af-btn" onclick="afApplyInputs(); afPreview();">Aplicar + ver</button>
 						</div>
 					</div>
-					<p class="af-hint">Unidades: twips del SoftShop VB (como en el editor viejo). Al guardar se escribe <code>label_layouts/shared/tipo_<?php echo h($selected['id']); ?>.json</code> y aplica a todos los ítems con etiqueta <?php echo h($selected['id']); ?>.</p>
+					<p class="af-hint">Campos en unidades SoftShop (twips). El tamaño de etiqueta es en pulgadas/dots. Guardar escribe <code>label_layouts/shared/tipo_<?php echo h($selected['id']); ?>.json</code> para todos los ítems #<?php echo h($selected['id']); ?>.</p>
 				</div>
 			</div>
 			<script>
@@ -246,12 +264,82 @@ function h($s)
 				layout: <?php echo json_encode($sharedLayout ? $sharedLayout : new stdClass()); ?>
 			};
 			if (!AF.layout.fields) AF.layout.fields = {};
+			if (!AF.layout.label) AF.layout.label = {};
 			AF.layout.etiqueta = AF.tipo;
 			AF.layout.shared = true;
 
 			function afStatus(msg) {
 				var el = document.getElementById('afStatus');
 				if (el) el.textContent = msg || '';
+			}
+			function afRound(n, d) {
+				var p = Math.pow(10, d || 2);
+				return Math.round(n * p) / p;
+			}
+			function afSyncLabelFromIn() {
+				var win = parseFloat(document.getElementById('af_label_w_in').value);
+				var hin = parseFloat(document.getElementById('af_label_h_in').value);
+				if (!isNaN(win) && win > 0) {
+					document.getElementById('af_label_w_dots').value = Math.round(win * 203);
+				}
+				if (!isNaN(hin) && hin > 0) {
+					document.getElementById('af_label_h_dots').value = Math.round(hin * 203);
+				}
+			}
+			function afSyncLabelFromDots() {
+				var wd = parseFloat(document.getElementById('af_label_w_dots').value);
+				var hd = parseFloat(document.getElementById('af_label_h_dots').value);
+				if (!isNaN(wd) && wd > 0) {
+					document.getElementById('af_label_w_in').value = afRound(wd / 203, 3);
+				}
+				if (!isNaN(hd) && hd > 0) {
+					document.getElementById('af_label_h_in').value = afRound(hd / 203, 3);
+				}
+			}
+			function afLoadLabelSize() {
+				var lab = AF.layout.label || {};
+				var win = null, hin = null, wd = null, hd = null;
+				if (lab.width_in != null) win = parseFloat(lab.width_in);
+				if (lab.height_in != null) hin = parseFloat(lab.height_in);
+				if (lab.width_dots != null) wd = parseInt(lab.width_dots, 10);
+				if (lab.height_dots != null) hd = parseInt(lab.height_dots, 10);
+				// Compat: tipo 5 guardaba width/height en twips
+				if ((win == null || isNaN(win)) && lab.width != null && AF.tipo === '5') {
+					win = parseFloat(lab.width) / 1440;
+				}
+				if ((hin == null || isNaN(hin)) && lab.height != null && AF.tipo === '5') {
+					hin = parseFloat(lab.height) / 1440;
+				}
+				if ((win == null || isNaN(win)) && lab.width != null && AF.tipo !== '5') {
+					wd = parseInt(lab.width, 10);
+					win = wd / 203;
+				}
+				if ((hin == null || isNaN(hin)) && lab.height != null && AF.tipo !== '5') {
+					hd = parseInt(lab.height, 10);
+					hin = hd / 203;
+				}
+				// Defaults por tipo
+				if (win == null || isNaN(win) || win <= 0) win = (AF.tipo === '5') ? 2.358 : 1.0;
+				if (hin == null || isNaN(hin) || hin <= 0) hin = (AF.tipo === '5') ? 1.571 : 0.5;
+				document.getElementById('af_label_w_in').value = afRound(win, 3);
+				document.getElementById('af_label_h_in').value = afRound(hin, 3);
+				afSyncLabelFromIn();
+			}
+			function afApplyLabelSize() {
+				if (!AF.layout.label) AF.layout.label = {};
+				var win = parseFloat(document.getElementById('af_label_w_in').value);
+				var hin = parseFloat(document.getElementById('af_label_h_in').value);
+				var wd = parseInt(document.getElementById('af_label_w_dots').value, 10);
+				var hd = parseInt(document.getElementById('af_label_h_dots').value, 10);
+				if (!isNaN(win) && win > 0) AF.layout.label.width_in = afRound(win, 3);
+				if (!isNaN(hin) && hin > 0) AF.layout.label.height_in = afRound(hin, 3);
+				if (!isNaN(wd) && wd > 0) AF.layout.label.width_dots = wd;
+				if (!isNaN(hd) && hd > 0) AF.layout.label.height_dots = hd;
+				// Mantener twips para tipo 5 (compat impresion)
+				if (AF.tipo === '5') {
+					if (!isNaN(win) && win > 0) AF.layout.label.width = Math.round(win * 1440);
+					if (!isNaN(hin) && hin > 0) AF.layout.label.height = Math.round(hin * 1440);
+				}
 			}
 			function afFieldKeys() {
 				var keys = [];
@@ -293,6 +381,7 @@ function h($s)
 				return isNaN(n) ? null : n;
 			}
 			function afApplyInputs() {
+				afApplyLabelSize();
 				var name = document.getElementById('afFieldSel').value;
 				if (!name) return;
 				if (!AF.layout.fields[name]) AF.layout.fields[name] = {};
@@ -402,6 +491,11 @@ function h($s)
 			}
 			document.getElementById('afPreviewBtn').onclick = function () { afPreview(); };
 			document.getElementById('afSaveBtn').onclick = function () { afSave(false); };
+			document.getElementById('af_label_w_in').addEventListener('change', afSyncLabelFromIn);
+			document.getElementById('af_label_h_in').addEventListener('change', afSyncLabelFromIn);
+			document.getElementById('af_label_w_dots').addEventListener('change', afSyncLabelFromDots);
+			document.getElementById('af_label_h_dots').addEventListener('change', afSyncLabelFromDots);
+			afLoadLabelSize();
 			afFillSelect();
 			</script>
 			<?php } ?>

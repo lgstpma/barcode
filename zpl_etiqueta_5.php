@@ -144,8 +144,17 @@ function build_zpl_etiqueta_5($codigo, $descrip, $precio, $cant, $expir, $fecha_
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']) && is_array($layoutOverride['label'])) {
-			if (isset($layoutOverride['label']['width'])) $vb_w = (int)$layoutOverride['label']['width'];
-			if (isset($layoutOverride['label']['height'])) $vb_h = (int)$layoutOverride['label']['height'];
+			$lab = $layoutOverride['label'];
+			if (isset($lab['width_in']) && (float)$lab['width_in'] > 0) {
+				$vb_w = (int)round((float)$lab['width_in'] * 1440.0);
+			} elseif (isset($lab['width'])) {
+				$vb_w = (int)$lab['width'];
+			}
+			if (isset($lab['height_in']) && (float)$lab['height_in'] > 0) {
+				$vb_h = (int)round((float)$lab['height_in'] * 1440.0);
+			} elseif (isset($lab['height'])) {
+				$vb_h = (int)$lab['height'];
+			}
 		}
 		if (!empty($layoutOverride['fields']) && is_array($layoutOverride['fields'])) {
 			$f = $layoutOverride['fields'];

@@ -93,6 +93,12 @@ function label_layout_default_shared_1()
 		'etiqueta' => '1',
 		'shared' => true,
 		'unit' => 'twips_vb',
+		'label' => array(
+			'width_in' => 1.0,
+			'height_in' => 0.5,
+			'width_dots' => 203,
+			'height_dots' => 102,
+		),
 		'fields' => array(
 			'barcode' => array('x' => 150, 'y' => 10, 'w' => 3500, 'h' => 1000),
 			'itemid' => array('x' => 1700, 'y' => 30, 'font' => 5, 'titulo' => ''),
@@ -127,7 +133,12 @@ function label_layout_default_shared_5()
 			'ingredientes' => array('x' => 10, 'y' => 820, 'font' => 10, 'titulo' => ''),
 			'fecha' => array('x' => 2100, 'y' => 1800, 'font' => 8, 'titulo' => 'EXP:'),
 		),
-		'label' => array('width' => 3395, 'height' => 2263),
+		'label' => array(
+			'width' => 3395,
+			'height' => 2263,
+			'width_in' => round(3395 / 1440.0, 3),
+			'height_in' => round(2263 / 1440.0, 3),
+		),
 	);
 }
 

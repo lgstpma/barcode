@@ -3,6 +3,12 @@
     "etiqueta": "1",
     "shared": true,
     "unit": "twips_vb",
+    "label": {
+        "width_in": 1.0,
+        "height_in": 0.5,
+        "width_dots": 203,
+        "height_dots": 102
+    },
     "fields": {
         "barcode": {
             "x": 150,
@@ -37,6 +43,5 @@
             "font": 5,
             "titulo": "EXP:"
         }
-    },
-    "updated_at": "2026-09-08T13:14:17-05:00"
+    }
 }
