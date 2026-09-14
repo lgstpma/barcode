@@ -243,15 +243,29 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	if ($etiqueta_tipo == '1' || $etiqueta_tipo == 1) {
-		echo "<br>Tipo de etiqueta: 1 (SofyShop 1&quot; x 0.5&quot;) - Generando ZPL y encolando...<br>";
+		echo "<br>Tipo de etiqueta: 1 (chica — plantilla ZPL que funciona, sin forzar PW/LL) - Generando...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
-		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
 		$descrip1 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
+		if ($descrip1 === '' && isset($row_items_info['descrip'])) {
+			$descrip1 = $row_items_info['descrip'];
+		}
+		$descrip2_1 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
 		$precio1 = isset($row_items_info['precio2']) ? $row_items_info['precio2'] : 0;
-		$layout1 = label_layout_ensure_shared(1);
-		$zpl = build_zpl_etiqueta_1($txt_codigo, $descrip1, $precio1, intval($cant), intval($caducidad), $elab_day, true, $layout1);
-		echo "<br>Layout: <strong>JSON shared tipo_1</strong><br>";
+		$reg1 = isset($row_items_info['reg_sanitario']) ? $row_items_info['reg_sanitario'] : '';
+		$zpl = build_zpl_etiqueta_1(
+			$txt_codigo,
+			$descrip1,
+			$precio1,
+			intval($cant),
+			intval($caducidad),
+			$elab_day,
+			true,
+			null,
+			$descrip2_1,
+			$reg1
+		);
+		echo "<br>Layout: <strong>plantilla chica (igual #15)</strong><br>";
 		PRINT $zpl;
 		file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta1.zpl', $zpl);
 		$qid = enqueue_zpl_1($link, (string)$txt_codigo, $zpl);
@@ -264,15 +278,17 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	if ($etiqueta_tipo == '9' || $etiqueta_tipo == 9) {
-		echo "<br>Tipo de etiqueta: 9 (no comestible, 1&quot; x 0.5&quot;, sin EXP/lote) - Generando ZPL y encolando...<br>";
+		echo "<br>Tipo de etiqueta: 9 (chica sin fecha — misma plantilla) - Generando...<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
-		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
 		$descrip9 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
+		if ($descrip9 === '' && isset($row_items_info['descrip'])) {
+			$descrip9 = $row_items_info['descrip'];
+		}
+		$descrip2_9 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
 		$precio9 = isset($row_items_info['precio2']) ? $row_items_info['precio2'] : 0;
-		$layout9 = label_layout_ensure_shared(9);
-		$zpl = build_zpl_etiqueta_9($txt_codigo, $descrip9, $precio9, intval($cant), $layout9);
-		echo "<br>Layout: <strong>JSON shared tipo_9</strong><br>";
+		$zpl = build_zpl_etiqueta_9($txt_codigo, $descrip9, $precio9, intval($cant), null, $descrip2_9);
+		echo "<br>Layout: <strong>plantilla chica sin EXP/lote</strong><br>";
 		PRINT $zpl;
 		file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta9.zpl', $zpl);
 		$qid = enqueue_zpl($link, '9', (string)$txt_codigo, $zpl);

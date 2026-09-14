@@ -183,24 +183,21 @@ if (isset($_POST['layout_json']) && is_string($_POST['layout_json']) && $_POST['
 
 if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
-	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
 	$descrip = isset($row['descrip3']) ? $row['descrip3'] : '';
+	if ($descrip === '' && isset($row['descrip'])) {
+		$descrip = $row['descrip'];
+	}
+	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
 	$precio = isset($row['precio2']) ? $row['precio2'] : 0;
-	$useJson = !isset($_REQUEST['use_json']) || (string)$_REQUEST['use_json'] !== '0';
-	$layoutOverride = null;
-	if ($layoutFromPost) {
-		$layoutOverride = $layoutFromPost;
-	} elseif ($useJson) {
-		$tipoShared = ($etiqueta === '9' || $etiqueta === 9) ? 9 : 1;
-		$layoutOverride = label_layout_ensure_shared($tipoShared);
-	}
+	$reg = isset($row['reg_sanitario']) ? $row['reg_sanitario'] : '';
 	if ($etiqueta === '9' || $etiqueta === 9) {
-		$zpl = build_zpl_etiqueta_9($codigo, $descrip, $precio, $cant, $layoutOverride);
+		$zpl = build_zpl_etiqueta_9($codigo, $descrip, $precio, $cant, null, $descrip2);
 	} else {
-		$zpl = build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, true, $layoutOverride);
+		$zpl = build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, true, null, $descrip2, $reg);
 	}
-	$pw = 0;
-	$ll = 0;
+	// Sin ^PW/^LL: Labelary usa un lienzo chica típico
+	$pw = 203;
+	$ll = 203;
 	$printer = 'GK420t_chica';
 } elseif ($etiqueta === '5' || $etiqueta === 5) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_5.php');
