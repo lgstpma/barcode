@@ -4,16 +4,8 @@
  *
  * Usada por etiqueta 1, 9 y 15.
  *
- * Original (funcionaba en impresora chica):
- *   ^XA ^AD,54 ^CFA,12 ^LT10 ^CWZ,E:LEXENDDECA.TTF
- *   ^FO180,45 ^BY1 ^BCN,40,N,N,N ^FD{codigo}^FS
- *   ^CFA,10 ^CFA,14 ^FO20,20^FDPrecio:{precio}^FS
- *   ^CFA,14 ^FO20,0^FD{nombre}^FS
- *   ^FO20,20^FD{nombre2|^FS
- *   ^CFA,14 ^FO20,40^FD#Lote:{lote}^FS
- *   ^CFA,14 ^FO20,58^FDExp.:{exp}^FS
- *   ^CFA,14 ^FO20,75^FDReg.:{reg}^FS
- *   ^PQ{cant} ^XZ
+ * Márgenes / offset: print_chica_offset.cfg → ^LT / ^LS / ^LH solo en ESTE job.
+ * No se guarda configuración en la impresora (sin ^JUS), así VB6 sigue igual.
  */
 if (!function_exists('zpl_escape_field')) {
 	function zpl_escape_field($s)
@@ -24,6 +16,71 @@ if (!function_exists('zpl_escape_field')) {
 		$s = str_replace(array("\r", "\n"), ' ', (string)$s);
 		return str_replace(array('^', '~'), '', $s);
 	}
+}
+
+function zpl_chica_offset_cfg_path()
+{
+	return __DIR__ . DIRECTORY_SEPARATOR . 'print_chica_offset.cfg';
+}
+
+/**
+ * Lee offsets de job (no permanentes en impresora).
+ * @return array{lt:int,ls:int,lh_x:int,lh_y:int}
+ */
+function zpl_chica_load_offsets()
+{
+	$out = array('lt' => 10, 'ls' => 0, 'lh_x' => 0, 'lh_y' => 0);
+	$path = zpl_chica_offset_cfg_path();
+	if (!is_readable($path)) {
+		return $out;
+	}
+	$lines = @file($path, FILE_IGNORE_NEW_LINES);
+	if (!is_array($lines)) {
+		return $out;
+	}
+	foreach ($lines as $line) {
+		$line = trim((string)$line);
+		if ($line === '' || $line[0] === '#') {
+			continue;
+		}
+		if (strpos($line, '=') === false) {
+			continue;
+		}
+		list($k, $v) = array_map('trim', explode('=', $line, 2));
+		$k = strtolower($k);
+		if ($k === 'lt' || $k === 'ls' || $k === 'lh_x' || $k === 'lh_y') {
+			$out[$k] = (int)$v;
+		}
+	}
+	foreach (array('lt', 'ls') as $k) {
+		if ($out[$k] < -120) {
+			$out[$k] = -120;
+		}
+		if ($out[$k] > 120) {
+			$out[$k] = 120;
+		}
+	}
+	foreach (array('lh_x', 'lh_y') as $k) {
+		if ($out[$k] < 0) {
+			$out[$k] = 0;
+		}
+		if ($out[$k] > 400) {
+			$out[$k] = 400;
+		}
+	}
+	return $out;
+}
+
+function zpl_chica_save_offsets($lt, $ls, $lh_x = 0, $lh_y = 0)
+{
+	$lt = (int)$lt;
+	$ls = (int)$ls;
+	$lh_x = (int)$lh_x;
+	$lh_y = (int)$lh_y;
+	$txt = "# Compensación SOLO jobs nuevos (1/9/15). No afecta VB6. Sin ^JUS.\n";
+	$txt .= "# dots @203dpi. lt=vertical (^LT), ls=horizontal (^LS), lh=origen (^LH)\n";
+	$txt .= "lt=$lt\nls=$ls\nlh_x=$lh_x\nlh_y=$lh_y\n";
+	return @file_put_contents(zpl_chica_offset_cfg_path(), $txt) !== false;
 }
 
 function zpl_chica_lote_code($ts)
@@ -70,7 +127,7 @@ function zpl_chica_parse_fecha($fecha)
 
 /**
  * @param bool $con_fecha  true = lote/exp/reg (tipos 1 y 15); false = solo nombre+precio+barras (tipo 9)
- * @param bool $con_reg    incluir línea Reg. si hay valor (tipo 15 / 1 con reg_sanitario)
+ * @param bool $con_reg    incluir línea Reg. si hay valor
  */
 function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant, $expir, $fecha_manufact, $reg_sanitario = '', $con_fecha = true, $con_reg = true)
 {
@@ -88,12 +145,20 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 		$cant = 1;
 	}
 
-	// Misma secuencia de comandos que tu ZPL de prueba (sin forzar tamaño de media).
+	$off = zpl_chica_load_offsets();
+	$lt = (int)$off['lt'];
+	$ls = (int)$off['ls'];
+	$lhx = (int)$off['lh_x'];
+	$lhy = (int)$off['lh_y'];
+
+	// Offsets solo en este formato (^XA…^XZ). No ^JUS → no cambia config permanente.
 	$zpl = "^XA\n";
-	$zpl .= "^FX chica-plantilla (sin VB6, sin PW/LL)\n";
+	$zpl .= "^FX chica-plantilla job-offset lt=$lt ls=$ls (VB6 intacto)\n";
+	$zpl .= "^LH" . $lhx . "," . $lhy . "\n";
+	$zpl .= "^LS" . $ls . "\n";
 	$zpl .= "^AD,54\n";
 	$zpl .= "^CFA,12\n";
-	$zpl .= "^LT10\n";
+	$zpl .= "^LT" . $lt . "\n";
 	$zpl .= "^CWZ,E:LEXENDDECA.TTF\n";
 	$zpl .= "^FO180,45\n";
 	$zpl .= "^BY1\n";
@@ -104,7 +169,6 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$zpl .= "^FO20,20^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
 	$zpl .= "^CFA,14\n";
 	$zpl .= "^FO20,0^FD" . $descrip . "^FS\n";
-	// Tu muestra traía ^FO20,20^FD^FS vacío; si hay 2ª línea, no pisa Precio (mismo FO20,20)
 	if ($descrip2 !== '') {
 		$zpl .= "^FO20,12^FD" . $descrip2 . "^FS\n";
 	} else {

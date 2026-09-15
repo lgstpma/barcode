@@ -5,8 +5,24 @@
  */
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'conections.php';
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php';
+include_once __DIR__ . DIRECTORY_SEPARATOR . 'zpl_chica_plantilla.php';
 
 $link = conec_mysql();
+
+$offsetMsg = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['af_save_chica_offset'])) {
+	$ok = zpl_chica_save_offsets(
+		isset($_POST['lt']) ? $_POST['lt'] : 10,
+		isset($_POST['ls']) ? $_POST['ls'] : 0,
+		isset($_POST['lh_x']) ? $_POST['lh_x'] : 0,
+		isset($_POST['lh_y']) ? $_POST['lh_y'] : 0
+	);
+	$offsetMsg = $ok
+		? 'Offset guardado en print_chica_offset.cfg (solo jobs nuevos; VB6 no cambia).'
+		: 'No se pudo escribir print_chica_offset.cfg (permisos).';
+}
+
+$chicaOff = zpl_chica_load_offsets();
 
 $catalog = array(
 	array(
@@ -196,15 +212,34 @@ function h($s)
 			<?php if (empty($selected['shared'])) { ?>
 			<div class="af-notice">
 				<?php if (in_array($selected['id'], array('1', '9', '15'), true)) { ?>
-					<strong>No hace falta ancho/alto aquí</strong> — igual que SoftShop / el ZPL que te funcionaba:
-					el sistema <em>no fuerza</em> <code>^PW</code>/<code>^LL</code>; usa el tamaño que ya tiene calibrada la impresora chica.
-					<br><br>
-					Si sigue saliendo apiñada, casi seguro el PC Servicios todavía genera el ZPL viejo
-					(<code>^PW203^LL102</code>). Tras <code>git pull</code> en Servicios, imprima una de prueba y en
-					<code>etiqueta1.zpl</code> debe empezar con <code>^AD,54</code> (no con <code>^PW203</code>).
-					<br><br>
-					También revise en el PC impresoras que <code>GK420t_chica</code> use driver Zebra o “Generic / Text Only”
-					y puerto RAW/TCP 9100 (si Windows escala el papel, el dibujo queda chico en el centro).
+					<strong>Compensar margen de la chica solo en este sistema</strong>
+					(comandos <code>^LT</code>/<code>^LS</code>/<code>^LH</code> en el ZPL del job).
+					<strong>No se graba nada en la impresora</strong> → VB6 SoftShop sigue igual.
+					<?php if ($offsetMsg !== '') { ?>
+						<p style="margin:10px 0 0;color:#0f2744;"><strong><?php echo h($offsetMsg); ?></strong></p>
+					<?php } ?>
+					<form method="post" action="ajustes_formatos.php?tipo=<?php echo h(urlencode($selected['id'])); ?>" class="af-label-size" style="margin-top:12px;">
+						<input type="hidden" name="af_save_chica_offset" value="1" />
+						<div class="af-coords">
+							<label>Vertical ^LT (dots)
+								<input type="number" name="lt" value="<?php echo (int)$chicaOff['lt']; ?>" step="1" min="-120" max="120" />
+							</label>
+							<label>Horizontal ^LS (dots)
+								<input type="number" name="ls" value="<?php echo (int)$chicaOff['ls']; ?>" step="1" min="-120" max="120" />
+							</label>
+							<label>Origen X ^LH
+								<input type="number" name="lh_x" value="<?php echo (int)$chicaOff['lh_x']; ?>" step="1" min="0" max="400" />
+							</label>
+							<label>Origen Y ^LH
+								<input type="number" name="lh_y" value="<?php echo (int)$chicaOff['lh_y']; ?>" step="1" min="0" max="400" />
+							</label>
+						</div>
+						<p class="af-hint" style="margin-top:8px;">
+							~8 dots ≈ 1 mm. Si hay margen de más arriba, baja <code>lt</code> (prueba <code>-10</code> o <code>-20</code>).
+							Si sobra a la izquierda, baja <code>ls</code> (negativo). Luego imprima una de prueba.
+						</p>
+						<button type="submit" class="af-btn af-btn-primary" style="margin-top:10px;">Guardar offset chica</button>
+					</form>
 				<?php } elseif (in_array($selected['id'], array('10', '14'), true) && $sampleCode !== '') { ?>
 					Este formato no usa layout compartido editable aquí.
 					Abra un producto (ej. <?php echo h($sampleCode); ?>) y use <em>Opciones avanzadas / Vista previa</em>.
