@@ -195,10 +195,21 @@ function h($s)
 
 			<?php if (empty($selected['shared'])) { ?>
 			<div class="af-notice">
-				Este formato no usa layout compartido editable aquí.
-				<?php if (in_array($selected['id'], array('10', '14'), true) && $sampleCode !== '') { ?>
+				<?php if (in_array($selected['id'], array('1', '9', '15'), true)) { ?>
+					<strong>No hace falta ancho/alto aquí</strong> — igual que SoftShop / el ZPL que te funcionaba:
+					el sistema <em>no fuerza</em> <code>^PW</code>/<code>^LL</code>; usa el tamaño que ya tiene calibrada la impresora chica.
+					<br><br>
+					Si sigue saliendo apiñada, casi seguro el PC Servicios todavía genera el ZPL viejo
+					(<code>^PW203^LL102</code>). Tras <code>git pull</code> en Servicios, imprima una de prueba y en
+					<code>etiqueta1.zpl</code> debe empezar con <code>^AD,54</code> (no con <code>^PW203</code>).
+					<br><br>
+					También revise en el PC impresoras que <code>GK420t_chica</code> use driver Zebra o “Generic / Text Only”
+					y puerto RAW/TCP 9100 (si Windows escala el papel, el dibujo queda chico en el centro).
+				<?php } elseif (in_array($selected['id'], array('10', '14'), true) && $sampleCode !== '') { ?>
+					Este formato no usa layout compartido editable aquí.
 					Abra un producto (ej. <?php echo h($sampleCode); ?>) y use <em>Opciones avanzadas / Vista previa</em>.
 				<?php } else { ?>
+					Este formato no usa layout compartido editable aquí.
 					La geometría está en el generador ZPL PHP correspondiente.
 				<?php } ?>
 			</div>
