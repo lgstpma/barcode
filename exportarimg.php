@@ -243,12 +243,12 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	if ($etiqueta_tipo == '1' || $etiqueta_tipo == 1) {
-		echo "<br>Tipo de etiqueta: 1 (chica — plantilla ZPL que funciona, sin forzar PW/LL) - Generando...<br>";
+		echo "<br>Tipo de etiqueta: <strong>1</strong> — plantilla ZPL chica (sin VB6 / sin PW-LL)<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
-		$descrip1 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
-		if ($descrip1 === '' && isset($row_items_info['descrip'])) {
-			$descrip1 = $row_items_info['descrip'];
+		$descrip1 = isset($row_items_info['descrip']) ? $row_items_info['descrip'] : '';
+		if (trim((string)$descrip1) === '' && isset($row_items_info['descrip3'])) {
+			$descrip1 = $row_items_info['descrip3'];
 		}
 		$descrip2_1 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
 		$precio1 = isset($row_items_info['precio2']) ? $row_items_info['precio2'] : 0;
@@ -265,8 +265,8 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 			$descrip2_1,
 			$reg1
 		);
-		echo "<br>Layout: <strong>plantilla chica (igual #15)</strong><br>";
-		PRINT $zpl;
+		echo "<br>ZPL: <strong>zpl_chica_plantilla</strong> (igual #15)<br>";
+		PRINT htmlspecialchars($zpl);
 		file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta1.zpl', $zpl);
 		$qid = enqueue_zpl_1($link, (string)$txt_codigo, $zpl);
 		if ($qid) {
@@ -278,18 +278,18 @@ echo "<br>Tipo de etiqueta: 13-1 - Generando ZPL e imprimiendo...<br>";
 	}
 
 	if ($etiqueta_tipo == '9' || $etiqueta_tipo == 9) {
-		echo "<br>Tipo de etiqueta: 9 (chica sin fecha — misma plantilla) - Generando...<br>";
+		echo "<br>Tipo de etiqueta: <strong>9</strong> — plantilla ZPL chica sin fecha<br>";
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 		include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
-		$descrip9 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
-		if ($descrip9 === '' && isset($row_items_info['descrip'])) {
-			$descrip9 = $row_items_info['descrip'];
+		$descrip9 = isset($row_items_info['descrip']) ? $row_items_info['descrip'] : '';
+		if (trim((string)$descrip9) === '' && isset($row_items_info['descrip3'])) {
+			$descrip9 = $row_items_info['descrip3'];
 		}
 		$descrip2_9 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
 		$precio9 = isset($row_items_info['precio2']) ? $row_items_info['precio2'] : 0;
 		$zpl = build_zpl_etiqueta_9($txt_codigo, $descrip9, $precio9, intval($cant), null, $descrip2_9);
-		echo "<br>Layout: <strong>plantilla chica sin EXP/lote</strong><br>";
-		PRINT $zpl;
+		echo "<br>ZPL: <strong>zpl_chica_plantilla</strong> (sin lote/exp)<br>";
+		PRINT htmlspecialchars($zpl);
 		file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta9.zpl', $zpl);
 		$qid = enqueue_zpl($link, '9', (string)$txt_codigo, $zpl);
 		if ($qid) {

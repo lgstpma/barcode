@@ -183,9 +183,9 @@ if (isset($_POST['layout_json']) && is_string($_POST['layout_json']) && $_POST['
 
 if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
-	$descrip = isset($row['descrip3']) ? $row['descrip3'] : '';
-	if ($descrip === '' && isset($row['descrip'])) {
-		$descrip = $row['descrip'];
+	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
+	if (trim((string)$descrip) === '' && isset($row['descrip3'])) {
+		$descrip = $row['descrip3'];
 	}
 	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
 	$precio = isset($row['precio2']) ? $row['precio2'] : 0;
@@ -195,7 +195,6 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	} else {
 		$zpl = build_zpl_etiqueta_1($codigo, $descrip, $precio, $cant, $caducidad, $elab_day, true, null, $descrip2, $reg);
 	}
-	// Sin ^PW/^LL: Labelary usa un lienzo chica típico
 	$pw = 203;
 	$ll = 203;
 	$printer = 'GK420t_chica';
