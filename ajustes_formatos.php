@@ -100,10 +100,10 @@ $catalog = array(
 	array(
 		'id' => 'gti13',
 		'nombre' => 'GTI 13 caja Rey',
-		'printer' => 'GK420t_3x2',
-		'size' => '3x2',
+		'printer' => 'GK420t_2x3',
+		'size' => '2x3',
 		'shared' => false,
-		'note' => 'Caja unidades 3×2 + QR La Cocina de Sofy (export_gti13.php).',
+		'note' => 'Caja unidades 2×3 + QR La Cocina de Sofy (export_gti13.php).',
 	),
 );
 

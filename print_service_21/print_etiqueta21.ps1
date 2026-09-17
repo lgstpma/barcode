@@ -19,7 +19,7 @@ $PrinterDefault  = "GK420t_chica"
 $PrinterForce    = ""
 $PrinterFilter   = ""
 # Fallback si no hay print_migrate.cfg. El cfg (y luego config.local.ps1) lo pisan.
-$AcceptPrinters  = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_3x2"
+$AcceptPrinters  = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_3x2,GK420t_2x3"
 $PrinterAliases  = @{}
 $SkipUncPrinters = $true
 $ShowPrinterList = $true

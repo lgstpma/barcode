@@ -1,7 +1,7 @@
 <?php
 /**
- * ZPL GTI 13 — etiqueta caja unidades 3" × 2" @ 203 dpi (Supermercado Rey).
- * Botón "Imprimir GTI 13" → export_gti13.php → cola gti13 → GK420t_3x2.
+ * ZPL GTI 13 — etiqueta caja unidades 2" × 3" @ 203 dpi (Supermercado Rey).
+ * Botón "Imprimir GTI 13" → export_gti13.php → cola gti13 → GK420t_2x3.
  * Independiente del GTIN SoftShop chica (export_code13.php).
  */
 if (!function_exists('zpl_escape_field')) {
@@ -71,13 +71,13 @@ function build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $can
 	$brand = 'La Cocina de Sofy';
 
 	if (strlen($codigo2_digits) === 13) {
-		$barcodeBlock = '^FO50,58^BY2^BEN,90,N,N,N^FD' . $codigo2_digits . '^FS
-^FO130,158^A0N,28,28^FD' . $codigo2_digits . '^FS';
+		$barcodeBlock = '^FO40,70^BY2^BEN,100,N,N,N^FD' . $codigo2_digits . '^FS
+^FO90,180^A0N,26,26^FD' . $codigo2_digits . '^FS';
 	} else {
-		$barcodeBlock = '^FO40,58^BY2,2,90
-^BCN,90,N,N,N
+		$barcodeBlock = '^FO30,70^BY2,2,100
+^BCN,100,N,N,N
 ^FD>;' . $gtinDisp . '^FS
-^FO100,158^A0N,28,28^FD' . $gtinDisp . '^FS';
+^FO60,180^A0N,26,26^FD' . $gtinDisp . '^FS';
 	}
 
 	$qrPayload = $brand . "\n"
@@ -88,21 +88,22 @@ function build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $can
 		. $expLine;
 	$qrPayload = str_replace(array('^', '~'), '', $qrPayload);
 
-	$nameH = strlen($nombreZ) > 28 ? 28 : 36;
-	$nameW = strlen($nombreZ) > 28 ? 26 : 34;
+	$nameH = strlen($nombreZ) > 22 ? 26 : 32;
+	$nameW = strlen($nombreZ) > 22 ? 24 : 30;
 
+	// 2" ancho × 3" alto @ 203 dpi = 406 × 609
 	return '^XA
-^PW609
-^LL406
+^PW406
+^LL609
 ^LH0,0
 ^CI28
-^FO20,12^A0N,' . $nameH . ',' . $nameW . '^FD' . $nombreZ . '^FS
+^FO16,16^A0N,' . $nameH . ',' . $nameW . '^FD' . $nombreZ . '^FS
 ' . $barcodeBlock . '
-^FO20,200^A0N,32,32^FD' . zpl_escape_field($unidadesLine) . '^FS
-^FO20,245^A0N,28,28^FD' . zpl_escape_field($loteLine) . '^FS
-^FO20,285^A0N,28,28^FD' . zpl_escape_field($expLine) . '^FS
-^FO20,340^A0N,24,24^FD' . zpl_escape_field($brand) . '^FS
-^FO420,40^BQN,2,4^FDQA,' . $qrPayload . '^FS
+^FO16,220^A0N,30,30^FD' . zpl_escape_field($unidadesLine) . '^FS
+^FO16,265^A0N,26,26^FD' . zpl_escape_field($loteLine) . '^FS
+^FO16,305^A0N,26,26^FD' . zpl_escape_field($expLine) . '^FS
+^FO16,355^A0N,22,22^FD' . zpl_escape_field($brand) . '^FS
+^FO250,400^BQN,2,4^FDQA,' . $qrPayload . '^FS
 ^PQ' . $cantStr . '
 ^XZ';
 }

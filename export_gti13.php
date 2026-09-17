@@ -2,7 +2,7 @@
 /**
  * Impresión GTI 13 — caja unidades 3"×2" (Supermercado Rey).
  * Botón "Imprimir GTI 13" (NO es items.etiqueta #13 ni GTIN SoftShop).
- * Encola como etiqueta=gti13 → GK420t_3x2.
+ * Encola como etiqueta=gti13 → GK420t_2x3.
  */
 include("conections.php");
 include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_gti13.php');
@@ -65,9 +65,9 @@ if (trim((string)$codigo2) === '') {
 $zpl = build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $expir, $descrip3);
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'caja_gti13.zpl', $zpl);
 
-$printer = 'GK420t_3x2';
+$printer = 'GK420t_2x3';
 $qid = enqueue_zpl($link, 'gti13', $itemid, $zpl, $printer);
-$notes = 'GTI 13 caja 3x2 (Rey) + QR La Cocina de Sofy. No es GTIN SoftShop ni formato #13.';
+$notes = 'GTI 13 caja 2x3 (Rey) + QR La Cocina de Sofy. No es GTIN SoftShop ni formato #13.';
 $path = print_migrate_uses_new_queue($printer) ? 'mysql' : 'legacy';
 $title = trim($descrip3 !== '' ? $descrip3 : ($descrip . ' ' . $descrip2));
 

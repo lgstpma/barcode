@@ -1158,18 +1158,18 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 									<div>
 										<table class="mobile-gtin-table" bgcolor="#c9d8e8" width="929" border="2">
 										  <tr>
-										    <td>GTI 13 (caja 3×2 Rey):</td>
+										    <td>GTI 13 (caja 2×3 Rey):</td>
 										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_gti13" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
 										    <td>Unidades:</td>
-										    <td><input type="number" min="1" inputmode="numeric" name="unidades" id="unidades_gti13" value="" size="4" required placeholder="" title="Unidades en la caja (ej. 24)" /></td>
+										    <td><input type="number" min="1" inputmode="numeric" name="unidades" id="unidades_gti13" value="" size="4" required placeholder="" title="Unidades en la caja" /></td>
 										    <td>Etiquetas:</td>
 										    <td><input type="number" min="1" inputmode="numeric" name="cant_gti13" id="cant_gti13" value="1" size="4" required title="Copias a imprimir" /></td>
-										    <td><input type="Submit" name="btn_gti13" id="btn_gti13" value="Imprimir GTI 13" title="Caja 3×2 Rey + QR La Cocina de Sofy → GK420t_3x2" /></td>
+										    <td><input type="Submit" name="btn_gti13" id="btn_gti13" value="Imprimir GTI 13" title="Caja 2×3 Rey + QR La Cocina de Sofy → GK420t_2x3" /></td>
 									      </tr>
 									  </table>
 										<input type="hidden" name="elab_day" id="gti13_elab_day" value="" />
 										<input type="hidden" name="caducidad1" id="gti13_caducidad1" value="" />
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">GTI 13 = caja 3×2 (cola <code>gti13</code> → GK420t_3x2) con nombre, código, unidades, lote/exp y QR <em>La Cocina de Sofy</em>. Usa fecha y días de vencimiento de arriba. Distinto del GTIN SoftShop y del formato <strong>#13</strong> por IP.</p>
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">GTI 13 = caja 2×3 (cola <code>gti13</code> → <strong>GK420t_2x3</strong>) con nombre, código, unidades, lote/exp y QR <em>La Cocina de Sofy</em>. Usa fecha y días de vencimiento de arriba. Distinto del GTIN SoftShop y del formato <strong>#13</strong> por IP.</p>
 										<p>&nbsp;</p>
   </div>
 				</form>

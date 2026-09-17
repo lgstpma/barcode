@@ -3,7 +3,7 @@
  * Cola ZPL compartida (isabel_zpl_queue).
  * Web (Servicios) genera ZPL; worker unico (print_service_21) imprime RAW.
  * Impresoras: print_migrate.cfg
- *   1/9/21/15/gtin → GK420t_chica | gti13 (caja Rey) → GK420t_3x2 | 5 → grande | 10/14 → 3x1.25 o 3x2
+ *   1/9/21/15/gtin → GK420t_chica | gti13 (caja Rey) → GK420t_2x3 | 5 → grande | 10/14 → 3x1.25 o 3x2
  * Formato 13: por IP (no esta cola).
  *
  * estados: 0=pendiente 1=impreso 2=error 3=tomado (claim)
@@ -69,7 +69,7 @@ function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
 		return trim((string)$printer);
 	}
 	if ($etiqueta === 'gti13') {
-		return 'GK420t_3x2';
+		return 'GK420t_2x3';
 	}
 	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin' || $etiqueta === '15') {
 		return 'GK420t_chica';
@@ -205,7 +205,7 @@ function enqueue_zpl_gtin($link, $itemid, $zpl)
 
 function enqueue_zpl_gti13($link, $itemid, $zpl)
 {
-	return enqueue_zpl($link, 'gti13', $itemid, $zpl, 'GK420t_3x2');
+	return enqueue_zpl($link, 'gti13', $itemid, $zpl, 'GK420t_2x3');
 }
 
 /** Etiquetas ZPL atendidas por el servicio unificado */

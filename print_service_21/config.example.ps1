@@ -15,4 +15,4 @@ $ApiUrl = "http://192.168.1.50:8080/api_print_21.php"
 $LocalQueueDir = ""
 
 # Impresoras: las define print_migrate.cfg (no hace falta listar aqui).
-# $AcceptPrinters = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_3x2"
+# $AcceptPrinters = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_3x2,GK420t_2x3"

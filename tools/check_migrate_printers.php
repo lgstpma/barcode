@@ -11,7 +11,8 @@ $formatosPorPrinter = array(
 	'GK420t_chica' => 'chica: formatos 1, 9, 15, 21 y GTIN SoftShop',
 	'GK420t_grande' => 'mediana SoftShop: formato 5',
 	'GK420t_3x1.25' => 'BMP / lbls (suele 10 o 14)',
-	'GK420t_3x2' => 'BMP / lbls (10/14) + GTI 13 caja Rey',
+	'GK420t_3x2' => 'BMP / lbls (10/14)',
+	'GK420t_2x3' => 'GTI 13 caja Rey (2x3)',
 	'VirtualZPLPrinter_Sistemas' => 'prueba virtual ZPL',
 );
 

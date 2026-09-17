@@ -21,7 +21,7 @@ Setup PC impresoras
 -------------------
   1) git pull (o copiar carpeta BARCODE)
   2) Las Zebras ya deben llamarse exactamente:
-     GK420t_chica | GK420t_grande | GK420t_3x1.25 | GK420t_3x2
+     GK420t_chica | GK420t_grande | GK420t_3x1.25 | GK420t_3x2 | GK420t_2x3
      (sin renombrar automatico en start.bat)
   3) Si web e impresoras estan en OTRA PC: print_service_21\configurar_api_servicios.bat
      Si todo esta en la MISMA PC: no hace falta (usa 127.0.0.1)
