@@ -20,11 +20,16 @@ Factible un solo servicio: SI.
 Setup PC impresoras
 -------------------
   1) git pull (o copiar carpeta BARCODE)
-  2) Renombrar Zebras: GK420t_chica | GK420t_grande | GK420t_3x1.25 | GK420t_3x2
-     (tools\setup_zebra_printers.bat)
-  3) print_service_21\configurar_api_servicios.bat  → IP de Servicios
-  4) print_service_21\arrancar_worker.bat
+  2) Las Zebras ya deben llamarse exactamente:
+     GK420t_chica | GK420t_grande | GK420t_3x1.25 | GK420t_3x2
+     (sin renombrar automatico en start.bat)
+  3) Si web e impresoras estan en OTRA PC: print_service_21\configurar_api_servicios.bat
+     Si todo esta en la MISMA PC: no hace falta (usa 127.0.0.1)
+  4) start.bat  (o print_service_21\arrancar_worker.bat)
      (opcional Admin: install_tarea.bat para autoinicio)
+
+  El worker solo usa nombres exactos. Si falta una impresora, libera el job
+  (no redirige a otra cola ni a PrinterDefault).
 
 Setup PC Servicios (imagenes 10/14)
 -----------------------------------

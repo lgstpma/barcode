@@ -150,13 +150,9 @@ function status_label($code)
 
 function find_printer($wanted, $installed)
 {
+	// Solo nombre exacto (sin coincidencia parcial / sin "redirigir" a otra cola).
 	foreach ($installed as $name => $info) {
 		if (strcasecmp($name, $wanted) === 0) {
-			return array($name, $info);
-		}
-	}
-	foreach ($installed as $name => $info) {
-		if (stripos($name, $wanted) !== false || stripos($wanted, $name) !== false) {
 			return array($name, $info);
 		}
 	}
@@ -190,8 +186,8 @@ foreach ($wanted as $prn) {
 	echo "   Formatos: $fmt\n";
 	$hit = find_printer($prn, $installed);
 	if ($hit === null) {
-		echo "   Estado: NO ENCONTRADA en Windows\n";
-		echo "   Accion: conecte la Zebra e instalela con ese nombre exacto.\n";
+		echo "   Estado: NO ENCONTRADA (nombre exacto) en Windows\n";
+		echo "   Accion: use la impresora ya instalada con ese nombre; no se renombra ni redirige.\n";
 		$fail++;
 		continue;
 	}

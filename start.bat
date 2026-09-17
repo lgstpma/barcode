@@ -42,35 +42,16 @@ echo.
 echo ============================================
 echo  BARCODE - arranque unificado
 echo ============================================
-echo  1^) Zebras: prueba + detectar formato + renombrar
-echo  2^) Chequeo impresoras migradas
-echo  3^) Worker cola ZPL ^(print_service_21^)
-echo  4^) Servidor web en :%PORT%
+echo  1^) Chequeo impresoras ^(solo detectar nombres exactos^)
+echo  2^) Worker cola ZPL ^(print_service_21^)
+echo  3^) Servidor web en :%PORT%
 echo ============================================
 echo.
-
-REM Si falta GK420t_chica ^(u otra migrada^), ofrecer setup automatico
-set "NEED_ZEBRA=0"
-"%PHP%" "%~dp0tools\check_migrate_printers.php" >nul 2>&1
-if errorlevel 1 set "NEED_ZEBRA=1"
-
-if "%NEED_ZEBRA%"=="1" (
-  echo Falta alguna impresora migrada con el nombre BARCODE.
-  choice /C SN /M "Sondear Zebras, imprimir prueba y renombrar ahora"
-  if not errorlevel 2 (
-    call "%~dp0tools\setup_zebra_printers.bat"
-  )
-) else (
-  choice /C SN /D N /T 8 /M "Probar/renombrar Zebras otra vez ^(Enter=No en 8s^)"
-  if not errorlevel 2 (
-    if errorlevel 1 call "%~dp0tools\setup_zebra_printers.bat"
-  )
-)
 
 echo.
 "%PHP%" "%~dp0tools\check_migrate_printers.php"
 echo.
-echo [INFO] El chequeo de impresoras es solo aviso; el arranque continua.
+echo [INFO] Solo se detectan nombres exactos de print_migrate.cfg. Sin renombrar ni redirigir.
 :after_check
 
 echo.

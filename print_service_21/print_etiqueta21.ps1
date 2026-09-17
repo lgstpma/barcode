@@ -182,73 +182,62 @@ function Get-DictValue($obj, $key) {
 }
 
 function Show-LocalPrinters {
-    Write-Log "Impresoras instaladas en esta PC:"
-    $list = Get-WmiObject -Class Win32_Printer
-    foreach ($p in $list) {
-        Write-Log ("  Name='" + $p.Name + "' Share='" + $p.ShareName + "' Port='" + $p.PortName + "'")
+    Write-Log "Impresoras de print_migrate.cfg en esta PC (nombre exacto):"
+    $accept = @()
+    if ($script:AcceptPrinters -ne "") {
+        foreach ($x in $script:AcceptPrinters.Split(",")) {
+            $t = $x.Trim()
+            if ($t -ne "") { $accept += $t }
+        }
+    }
+    if ($accept.Count -eq 0) {
+        Write-Log "  (lista vacia)"
+        return
+    }
+    foreach ($wanted in $accept) {
+        if (Test-LocalPrinterExists $wanted) {
+            Write-Log ("  OK  '" + $wanted + "'")
+        } else {
+            Write-Log ("  --  '" + $wanted + "' NO instalada (no se usara)")
+        }
     }
 }
 
-function Find-WindowsPrinterName([string]$hint) {
-    if ([string]::IsNullOrEmpty($hint)) {
-        $hint = $script:PrinterDefault
-    }
-    $hint = $hint.Trim()
-    # Preferir Get-Printer (mas fiable que WMI en bucle)
+function Find-WindowsPrinterName([string]$wanted) {
+    if ([string]::IsNullOrEmpty($wanted)) { return $null }
+    $wanted = $wanted.Trim()
+    # Solo coincidencia exacta de Name. Sin parcial, sin ShareName, sin alias.
     try {
         $list = @(Get-Printer -ErrorAction Stop)
+        foreach ($p in $list) {
+            $name = [string]$p.Name
+            if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
+            if ($name -eq $wanted) { return $name }
+        }
     } catch {
-        $list = @()
         $wmi = @(Get-WmiObject -Class Win32_Printer -ErrorAction SilentlyContinue)
         foreach ($p in $wmi) {
-            $list += (New-Object PSObject -Property @{ Name = $p.Name; ShareName = $p.ShareName })
+            $name = [string]$p.Name
+            if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
+            if ($name -eq $wanted) { return $name }
         }
-    }
-    $usable = @()
-    foreach ($p in $list) {
-        $name = [string]$p.Name
-        $isUnc = ($name.IndexOf("\\") -eq 0)
-        if ($script:SkipUncPrinters -and $isUnc) { continue }
-        $usable += $p
-    }
-    foreach ($p in $usable) {
-        if ([string]$p.Name -eq $hint) { return [string]$p.Name }
-    }
-    foreach ($p in $usable) {
-        if ($p.ShareName -and ([string]$p.ShareName -eq $hint)) { return [string]$p.Name }
-    }
-    foreach ($p in $usable) {
-        $n = [string]$p.Name
-        if ($n.ToLower().IndexOf($hint.ToLower()) -ge 0) { return $n }
     }
     return $null
 }
 
 function Test-LocalPrinterExists([string]$name) {
     if ([string]::IsNullOrEmpty($name)) { return $false }
-    # Get-Printer no existe en Win7 / PS2; usar WMI como respaldo.
-    try {
-        $null = Get-Printer -Name $name -ErrorAction Stop
-        return $true
-    } catch {}
-    try {
-        $p = Get-WmiObject -Class Win32_Printer -Filter ("Name='" + $name.Replace("'", "''") + "'") -ErrorAction SilentlyContinue
-        if ($p) { return $true }
-    } catch {}
-    return $false
+    return ($null -ne (Find-WindowsPrinterName $name))
 }
 
 function Get-TargetPrinter([string]$jobPrinter) {
-    if ($script:PrinterForce -ne "") { return $script:PrinterForce }
-    if ($jobPrinter -ne "" -and $script:PrinterAliases -and $script:PrinterAliases.ContainsKey($jobPrinter)) {
-        $jobPrinter = [string]$script:PrinterAliases[$jobPrinter]
-        Write-Log ("Alias impresora -> " + $jobPrinter)
+    # Sin redireccion: el job debe pedir el nombre exacto instalado en Windows.
+    if ([string]::IsNullOrEmpty($jobPrinter)) {
+        Write-Log "Job sin impresora: se libera (no hay fallback)"
+        return $null
     }
     $found = Find-WindowsPrinterName $jobPrinter
     if ($found) { return $found }
-    if ($jobPrinter -eq "" -or $jobPrinter -eq $null) {
-        return (Find-WindowsPrinterName $script:PrinterDefault)
-    }
     return $null
 }
 
@@ -437,9 +426,21 @@ if ($LocalQueueDir -ne "") {
     exit 1
 }
 Write-Log ("WorkerId: " + $WorkerId)
-Write-Log "Impresora por defecto: $PrinterDefault"
-if ($PrinterForce -ne "") { Write-Log "Forzar impresora local: $PrinterForce" }
-if ($AcceptPrinters -ne "") { Write-Log "Acepta impresoras: $AcceptPrinters" }
+# Dejar AcceptPrinters solo con nombres exactos instalados (sin fantasmas / sin redirigir).
+if ($AcceptPrinters -ne "") {
+    $alive = @()
+    foreach ($x in $AcceptPrinters.Split(",")) {
+        $t = ([string]$x).Trim()
+        if ($t -eq "") { continue }
+        if (Test-LocalPrinterExists $t) {
+            $alive += $t
+        } else {
+            Write-Log ("Ignorada (no instalada): " + $t)
+        }
+    }
+    $AcceptPrinters = [string]::Join(",", $alive)
+}
+if ($AcceptPrinters -ne "") { Write-Log "Acepta impresoras (exactas): $AcceptPrinters" } else { Write-Log "AVISO: ninguna impresora de print_migrate.cfg esta instalada" }
 if (Test-Path $localCfg) { Write-Log "Usando config.local.ps1" }
 if ($ShowPrinterList) {
     Show-LocalPrinters
