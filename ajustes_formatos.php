@@ -124,7 +124,7 @@ function af_count_items($link, $etiq)
 
 function af_sample_codigo($link, $etiq)
 {
-	if (!$link || $etiq === 'gtin') {
+	if (!$link || $etiq === 'gtin' || $etiq === 'gti13') {
 		return '';
 	}
 	$e = mysqli_real_escape_string($link, (string)$etiq);
