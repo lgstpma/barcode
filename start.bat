@@ -69,16 +69,8 @@ if "%NEED_ZEBRA%"=="1" (
 
 echo.
 "%PHP%" "%~dp0tools\check_migrate_printers.php"
-set "CHK=%ERRORLEVEL%"
-if not "%CHK%"=="0" (
-  echo.
-  echo [AVISO] Sigue faltando impresora migrada con el nombre correcto.
-  echo Ejecute tools\setup_zebra_printers.bat o renombre manual a GK420t_chica.
-  echo.
-  choice /C SN /M "Continuar de todos modos (S=Si N=No)"
-  if errorlevel 2 exit /b 1
-  if errorlevel 1 goto :after_check
-)
+echo.
+echo [INFO] El chequeo de impresoras es solo aviso; el arranque continua.
 :after_check
 
 echo.

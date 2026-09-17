@@ -3,7 +3,7 @@
  * Cola ZPL compartida (isabel_zpl_queue).
  * Web (Servicios) genera ZPL; worker unico (print_service_21) imprime RAW.
  * Impresoras: print_migrate.cfg
- *   1/9/21/15 → GK420t_chica | gtin (GTI 13 caja) → GK420t_3x2 | 5 → grande | 10/14 → 3x1.25 o 3x2
+ *   1/9/21/15/gtin → GK420t_chica | gti13 (caja Rey) → GK420t_3x2 | 5 → grande | 10/14 → 3x1.25 o 3x2
  * Formato 13: por IP (no esta cola).
  *
  * estados: 0=pendiente 1=impreso 2=error 3=tomado (claim)
@@ -68,10 +68,10 @@ function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
 	if ($etiqueta === 'cmd') {
 		return trim((string)$printer);
 	}
-	if ($etiqueta === 'gtin') {
+	if ($etiqueta === 'gti13') {
 		return 'GK420t_3x2';
 	}
-	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === '15') {
+	if ($etiqueta === '1' || $etiqueta === '9' || $etiqueta === '21' || $etiqueta === 'gtin' || $etiqueta === '15') {
 		return 'GK420t_chica';
 	}
 	if ($etiqueta === '5') {
@@ -200,13 +200,18 @@ function enqueue_zpl_13($link, $itemid, $zpl, $printer = '')
 
 function enqueue_zpl_gtin($link, $itemid, $zpl)
 {
-	return enqueue_zpl($link, 'gtin', $itemid, $zpl, 'GK420t_3x2');
+	return enqueue_zpl($link, 'gtin', $itemid, $zpl, 'GK420t_chica');
+}
+
+function enqueue_zpl_gti13($link, $itemid, $zpl)
+{
+	return enqueue_zpl($link, 'gti13', $itemid, $zpl, 'GK420t_3x2');
 }
 
 /** Etiquetas ZPL atendidas por el servicio unificado */
 function zpl_queue_service_etiquetas_21()
 {
-	return array('21', 'gtin', '10', '14', '1', '9', '5', '15', 'cmd');
+	return array('21', 'gtin', 'gti13', '10', '14', '1', '9', '5', '15', 'cmd');
 }
 
 function zpl_queue_sql_in_etiquetas($list)

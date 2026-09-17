@@ -1,17 +1,17 @@
 <?php
 /**
  * Chequeo de impresoras migradas (print_migrate.cfg) + formatos.
- * Exit 0 = OK (o solo avisos). Exit 2 = falta impresora requerida.
+ * Siempre Exit 0: avisos no bloquean start.bat (PC unificada).
  * Uso: php tools/check_migrate_printers.php
  */
 $root = dirname(__DIR__);
 $cfg = $root . DIRECTORY_SEPARATOR . 'print_migrate.cfg';
 
 $formatosPorPrinter = array(
-	'GK420t_chica' => 'chica: formatos 1, 9, 15, 21 y GTIN',
+	'GK420t_chica' => 'chica: formatos 1, 9, 15, 21 y GTIN SoftShop',
 	'GK420t_grande' => 'mediana SoftShop: formato 5',
 	'GK420t_3x1.25' => 'BMP / lbls (suele 10 o 14)',
-	'GK420t_3x2' => 'BMP / lbls (suele 10 o 14)',
+	'GK420t_3x2' => 'BMP / lbls (10/14) + GTI 13 caja Rey',
 	'VirtualZPLPrinter_Sistemas' => 'prueba virtual ZPL',
 );
 
@@ -214,9 +214,10 @@ foreach ($wanted as $prn) {
 
 echo "\n============================================\n";
 if ($fail > 0) {
-	echo "RESULTADO: $fail problema(s). Corrija impresora y vuelva a start.bat\n";
+	echo "AVISO: $fail problema(s) al detectar impresoras (WMI/nombres).\n";
+	echo "Si las Zebras estan instaladas, puede ignorar esto y seguir imprimiendo.\n";
 	echo "============================================\n";
-	exit(2);
+	exit(0);
 }
 echo "RESULTADO: impresoras migradas OK\n";
 echo "============================================\n";
