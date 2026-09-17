@@ -1,7 +1,8 @@
 <?php
 /**
- * Impresión GTIN chica — botón "Imprimir GTIN" (NO es items.etiqueta #13).
- * Genera ZPL horizontal SoftShop y encola como etiqueta=gtin → GK420t_chica.
+ * Impresión GTI 13 — caja unidades 3"×2" (Supermercado Rey).
+ * Botón "Imprimir GTI 13" (NO es items.etiqueta #13).
+ * Encola como etiqueta=gtin → GK420t_3x2.
  */
 include("conections.php");
 include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_gtin.php');
@@ -11,9 +12,25 @@ include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
 $link = conec_mysql();
 
 $txt_codigo2 = isset($_POST['txt_codigo2']) ? trim((string)$_POST['txt_codigo2']) : '';
-$cant = isset($_POST['cant2']) ? (int)$_POST['cant2'] : 0;
+$unidades = isset($_POST['unidades']) ? (int)$_POST['unidades'] : 0;
+if ($unidades < 1) {
+	$unidades = 1;
+}
+
+$cant = isset($_POST['cant2']) ? (int)$_POST['cant2'] : 1;
 if ($cant < 1) {
 	$cant = 1;
+}
+
+$elab_day = isset($_POST['elab_day']) ? trim((string)$_POST['elab_day']) : date('Y-m-d');
+$expir = 0;
+if (isset($_POST['caducidad1']) && $_POST['caducidad1'] !== '') {
+	$expir = (int)$_POST['caducidad1'];
+} elseif (isset($_POST['caducidad']) && $_POST['caducidad'] !== '') {
+	$expir = (int)$_POST['caducidad'];
+}
+if ($expir < 0) {
+	$expir = 0;
 }
 
 if ($txt_codigo2 === '') {
@@ -39,23 +56,24 @@ if (!$row_items_info) {
 $itemid = isset($row_items_info['codigo']) ? (string)$row_items_info['codigo'] : $txt_codigo2;
 $descrip = isset($row_items_info['descrip']) ? $row_items_info['descrip'] : '';
 $descrip2 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
+$descrip3 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
 $codigo2 = isset($row_items_info['codigo2']) ? $row_items_info['codigo2'] : $txt_codigo2;
 if (trim((string)$codigo2) === '') {
 	$codigo2 = $txt_codigo2;
 }
 
-$zpl = build_zpl_etiqueta_gtin($codigo2, $descrip, $descrip2, $cant);
+$zpl = build_zpl_etiqueta_gtin($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $expir, $descrip3);
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'chica_gti13.zpl', $zpl);
 
-$printerGtin = 'GK420t_chica';
+$printerGtin = 'GK420t_3x2';
 $qid = enqueue_zpl($link, 'gtin', $itemid, $zpl, $printerGtin);
-$notes = 'GTIN chica (no es formato #13).';
+$notes = 'GTI 13 caja 3x2 (Rey). Con QR La Cocina de Sofy. No es formato #13.';
 $path = print_migrate_uses_new_queue($printerGtin) ? 'mysql' : 'legacy';
-$title = trim($descrip . ' ' . $descrip2);
+$title = trim($descrip3 !== '' ? $descrip3 : ($descrip . ' ' . $descrip2));
 
 print_report_render(array(
 	'codigo' => (string)$itemid,
-	'descrip' => $title !== '' ? $title : ('GTIN ' . $codigo2),
+	'descrip' => $title !== '' ? $title : ('GTI13 ' . $codigo2),
 	'tipo' => 'gtin',
 	'cant' => (string)$cant,
 	'printer' => $printerGtin,

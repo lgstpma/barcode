@@ -91,11 +91,11 @@ $catalog = array(
 	),
 	array(
 		'id' => 'gtin',
-		'nombre' => 'GTIN SoftShop',
-		'printer' => 'GK420t_chica',
-		'size' => 'chica',
+		'nombre' => 'GTI 13 caja Rey',
+		'printer' => 'GK420t_3x2',
+		'size' => '3x2',
 		'shared' => false,
-		'note' => 'Botón Imprimir GTIN (export_code13.php).',
+		'note' => 'Caja unidades 3×2 + QR La Cocina de Sofy (export_code13.php).',
 	),
 );
 

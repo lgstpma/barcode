@@ -1137,22 +1137,45 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 				  </table>
 </form>
                          
-<form     method="post" action="export_code13.php" target="_self" class="mobile-gtin-form">
+<form method="post" action="export_code13.php" target="_self" class="mobile-gtin-form" onsubmit="return gti13_sync_fechas();">
 									<div>
 										<p>&nbsp;</p>
-										<table class="mobile-gtin-table" bgcolor="#999999" width="929" height="44" border="2">
+										<table class="mobile-gtin-table" bgcolor="#999999" width="929" border="2">
 										  <tr>
-										    <td width="160">GTIN (chica SoftShop):</td>
-										    <td width="167"><input type="text" name="txt_codigo2" id="txt_codigo2_gtin" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
-										    <td width="60">Cantidad:</td>
-										    <td width="80"><input type="number" min="1" inputmode="numeric" name="cant2" id="cant2" value="1" size="4" required /></td>
-										    <td width="291"><input type="Submit" name="gtin13" id="gtin13" value="Imprimir GTIN" title="GTIN chica — distinto del formato #13 por IP" /></td>
+										    <td>GTI 13 (caja 3×2 Rey):</td>
+										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_gtin" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
+										    <td>Unidades:</td>
+										    <td><input type="number" min="1" inputmode="numeric" name="unidades" id="unidades_gti13" value="24" size="4" required title="Unidades en la caja" /></td>
+										    <td>Etiquetas:</td>
+										    <td><input type="number" min="1" inputmode="numeric" name="cant2" id="cant2" value="1" size="4" required title="Copias a imprimir" /></td>
+										    <td><input type="Submit" name="gtin13" id="gtin13" value="Imprimir GTI 13" title="Caja 3×2 Rey + QR La Cocina de Sofy" /></td>
 									      </tr>
 									  </table>
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Imprimir GTIN = etiqueta chica SoftShop (cola <code>gtin</code> → GK420t_chica). El formato <strong>#13</strong> del producto es otra etiqueta (ZPL rotado por IP).</p>
+										<input type="hidden" name="elab_day" id="gtin_elab_day" value="" />
+										<input type="hidden" name="caducidad1" id="gtin_caducidad1" value="" />
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">GTI 13 = etiqueta de caja 3×2 (cola <code>gtin</code> → GK420t_3x2) con código, unidades, lote/exp y QR <em>La Cocina de Sofy</em>. Usa la fecha de elaboración y días de vencimiento del formulario de arriba. Distinto del formato <strong>#13</strong> por IP.</p>
 										<p>&nbsp;</p>
   </div>
 				</form>
+				<script>
+				function gti13_sync_fechas() {
+					var elab = document.getElementById('elab_day');
+					var cad = document.getElementById('caducidad1');
+					var he = document.getElementById('gtin_elab_day');
+					var hc = document.getElementById('gtin_caducidad1');
+					if (he && elab) he.value = elab.value || '';
+					if (hc && cad) hc.value = cad.value || '';
+					if (!he || !he.value) {
+						alert('Indica la Fecha de Elaboración arriba antes de imprimir GTI 13.');
+						return false;
+					}
+					if (!hc || hc.value === '') {
+						alert('Indica los Días de vencimiento arriba antes de imprimir GTI 13.');
+						return false;
+					}
+					return true;
+				}
+				</script>
 
 				<details class="mobile-advanced">
 					<summary>Opciones avanzadas / layout (PC)</summary>
