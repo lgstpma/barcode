@@ -1,15 +1,13 @@
 <?php
 /**
  * Impresión de etiquetas grandes para cajas/paquetes (nachos, galletas, etc.).
- * Similar a export_code13.php y export_gti13.php pero formato caja grande.
- * Encola como etiqueta=cajas → imprime en formato grande para cajetas.
+ * Versión LEGACY - sin cola MySQL.
+ * Genera el ZPL y crea un batch para enviar a la impresora GK420t_2x3.
+ * Igual que los servicios antiguos del proyecto.
  */
 include("conections.php");
-include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_queue_21.php');
-include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
 
-$link = conec_mysql();
-
+// Capturar datos del formulario (igual que los servicios viejos)
 $txt_codigo2 = isset($_POST['txt_codigo2']) ? trim((string)$_POST['txt_codigo2']) : '';
 $cant = isset($_POST['cant_caja2']) ? (int)$_POST['cant_caja2'] : 0;
 if ($cant < 1) {
@@ -20,13 +18,12 @@ $caducidad = isset($_POST['caducidad']) ? (int)$_POST['caducidad'] : 0;
 if ($caducidad < 0) {
 	$caducidad = 0;
 }
-
 $caducidad = sprintf("%03d", $caducidad);
 
 $elab_day = isset($_POST['elab_day']) ? trim((string)$_POST['elab_day']) : date('Y-m-d');
 $elab_day_formatted = date("d-m-Y", strtotime($elab_day));
 
-// Buscar producto por codigo2 o codigo
+// Buscar producto en BD (misma lógica que export_code13.php / export_gti13.php)
 $codeEsc = mysqli_real_escape_string($link, $txt_codigo2);
 $query_items_info = 'SELECT * FROM items WHERE codigo2 = "' . $codeEsc . '" LIMIT 1';
 $result_items_info = mysqli_query($link, $query_items_info);
@@ -48,7 +45,7 @@ $descrip = isset($row_items_info['descrip']) ? $row_items_info['descrip'] : '';
 $descrip2 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '';
 $descrip3 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
 
-// ZPL para etiqueta grande de caja (formato similar al que mencionaste)
+// Generar ZPL para etiqueta grande de caja (formato 609×406 mm)
 $zpl = '
 ^XA
 ^CI28
@@ -71,32 +68,39 @@ $zpl = '
 ^FO45,285^A0N,30,30^FDLote:^FS
 ^FO175,285^A0N,30,30^FD'.$caducidad.'^FS
 
-^FO45,325^A0N,30,30^FDElab:^FS
+^FO45,325^A0N,30,30^FDElaboraci\'on:^FS
 ^FO175,325^A0N,30,30^FD'.$elab_day_formatted.'^FS
 
 ^XZ
 ^PQ003
 ^XZ';
 
-// Guardar archivo ZPL
+// Guardar archivo ZPL localmente (mismo patrón que los servicios viejos)
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta_cajas.zpl', $zpl);
 
-// Imprimir vía cola MySQL (nuevo servicio) o legacy
-$printer = 'GK420t_2x3'; // Impresora Zebra para etiquetas grandes cajas/2x3
-$qid = enqueue_zpl($link, 'cajas', $itemid, $zpl, $printer);
-$notes = 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboración: ' . $elab_day_formatted;
-$path = print_migrate_uses_new_queue($printer) ? 'mysql' : 'legacy';
-$title = trim($descrip3 !== '' ? $descrip3 : ($descrip . ' ' . $descrip2));
+// CREAR batch para envío directo a impresora (SIN MySQL)
+// Igual que tenían en el proyecto viejo: start /max cmd /k "batch_path"
+$batch_path = __DIR__ . '\\etiquetas_cajas.bat';
+$comando = 'start /max cmd /k "' . $batch_path . '"';
 
+// También guardar el batch para que el worker o el usuario pueda ejecutarlo
+file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiquetas_cajas.bat', $comando);
+
+// Reportar resultado (vía legacy, sin qid de MySQL)
 print_report_render(array(
 	'codigo' => (string)$itemid,
-	'descrip' => $title !== '' ? $title : ('Cajas ' . $txt_codigo2),
-	'tipo' => 'cajas',
+	'descrip' => $descrip . ' ' . $descrip2,
+	'tipo' => 'cajas_legacy',
 	'cant' => (string)$cant,
-	'printer' => $printer,
-	'qid' => $qid ? (int)$qid : 0,
-	'path' => $path,
-	'notes' => $notes,
+	'printer' => 'GK420t_2x3', // Impresora Zebra legacy
+	'qid' => 0, // Sin cola MySQL
+	'path' => 'legacy', // Usar path legacy
+	'notes' => 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboraci\'n: ' . $elab_day_formatted . ' (modo legacy, sin MySQL)',
 	'zpl' => $zpl,
 	'raw_log' => '',
 ));
+
+echo "<br><br>";
+echo "Etiqueta ZPL generada y guardada en: etiqueta_cajas.zpl<br>";
+echo "Batch creado para impresora GK420t_2x3<br>";
+echo "<a href='index.php'><button>Nueva Búsqueda</button></a>";
