@@ -46,7 +46,7 @@ $descrip2 = isset($row_items_info['descrip2']) ? $row_items_info['descrip2'] : '
 $descrip3 = isset($row_items_info['descrip3']) ? $row_items_info['descrip3'] : '';
 
 // Generar ZPL para etiqueta grande de caja (formato 609×406 mm)
-// Ajustado: más a la izquierda, barcode más ancho, letra más grande, con logo
+// MÁS A LA IZQUIERDA (margen X=2), logo, barcode ancho, letra grande
 $zpl = '
 ^XA
 ^CI28
@@ -54,26 +54,25 @@ $zpl = '
 ^LL406
 ^LH0,0
 
-^FO5,5^GFimg/logo.png,35,35^FS
-^XGR
+^FO2,2^XGimg/logo.png,35,35^FS
 
-^FO5,45^GB599,320,2^FS
+^FO2,40^GB605,330,2^FS
 
-^FO15,55^A0N,36,36^FB570,70,2,0,C,0^FD'.$descrip.'^FS
-^FO15,55^A0N,36,36^FB570,70,2,0,C,0^FD'.$descrip2.'^FS
+^FO5,50^A0N,36,36^FB590,70,2,0,C,0^FD'.$descrip.'^FS
+^FO5,50^A0N,36,36^FB590,70,2,0,C,0^FD'.$descrip2.'^FS
 
 ^BY3,3,70
-^FO145,110^BCN,70,Y,N,N
+^FO140,105^BCN,70,Y,N,N
 ^FD'.$row_items_info['codigo'].'^FS
 
-^FO15,240^A0N,36,36^FDUnidades:^FS
-^FO175,240^A0N,36,36^FD'.$cant.'^FS
+^FO5,235^A0N,36,36^FDUnidades:^FS
+^FO170,235^A0N,36,36^FD'.$cant.'^FS
 
-^FO15,285^A0N,36,36^FDLote:^FS
-^FO175,285^A0N,36,36^FD'.$caducidad.'^FS
+^FO5,280^A0N,36,36^FDLote:^FS
+^FO170,280^A0N,36,36^FD'.$caducidad.'^FS
 
-^FO15,330^A0N,36,36^FDElaboraci\'on:^FS
-^FO175,330^A0N,36,36^FD'.$elab_day_formatted.'^FS
+^FO5,325^A0N,36,36^FDElaboraci\'on:^FS
+^FO170,325^A0N,36,36^FD'.$elab_day_formatted.'^FS
 
 ^XZ
 ^PQ003
