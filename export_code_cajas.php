@@ -53,23 +53,26 @@ $zpl = '
 ^LL406
 ^LH0,0
 
-^FO15,15^GB579,376,2^FS
+^FO5,5^GFimg/logo.png,30,30^FS
+^XGR
+
+^FO15,15^GB579,336,2^FS
 
 ^FO30,35^A0N,32,32^FB549,65,2,0,C,0^FD'.$descrip.'^FS
 ^FO35,35^A0N,32,32^FB549,65,2,0,C,0^FD'.$descrip2.'^FS
 
-^BY2,3,90
-^FO145,115^BCN,90,Y,N,N
+^BY2,3,60
+^FO145,80^BCN,60,Y,N,N
 ^FD'.$row_items_info['codigo'].'^FS
 
-^FO45,245^A0N,30,30^FDUnidades:^FS
-^FO175,245^A0N,30,30^FD'.$cant.'^FS
+^FO45,200^A0N,30,30^FDUnidades:^FS
+^FO175,200^A0N,30,30^FD'.$cant.'^FS
 
-^FO45,285^A0N,30,30^FDLote:^FS
-^FO175,285^A0N,30,30^FD'.$caducidad.'^FS
+^FO45,240^A0N,30,30^FDLote:^FS
+^FO175,240^A0N,30,30^FD'.$caducidad.'^FS
 
-^FO45,325^A0N,30,30^FDElaboraci\'on:^FS
-^FO175,325^A0N,30,30^FD'.$elab_day_formatted.'^FS
+^FO45,280^A0N,30,30^FDElaboraci\'on:^FS
+^FO175,280^A0N,30,30^FD'.$elab_day_formatted.'^FS
 
 ^XZ
 ^PQ003
