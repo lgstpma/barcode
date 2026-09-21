@@ -1173,6 +1173,55 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 										<p>&nbsp;</p>
   </div>
 				</form>
+
+<!-- NUEVO: Etiquetas grandes para cajas/paquetes (nachos, galletas, etc.) -->
+<form method="post" action="export_code_cajas.php" target="_self" class="mobile-gtin-form" onsubmit="return cajas_sync_fechas();">
+									<div>
+										<table class="mobile-gtin-table" bgcolor="#e8d8c9" width="929" border="2">
+										  <tr>
+										    <td>Caja grande (nachos, etc.):</td>
+										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_cajas" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
+										    <td>Unidades en caja:</td>
+										    <td><input type="number" min="1" inputmode="numeric" name="cant_caja2" id="cant_caja2" value="100" size="6" required title="Unidades totales en la caja (ej: 100)" /></td>
+										    <td>Etiquetas:</td>
+										    <td><input type="number" min="1" inputmode="numeric" name="cant" id="cant_cajas" value="1" size="4" required title="Copias a imprimir" /></td>
+										    <td><input type="Submit" name="btn_cajas" id="btn_cajas" value="Imprimir Caja" title="Etiqueta grande cajas → GK420t_2x3" /></td>
+									      </tr>
+									  </table>
+										<table class="mobile-gtin-table" bgcolor="#e8d8c9" width="929" border="2">
+										  <tr>
+										    <td>Elaboración:</td>
+										    <td><input type="date" name="elab_day" id="cajas_elab_day" value="<?php echo date('Y-m-d'); ?>" /></td>
+										    <td>Caducidad (lote):</td>
+										    <td><input type="number" min="0" inputmode="numeric" name="caducidad" id="cajas_caducidad" value="0" size="6" title="Número de lote / caducidad (ej: 021)" /></td>
+										    <td>&nbsp;</td>
+										    <td>&nbsp;</td>
+									      </tr>
+									  </table>
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja grande = etiqueta 609×406mm (cola <code>cajas</code> → <strong>GK420t_2x3</strong>) con logo LCDS, código de barras ancho, descripción, unidades, lote y elaboración. Distinto del GTI 13 (Rey) y GTIN SoftShop.</p>
+										<p>&nbsp;</p>
+  </div>
+				</form>
+<script>
+function cajas_sync_fechas() {
+	var elab = document.getElementById('elab_day');
+	var cad = document.getElementById('caducidad1');
+	var he = document.getElementById('cajas_elab_day');
+	var hc = document.getElementById('cajas_caducidad');
+	if (he && elab) he.value = elab.value || '';
+	if (hc && cad) hc.value = cad.value || '';
+	if (!he || !he.value) {
+		alert('Indica la Fecha de Elaboración arriba antes de imprimir Caja.');
+		return false;
+	}
+	var u = document.getElementById('cant_caja2');
+	if (!u || !u.value || parseInt(u.value, 10) < 1) {
+		alert('Indica las unidades de la caja (ej: 100).');
+		return false;
+	}
+	return true;
+}
+</script>
 				<script>
 				function gti13_sync_fechas() {
 					var elab = document.getElementById('elab_day');
