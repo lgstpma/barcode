@@ -6,6 +6,7 @@
  * Igual que los servicios antiguos del proyecto.
  */
 include("conections.php");
+include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
 
 $link = conec_mysql();
 
