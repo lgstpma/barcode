@@ -77,6 +77,9 @@ function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
 	if ($etiqueta === '5') {
 		return 'GK420t_grande';
 	}
+	if ($etiqueta === 'cajas') {
+		return 'GK420t_2x3';
+	}
 	if ($etiqueta === '13') {
 		if ($printer === '' || $printer === null) {
 			return 'IP';
