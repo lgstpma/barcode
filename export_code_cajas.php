@@ -82,7 +82,7 @@ $zpl = '
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiqueta_cajas.zpl', $zpl);
 
 // Imprimir vía cola MySQL (nuevo servicio) o legacy
-$printer = 'impresora_cajas'; // Configurar la impresora Zebra apropiada
+$printer = 'GK420t_2x3'; // Impresora Zebra para etiquetas grandes cajas/2x3
 $qid = enqueue_zpl($link, 'cajas', $itemid, $zpl, $printer);
 $notes = 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboración: ' . $elab_day_formatted;
 $path = print_migrate_uses_new_queue($printer) ? 'mysql' : 'legacy';
