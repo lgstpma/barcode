@@ -7,6 +7,8 @@
  */
 include("conections.php");
 
+$link = conec_mysql();
+
 // Capturar datos del formulario (igual que los servicios viejos)
 $txt_codigo2 = isset($_POST['txt_codigo2']) ? trim((string)$_POST['txt_codigo2']) : '';
 $cant = isset($_POST['cant_caja2']) ? (int)$_POST['cant_caja2'] : 0;
