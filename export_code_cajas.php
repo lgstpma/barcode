@@ -8,6 +8,35 @@
 include("conections.php");
 include_once(__DIR__ . DIRECTORY_SEPARATOR . 'print_report_lib.php');
 
+/** Función lote_code - basada en etiqueta13_lote_code de zpl_etiqueta_13.php
+ *  Calcula el código de lote usando mes + día con códigos abreviados.
+ *  @param int|string $ts Timestamp opcional; si no se provee, usa la fecha actual.
+ * @return string Código de lote formateado (ej: E015, F012, XX26) */
+function lote_code($ts = null)
+{
+	if ($ts === null || $ts === '') {
+		$ts = time();
+	}
+	$mes = (int)date('n', $ts);
+	$dia = date('d', $ts);
+	switch ($mes) {
+		case 1:  $mescod = 'E0'; break;
+		case 2:  $mescod = 'F0'; break;
+		case 3:  $mescod = 'M0'; break;
+		case 4:  $mescod = 'AL'; break;
+		case 5:  $mescod = 'MA'; break;
+		case 6:  $mescod = 'JO'; break;
+		case 7:  $mescod = 'JU'; break;
+		case 8:  $mescod = 'AO'; break;
+		case 9:  $mescod = 'SE'; break;
+		case 10: $mescod = 'OC'; break;
+		case 11: $mescod = 'NV'; break;
+		case 12: $mescod = 'DI'; break;
+		default: $mescod = 'XX';
+	}
+	return $mescod . str_pad($dia, 2, '0', STR_PAD_LEFT);
+}
+
 $link = conec_mysql();
 
 // Capturar datos del formulario (igual que los servicios viejos)
@@ -25,6 +54,7 @@ $caducidad = sprintf("%03d", $caducidad);
 
 $elab_day = isset($_POST['elab_day']) ? trim((string)$_POST['elab_day']) : date('Y-m-d');
 $elab_day_formatted = date("d-m-Y", strtotime($elab_day));
+$elab_lote = lote_code(strtotime($elab_day));
 
 // Buscar producto en BD (misma lógica que export_code13.php / export_gti13.php)
 $codeEsc = mysqli_real_escape_string($link, $txt_codigo2);
@@ -72,7 +102,7 @@ $zpl = '
 ^FO170,235^A0N,36,36^FD'.$cant.'^FS
 
 ^FO5,280^A0N,36,36^FDLote:^FS
-^FO170,280^A0N,36,36^FD'.$caducidad.'^FS
+^FO170,280^A0N,36,36^FD'.lote_code(strtotime($elab_day)).'^FS
 
 ^FO5,325^A0N,36,36^FDElaboraci\'on:^FS
 ^FO170,325^A0N,36,36^FD'.$elab_day_formatted.'^FS
@@ -117,11 +147,11 @@ if ($fp) {
 	}
 }
 
-// Fallback: intentar COPY al share de impresora Windows (GK420t_2x3)
+// Fallback: intentar COPY al share de impresora Windows
 $copy_ok = false;
 if (!$tcp_ok) {
-	$share_cmd = 'COPY /B ' . __DIR__ . DIRECTORY_SEPARATOR . 'etiqueta_cajas.zpl \\\\' . gethostname() . '\\GK420t_2x3 2>nul';
-	@exec($copy_cmd, $copy_out, $copy_ret);
+	$share_cmd = 'COPY /B ' . __DIR__ . DIRECTORY_SEPARATOR . 'etiqueta_cajas.zpl .\\GK420t_2x3 2>nul';
+	@exec($share_cmd, $copy_out, $copy_ret);
 	if ($copy_ret === 0) {
 		$copy_ok = true;
 	}
@@ -139,13 +169,14 @@ print_report_render(array(
 	'printer' => 'GK420t_2x3', // Impresora Zebra legacy
 	'qid' => 0, // Sin cola MySQL
 	'path' => 'legacy', // Usar path legacy
-	'notes' => 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboraci\'n: ' . $elab_day_formatted . ' (modo legacy, sin MySQL) — Impresión: ' . $print_method,
+	'notes' => 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboraci\'n: ' . $elab_day_formatted . ' (código lote: ' . lote_code(strtotime($elab_day)) . ') (modo legacy, sin MySQL) — Impresión: ' . $print_method,
 	'zpl' => $zpl,
 	'raw_log' => '',
 ));
 
 echo "<br><br>";
 echo "Etiqueta ZPL generada y guardada en: etiqueta_cajas.zpl<br>";
-echo "Impresión: <strong>" . $print_method . "</strong> (IP: $printer_ip:$printer_port)<br>";
-echo "Batch creado para impresora GK420t_2x3<br>";
+echo "Método impresión: <strong>" . $print_method . "</strong><br>";
+echo "Código lote generado: " . lote_code(strtotime($elab_day)) . "<br>";
+echo "IP/Share usado: $printer_ip:$printer_port<br>";
 echo "<a href='index.php'><button>Nueva Búsqueda</button></a>";
