@@ -92,6 +92,44 @@ $comando = 'start /max cmd /k "' . $batch_path . '"';
 // También guardar el batch para que el worker o el usuario pueda ejecutarlo
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'etiquetas_cajas.bat', $comando);
 
+// IMPRIMIR DIRECTAMENTE por TCP/IP (como zpl_etiqueta_13.php)
+// Configuración: print_ip_cajas.cfg (crear con la IP de la impresora)
+$ip_cfg = __DIR__ . DIRECTORY_SEPARATOR . 'print_ip_cajas.cfg';
+$printer_ip = '127.0.0.1'; // default local
+if (is_file($ip_cfg)) {
+	$ip = trim((string)@file_get_contents($ip_cfg));
+	if ($ip !== '' && preg_match('/^\d{1,3}(\.\d{1,3}){3}$/', $ip)) {
+		$printer_ip = $ip;
+	}
+}
+$printer_port = 9100;
+
+// Intentar envío TCP/IP
+$fp = @fsockopen($printer_ip, $printer_port, $errno, $errstr, 5);
+$tcp_ok = false;
+if ($fp) {
+	stream_set_timeout($fp, 5);
+	$n = fwrite($fp, $zpl);
+	fflush($fp);
+	fclose($fp);
+	if ($n !== false) {
+		$tcp_ok = true;
+	}
+}
+
+// Fallback: intentar COPY al share de impresora Windows (GK420t_2x3)
+$copy_ok = false;
+if (!$tcp_ok) {
+	$share_cmd = 'COPY /B ' . __DIR__ . DIRECTORY_SEPARATOR . 'etiqueta_cajas.zpl \\\\' . gethostname() . '\\GK420t_2x3 2>nul';
+	@exec($copy_cmd, $copy_out, $copy_ret);
+	if ($copy_ret === 0) {
+		$copy_ok = true;
+	}
+}
+
+// Reportar resultado
+$print_method = $tcp_ok ? 'TCP/IP' : ($copy_ok ? 'COPY share' : 'SOLO ARCHIVO');
+
 // Reportar resultado (vía legacy, sin qid de MySQL)
 print_report_render(array(
 	'codigo' => (string)$itemid,
@@ -101,12 +139,13 @@ print_report_render(array(
 	'printer' => 'GK420t_2x3', // Impresora Zebra legacy
 	'qid' => 0, // Sin cola MySQL
 	'path' => 'legacy', // Usar path legacy
-	'notes' => 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboraci\'n: ' . $elab_day_formatted . ' (modo legacy, sin MySQL)',
+	'notes' => 'Etiqueta grande para cajeta de ' . $cant . ' unidades + lote ' . $caducidad . ' - Elaboraci\'n: ' . $elab_day_formatted . ' (modo legacy, sin MySQL) — Impresión: ' . $print_method,
 	'zpl' => $zpl,
 	'raw_log' => '',
 ));
 
 echo "<br><br>";
 echo "Etiqueta ZPL generada y guardada en: etiqueta_cajas.zpl<br>";
+echo "Impresión: <strong>" . $print_method . "</strong> (IP: $printer_ip:$printer_port)<br>";
 echo "Batch creado para impresora GK420t_2x3<br>";
 echo "<a href='index.php'><button>Nueva Búsqueda</button></a>";
