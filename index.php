@@ -801,9 +801,48 @@ else {
     <div class="menu-panel">
       <a class="btn-sync-odoo" href="index.php?action=check_fm" title="Compara productos de Odoo con MySQL y actualiza el filtro FM">Sincronizar con Odoo</a>
       <a href="ajustes_formatos.php" title="Editar layouts de formatos de etiqueta">Formatos de etiqueta</a>
+      <a href="control_impresoras.php" title="Calibrar, probar y recuperar impresoras Zebra">Control de impresoras</a>
       <a href="index.php?action=help" title="Help"><img src="IMG/emergency.png" width="15" height="15" alt="">Ayuda</a>
     </div>
   </details>
+  <div class="worker-toggle" style="display:flex;align-items:center;gap:8px;font-size:13px;background:#fff;border:1px solid #c5d0de;border-radius:8px;padding:6px 10px;margin-left:8px;">
+    <span id="worker_dot" style="width:10px;height:10px;border-radius:50%;background:#94a3b8;display:inline-block;"></span>
+    <strong id="worker_label">Servicio…</strong>
+    <button type="button" id="worker_btn" onclick="worker_toggle()">Activar / Detener</button>
+  </div>
+  <script>
+  function worker_set_ui(running) {
+    var dot = document.getElementById('worker_dot');
+    var lab = document.getElementById('worker_label');
+    var btn = document.getElementById('worker_btn');
+    if (dot) dot.style.background = running ? '#16a34a' : '#dc2626';
+    if (lab) lab.textContent = running ? 'Servicio ON' : 'Servicio OFF';
+    if (btn) btn.textContent = running ? 'Detener servicio' : 'Activar servicio';
+  }
+  function worker_refresh() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api_worker.php?action=status&_=' + Date.now(), true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      var r = null;
+      try { r = JSON.parse(xhr.responseText); } catch (e1) { r = null; }
+      if (r) worker_set_ui(!!r.running);
+    };
+    xhr.send();
+  }
+  function worker_toggle() {
+    var lab = document.getElementById('worker_label');
+    var running = lab && lab.textContent.indexOf('ON') >= 0;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'api_worker.php?action=' + (running ? 'stop' : 'start') + '&_=' + Date.now(), true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      worker_refresh();
+    };
+    xhr.send();
+  }
+  worker_refresh();
+  </script>
   <form action="index.php" method="POST">
     <p><strong> Sistema de impresion de Etiquetas.</strong></p>
       <p> Codigo<strong>:</strong>

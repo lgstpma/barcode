@@ -1012,6 +1012,11 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 				}
 				html.is-phone .mobile-advanced:not([open]) > *:not(summary) { display: none !important; }
 				html.is-phone .mobile-advanced > summary { display: block !important; }
+				.item-topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:8px; }
+				.worker-toggle { display:flex; align-items:center; gap:8px; font-size:13px; background:#fff; border:1px solid #c5d0de; border-radius:8px; padding:6px 10px; }
+				.worker-dot { width:10px; height:10px; border-radius:50%; background:#94a3b8; display:inline-block; }
+				.worker-dot.on { background:#16a34a; }
+				.worker-dot.off { background:#dc2626; }
 			</style>
 			<script>
 			(function () {
@@ -1049,7 +1054,19 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 			}
 			</script>
 		</head>
-			<body bgcolor="#FFFFFF" class="ui-modern ui-item" onload="check_elab();">
+			<body bgcolor="#FFFFFF" class="ui-modern ui-item" onload="check_elab(); worker_refresh();">
+				<div class="item-topbar">
+					<div>
+						<a href="index.php">Inicio</a>
+						&nbsp;|&nbsp;
+						<a href="control_impresoras.php">Control de impresoras</a>
+					</div>
+					<div class="worker-toggle">
+						<span class="worker-dot" id="worker_dot"></span>
+						<strong id="worker_label">Servicio…</strong>
+						<button type="button" id="worker_btn" onclick="worker_toggle()">Activar / Detener</button>
+					</div>
+				</div>
 				<?php if (!empty($GLOBALS['barcode_json_save_msg'])) { ?>
 				<p style="margin:8px;padding:8px;border:1px solid #2b6cb0;background:#eef6ff;color:#123;">
 					<?php echo htmlspecialchars($GLOBALS['barcode_json_save_msg'], ENT_QUOTES, 'UTF-8'); ?>
@@ -1154,51 +1171,22 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
   </div>
 				</form>
 
-<form method="post" action="export_gti13.php" target="_self" class="mobile-gtin-form" onsubmit="return gti13_sync_fechas();">
-									<div>
-										<table class="mobile-gtin-table" bgcolor="#c9d8e8" width="929" border="2">
-										  <tr>
-										    <td>GTI 13 (caja 2×3 Rey):</td>
-										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_gti13" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
-										    <td>Unidades:</td>
-										    <td><input type="number" min="1" inputmode="numeric" name="unidades" id="unidades_gti13" value="" size="4" required placeholder="" title="Unidades en la caja" /></td>
-										    <td>Etiquetas:</td>
-										    <td><input type="number" min="1" inputmode="numeric" name="cant_gti13" id="cant_gti13" value="1" size="4" required title="Copias a imprimir" /></td>
-										    <td><input type="Submit" name="btn_gti13" id="btn_gti13" value="Imprimir GTI 13" title="Caja 2×3 Rey + QR La Cocina de Sofy → GK420t_2x3" /></td>
-									      </tr>
-									  </table>
-										<input type="hidden" name="elab_day" id="gti13_elab_day" value="" />
-										<input type="hidden" name="caducidad1" id="gti13_caducidad1" value="" />
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">GTI 13 = caja 2×3 (cola <code>gti13</code> → <strong>GK420t_2x3</strong>) con nombre, código, unidades, lote/exp y QR <em>La Cocina de Sofy</em>. Usa fecha y días de vencimiento de arriba. Distinto del GTIN SoftShop y del formato <strong>#13</strong> por IP.</p>
-										<p>&nbsp;</p>
-  </div>
-				</form>
-
-<!-- NUEVO: Etiquetas grandes para cajas/paquetes (nachos, galletas, etc.) -->
 <form method="post" action="export_code_cajas.php" target="_self" class="mobile-gtin-form" onsubmit="return cajas_sync_fechas();">
 									<div>
 										<table class="mobile-gtin-table" bgcolor="#e8d8c9" width="929" border="2">
 										  <tr>
-										    <td>Caja grande (nachos, etc.):</td>
+										    <td>Caja (GTIN / codigo2):</td>
 										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_cajas" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
-										    <td>Unidades en caja:</td>
-										    <td><input type="number" min="1" inputmode="numeric" name="cant_caja2" id="cant_caja2" value="100" size="6" required title="Unidades totales en la caja (ej: 100)" /></td>
+										    <td>Unidades:</td>
+										    <td><input type="number" min="1" inputmode="numeric" name="cant_caja2" id="cant_caja2" value="" size="6" required title="Unidades en la caja" /></td>
 										    <td>Etiquetas:</td>
 										    <td><input type="number" min="1" inputmode="numeric" name="cant" id="cant_cajas" value="1" size="4" required title="Copias a imprimir" /></td>
-										    <td><input type="Submit" name="btn_cajas" id="btn_cajas" value="Imprimir Caja" title="Etiqueta grande cajas → GK420t_2x3" /></td>
+										    <td><input type="Submit" name="btn_cajas" id="btn_cajas" value="Imprimir Caja" title="Etiqueta de caja → GK420t_2x3" /></td>
 									      </tr>
 									  </table>
-										<table class="mobile-gtin-table" bgcolor="#e8d8c9" width="929" border="2">
-										  <tr>
-										    <td>Elaboración:</td>
-										    <td><input type="date" name="elab_day" id="cajas_elab_day" value="<?php echo date('Y-m-d'); ?>" /></td>
-										    <td>Caducidad (lote):</td>
-										    <td><input type="number" min="0" inputmode="numeric" name="caducidad" id="cajas_caducidad" value="0" size="6" title="Número de lote / caducidad (ej: 021)" /></td>
-										    <td>&nbsp;</td>
-										    <td>&nbsp;</td>
-									      </tr>
-									  </table>
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja grande = etiqueta 609×406mm (cola <code>cajas</code> → <strong>GK420t_2x3</strong>) con logo LCDS, código de barras ancho, descripción, unidades, lote y elaboración. Distinto del GTI 13 (Rey) y GTIN SoftShop.</p>
+										<input type="hidden" name="elab_day" id="cajas_elab_day" value="" />
+										<input type="hidden" name="caducidad" id="cajas_caducidad" value="" />
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja = etiqueta grande con GTIN (<code>codigo2</code>), unidades, lote y elaboración. Usa fecha y días de vencimiento de arriba. Impresora <strong>GK420t_2x3</strong>.</p>
 										<p>&nbsp;</p>
   </div>
 				</form>
@@ -1216,39 +1204,47 @@ function cajas_sync_fechas() {
 	}
 	var u = document.getElementById('cant_caja2');
 	if (!u || !u.value || parseInt(u.value, 10) < 1) {
-		alert('Indica las unidades de la caja (ej: 100).');
+		alert('Indica las unidades de la caja.');
 		return false;
 	}
 	return true;
 }
+function worker_set_ui(running, msg) {
+	var dot = document.getElementById('worker_dot');
+	var lab = document.getElementById('worker_label');
+	var btn = document.getElementById('worker_btn');
+	if (dot) { dot.className = 'worker-dot ' + (running ? 'on' : 'off'); }
+	if (lab) lab.textContent = running ? 'Servicio ON' : 'Servicio OFF';
+	if (btn) btn.textContent = running ? 'Detener servicio' : 'Activar servicio';
+	if (msg) { /* keep quiet unless needed */ }
+}
+function worker_refresh() {
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', 'api_worker.php?action=status&_=' + Date.now(), true);
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState !== 4) return;
+		var r = null;
+		try { r = JSON.parse(xhr.responseText); } catch (e1) { r = null; }
+		if (!r) return;
+		worker_set_ui(!!r.running, r.message || '');
+	};
+	xhr.send();
+}
+function worker_toggle() {
+	var lab = document.getElementById('worker_label');
+	var running = lab && lab.textContent.indexOf('ON') >= 0;
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', 'api_worker.php?action=' + (running ? 'stop' : 'start') + '&_=' + Date.now(), true);
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState !== 4) return;
+		worker_refresh();
+	};
+	xhr.send();
+}
 </script>
-				<script>
-				function gti13_sync_fechas() {
-					var elab = document.getElementById('elab_day');
-					var cad = document.getElementById('caducidad1');
-					var he = document.getElementById('gti13_elab_day');
-					var hc = document.getElementById('gti13_caducidad1');
-					if (he && elab) he.value = elab.value || '';
-					if (hc && cad) hc.value = cad.value || '';
-					if (!he || !he.value) {
-						alert('Indica la Fecha de Elaboración arriba antes de imprimir GTI 13.');
-						return false;
-					}
-					if (!hc || hc.value === '') {
-						alert('Indica los Días de vencimiento arriba antes de imprimir GTI 13.');
-						return false;
-					}
-					var u = document.getElementById('unidades_gti13');
-					if (!u || !u.value || parseInt(u.value, 10) < 1) {
-						alert('Indica las unidades de la caja.');
-						return false;
-					}
-					return true;
-				}
-				</script>
 
-				<details class="mobile-advanced">
-					<summary>Opciones avanzadas / layout (PC)</summary>
+				<details class="mobile-advanced" open>
+					<summary>Opciones avanzadas / layout y coordenadas</summary>
                     <table width="1000" border="0">
 				<form method="get" action="search_results.php">
 <tr>			<td align="left"><strong>Cod. Proveedor/GTIN13:</strong></td><td>
