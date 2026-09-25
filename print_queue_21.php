@@ -211,6 +211,11 @@ function enqueue_zpl_gti13($link, $itemid, $zpl)
 	return enqueue_zpl($link, 'gti13', $itemid, $zpl, 'GK420t_2x3');
 }
 
+function enqueue_zpl_cajas($link, $itemid, $zpl)
+{
+	return enqueue_zpl($link, 'cajas', $itemid, $zpl, 'GK420t_2x3');
+}
+
 /** Etiquetas ZPL atendidas por el servicio unificado */
 function zpl_queue_service_etiquetas_21()
 {

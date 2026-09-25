@@ -25,6 +25,10 @@ if ($caducidad < 0) {
 }
 $elab_day = isset($_REQUEST['elab_day']) ? trim((string)$_REQUEST['elab_day']) : date('Y-m-d');
 $cant = 1;
+$unidades = isset($_REQUEST['unidades']) ? (int)$_REQUEST['unidades'] : 2;
+if ($unidades < 1) {
+	$unidades = 2;
+}
 
 function preview_zpl_fail($fmt, $msg, $extra = array())
 {
@@ -181,6 +185,16 @@ if (isset($_POST['layout_json']) && is_string($_POST['layout_json']) && $_POST['
 	}
 }
 
+$tipoOverride = '';
+if (isset($_REQUEST['tipo']) && trim((string)$_REQUEST['tipo']) !== '') {
+	$tipoOverride = trim((string)$_REQUEST['tipo']);
+} elseif ($layoutFromPost && isset($layoutFromPost['etiqueta']) && (string)$layoutFromPost['etiqueta'] !== '') {
+	$tipoOverride = trim((string)$layoutFromPost['etiqueta']);
+}
+if ($tipoOverride !== '') {
+	$etiqueta = $tipoOverride;
+}
+
 if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9) {
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_1.php');
 	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
@@ -281,6 +295,53 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$printer = 'IP:' . etiqueta13_printer_ip();
 	$previewRotateCw = 270;
 	$previewEt13 = array($descrip, $descrip2, $precio, $caducidad, $elab_day);
+} elseif ($etiqueta === '15' || $etiqueta === 15) {
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_15.php');
+	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
+	if (trim((string)$descrip) === '' && isset($row['descrip3'])) {
+		$descrip = $row['descrip3'];
+	}
+	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
+	$precio = isset($row['precio2']) ? $row['precio2'] : 0;
+	$reg = isset($row['reg_sanitario']) ? $row['reg_sanitario'] : '';
+	$zpl = build_zpl_etiqueta_15($codigo, $descrip, $descrip2, $precio, $cant, $caducidad, $elab_day, $reg);
+	$pw = 203;
+	$ll = 203;
+	$printer = 'GK420t_chica';
+} elseif ($etiqueta === 'gtin') {
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_gtin.php');
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
+	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
+	$codigo2 = isset($row['codigo2']) ? $row['codigo2'] : $codigo;
+	$layoutOverride = $layoutFromPost ? $layoutFromPost : label_layout_ensure_shared('gtin');
+	$zpl = build_zpl_etiqueta_gtin($codigo2, $descrip, $descrip2, $cant, $layoutOverride);
+	$pw = 494;
+	$ll = 183;
+	$printer = 'GK420t_chica';
+} elseif ($etiqueta === 'gti13') {
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_gti13.php');
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
+	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
+	$descrip3 = isset($row['descrip3']) ? $row['descrip3'] : '';
+	$codigo2 = isset($row['codigo2']) ? $row['codigo2'] : $codigo;
+	$layoutOverride = $layoutFromPost ? $layoutFromPost : label_layout_ensure_shared('gti13');
+	$zpl = build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $caducidad, $descrip3, $layoutOverride);
+	$pw = 406;
+	$ll = 609;
+	$printer = 'GK420t_2x3';
+} elseif ($etiqueta === 'cajas') {
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_cajas.php');
+	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+	$descrip = isset($row['descrip']) ? $row['descrip'] : '';
+	$descrip2 = isset($row['descrip2']) ? $row['descrip2'] : '';
+	$codigo2 = isset($row['codigo2']) ? $row['codigo2'] : $codigo;
+	$layoutOverride = $layoutFromPost ? $layoutFromPost : label_layout_ensure_shared('cajas');
+	$zpl = build_zpl_etiqueta_cajas($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $caducidad, $layoutOverride);
+	$pw = 406;
+	$ll = 609;
+	$printer = 'GK420t_2x3';
 } elseif ($etiqueta === '21' || $etiqueta === 21) {
 	$err = 'Tipo 21 no tiene generador ZPL en preview (usa cola dedicada).';
 } else {

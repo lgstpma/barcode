@@ -62,7 +62,9 @@ if (trim((string)$codigo2) === '') {
 	$codigo2 = $txt_codigo2;
 }
 
-$zpl = build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $expir, $descrip3);
+include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+$layoutGti13 = label_layout_ensure_shared('gti13');
+$zpl = build_zpl_etiqueta_gti13($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $expir, $descrip3, $layoutGti13);
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'caja_gti13.zpl', $zpl);
 
 $printer = 'GK420t_2x3';

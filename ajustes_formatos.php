@@ -94,23 +94,40 @@ $catalog = array(
 		'nombre' => 'GTIN SoftShop',
 		'printer' => 'GK420t_chica',
 		'size' => 'chica',
-		'shared' => false,
-		'note' => 'Botón Imprimir GTIN (export_code13.php).',
+		'shared' => true,
+		'note' => 'Botón Imprimir GTIN (export_code13.php). Layout compartido JSON. Cola gtin → GK420t_chica.',
 	),
 	array(
 		'id' => 'gti13',
 		'nombre' => 'GTI 13 caja Rey',
 		'printer' => 'GK420t_2x3',
 		'size' => '2x3',
-		'shared' => false,
-		'note' => 'Caja unidades 2×3 + QR La Cocina de Sofy (export_gti13.php).',
+		'shared' => true,
+		'note' => 'Caja unidades 2×3 + QR La Cocina de Sofy. Layout compartido JSON. Cola gti13 → GK420t_2x3.',
+	),
+	array(
+		'id' => 'cajas',
+		'nombre' => 'Caja grande (nachos, etc.)',
+		'printer' => 'GK420t_2x3',
+		'size' => '2x3',
+		'shared' => true,
+		'note' => 'Etiqueta de caja con logo LCDS, lote y elaboración. Layout compartido JSON. Cola cajas → GK420t_2x3.',
 	),
 );
 
 function af_count_items($link, $etiq)
 {
-	if (!$link || $etiq === 'gtin' || $etiq === 'gti13') {
+	if (!$link) {
 		return null;
+	}
+	if (in_array((string)$etiq, array('gtin', 'gti13', 'cajas'), true)) {
+		$res = mysqli_query($link, "SELECT COUNT(*) AS c FROM items WHERE codigo2 IS NOT NULL AND codigo2 != ''");
+		if (!$res) {
+			return null;
+		}
+		$row = mysqli_fetch_assoc($res);
+		mysqli_free_result($res);
+		return $row ? (int)$row['c'] : 0;
 	}
 	$e = mysqli_real_escape_string($link, (string)$etiq);
 	$res = mysqli_query($link, "SELECT COUNT(*) AS c FROM items WHERE etiqueta='$e'");
@@ -124,8 +141,16 @@ function af_count_items($link, $etiq)
 
 function af_sample_codigo($link, $etiq)
 {
-	if (!$link || $etiq === 'gtin' || $etiq === 'gti13') {
+	if (!$link) {
 		return '';
+	}
+	if (in_array((string)$etiq, array('gtin', 'gti13', 'cajas'), true)) {
+		$res = mysqli_query($link, "SELECT codigo FROM items WHERE codigo2 IS NOT NULL AND codigo2 != '' ORDER BY codigo LIMIT 1");
+		$row = $res ? mysqli_fetch_assoc($res) : null;
+		if ($res) {
+			mysqli_free_result($res);
+		}
+		return $row && isset($row['codigo']) ? label_layout_pad_codigo($row['codigo']) : '';
 	}
 	$e = mysqli_real_escape_string($link, (string)$etiq);
 	$res = mysqli_query($link, "SELECT codigo FROM items WHERE etiqueta='$e' AND navidad='FM' ORDER BY codigo LIMIT 1");
@@ -154,7 +179,7 @@ foreach ($catalog as $f) {
 $sampleCode = $selected ? af_sample_codigo($link, $selected['id']) : '';
 $sharedLayout = null;
 if ($selected && !empty($selected['shared'])) {
-	$sharedLayout = label_layout_ensure_shared((int)$selected['id']);
+	$sharedLayout = label_layout_ensure_shared($selected['id']);
 }
 
 function h($s)
@@ -373,8 +398,18 @@ function h($s)
 					hin = hd / 203;
 				}
 				// Defaults por tipo
-				if (win == null || isNaN(win) || win <= 0) win = (AF.tipo === '5') ? 2.358 : 1.0;
-				if (hin == null || isNaN(hin) || hin <= 0) hin = (AF.tipo === '5') ? 1.571 : 0.5;
+				if (win == null || isNaN(win) || win <= 0) {
+					if (AF.tipo === '5') win = 2.358;
+					else if (AF.tipo === 'gtin') win = 2.433;
+					else if (AF.tipo === 'gti13' || AF.tipo === 'cajas') win = 2.0;
+					else win = 1.0;
+				}
+				if (hin == null || isNaN(hin) || hin <= 0) {
+					if (AF.tipo === '5') hin = 1.571;
+					else if (AF.tipo === 'gtin') hin = 0.901;
+					else if (AF.tipo === 'gti13' || AF.tipo === 'cajas') hin = 3.0;
+					else hin = 0.5;
+				}
 				document.getElementById('af_label_w_in').value = afRound(win, 3);
 				document.getElementById('af_label_h_in').value = afRound(hin, 3);
 				afSyncLabelFromIn();
@@ -469,6 +504,8 @@ function h($s)
 				}
 				afStatus('Generando vista en vivo…');
 				var base = 'codigo=' + encodeURIComponent(AF.sample)
+					+ '&tipo=' + encodeURIComponent(AF.tipo)
+					+ '&unidades=2'
 					+ '&caducidad=2&elab_day=' + encodeURIComponent(new Date().toISOString().slice(0, 10))
 					+ '&include_zpl=1&_=' + Date.now();
 				var img = document.getElementById('afPreviewImg');

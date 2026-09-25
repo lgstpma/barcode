@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "etiqueta": "gtin",
+    "shared": true,
+    "unit": "dots",
+    "label": {
+        "width_in": 2.433,
+        "height_in": 0.901,
+        "width_dots": 494,
+        "height_dots": 183
+    },
+    "fields": {
+        "barcode": { "x": 121, "y": 3, "h": 40 },
+        "barcode_text": { "x": 172, "y": 36, "font": 16 },
+        "descripcion": { "x": 28, "y": 62, "font": 12 },
+        "descripcion2": { "x": 28, "y": 76, "font": 12 }
+    }
+}

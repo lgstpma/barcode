@@ -1,0 +1,21 @@
+{
+    "version": 1,
+    "etiqueta": "cajas",
+    "shared": true,
+    "unit": "dots",
+    "label": {
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
+    },
+    "fields": {
+        "logo": { "x": 8, "y": 8, "w": 80, "h": 80 },
+        "nombre": { "x": 96, "y": 16, "font": 28 },
+        "barcode": { "x": 24, "y": 100, "h": 90 },
+        "unidades": { "x": 16, "y": 250, "font": 28 },
+        "lote": { "x": 16, "y": 295, "font": 28 },
+        "elaboracion": { "x": 16, "y": 340, "font": 28 },
+        "fecha": { "x": 16, "y": 385, "font": 28 }
+    }
+}

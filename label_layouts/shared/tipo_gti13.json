@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "etiqueta": "gti13",
+    "shared": true,
+    "unit": "dots",
+    "label": {
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
+    },
+    "fields": {
+        "nombre": { "x": 16, "y": 16, "font": 32 },
+        "barcode": { "x": 40, "y": 70, "h": 100 },
+        "barcode_text": { "x": 90, "y": 180, "font": 26 },
+        "unidades": { "x": 16, "y": 220, "font": 30 },
+        "lote": { "x": 16, "y": 265, "font": 26 },
+        "fecha": { "x": 16, "y": 305, "font": 26 },
+        "brand": { "x": 16, "y": 355, "font": 22 },
+        "qr": { "x": 250, "y": 400 }
+    }
+}

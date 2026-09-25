@@ -12,4 +12,12 @@ data_array.php
 printserver/*.bmp
 printserver/*.BMP
 printserver_designs/
-IMG/
+printserver/Artes*/
+printserver/Nueva carpeta*/
+printserver/designer pro/
+printserver/*.exe
+printserver/*.docx
+printserver/*.nlbl
+printserver/*.lnk
+IMG/*
+!IMG/logo.png

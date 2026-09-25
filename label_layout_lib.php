@@ -52,10 +52,43 @@ function label_layout_item_path($codigo)
 	return label_layouts_items_dir() . DIRECTORY_SEPARATOR . $code . '.json';
 }
 
+function label_layout_shared_key($tipo)
+{
+	$tipo = strtolower(trim((string)$tipo));
+	if ($tipo === '') {
+		return '0';
+	}
+	if (preg_match('/^[0-9]+$/', $tipo)) {
+		return (string)((int)$tipo);
+	}
+	return preg_replace('/[^a-z0-9_]/', '', $tipo);
+}
+
+function label_layout_shared_types()
+{
+	return array('1', '5', '9', 'gtin', 'gti13', 'cajas');
+}
+
+function label_layout_is_shared_type($tipo)
+{
+	return in_array(label_layout_shared_key($tipo), label_layout_shared_types(), true);
+}
+
 function label_layout_shared_path($tipo)
 {
-	$tipo = (string)(int)$tipo;
-	return label_layouts_shared_dir() . DIRECTORY_SEPARATOR . 'tipo_' . $tipo . '.json';
+	return label_layouts_shared_dir() . DIRECTORY_SEPARATOR . 'tipo_' . label_layout_shared_key($tipo) . '.json';
+}
+
+function label_layout_field($layout, $field, $key, $default)
+{
+	if (!is_array($layout) || empty($layout['fields'][$field]) || !is_array($layout['fields'][$field])) {
+		return $default;
+	}
+	if (!array_key_exists($key, $layout['fields'][$field]) || $layout['fields'][$field][$key] === '' || $layout['fields'][$field][$key] === null) {
+		return $default;
+	}
+	$v = $layout['fields'][$field][$key];
+	return is_numeric($v) ? 0 + $v : $v;
 }
 
 function label_layout_read_json_file($path)
@@ -142,21 +175,86 @@ function label_layout_default_shared_5()
 	);
 }
 
+function label_layout_default_shared_gtin()
+{
+	return array(
+		'version' => 1,
+		'etiqueta' => 'gtin',
+		'shared' => true,
+		'unit' => 'dots',
+		'label' => array('width_in' => 2.433, 'height_in' => 0.901, 'width_dots' => 494, 'height_dots' => 183),
+		'fields' => array(
+			'barcode' => array('x' => 121, 'y' => 3, 'h' => 40),
+			'barcode_text' => array('x' => 172, 'y' => 36, 'font' => 16),
+			'descripcion' => array('x' => 28, 'y' => 62, 'font' => 12),
+			'descripcion2' => array('x' => 28, 'y' => 76, 'font' => 12),
+		),
+	);
+}
+
+function label_layout_default_shared_gti13()
+{
+	return array(
+		'version' => 1,
+		'etiqueta' => 'gti13',
+		'shared' => true,
+		'unit' => 'dots',
+		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
+		'fields' => array(
+			'nombre' => array('x' => 16, 'y' => 16, 'font' => 32),
+			'barcode' => array('x' => 40, 'y' => 70, 'h' => 100),
+			'barcode_text' => array('x' => 90, 'y' => 180, 'font' => 26),
+			'unidades' => array('x' => 16, 'y' => 220, 'font' => 30),
+			'lote' => array('x' => 16, 'y' => 265, 'font' => 26),
+			'fecha' => array('x' => 16, 'y' => 305, 'font' => 26),
+			'brand' => array('x' => 16, 'y' => 355, 'font' => 22),
+			'qr' => array('x' => 250, 'y' => 400),
+		),
+	);
+}
+
+function label_layout_default_shared_cajas()
+{
+	return array(
+		'version' => 1,
+		'etiqueta' => 'cajas',
+		'shared' => true,
+		'unit' => 'dots',
+		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
+		'fields' => array(
+			'logo' => array('x' => 8, 'y' => 8, 'w' => 80, 'h' => 80),
+			'nombre' => array('x' => 96, 'y' => 16, 'font' => 28),
+			'barcode' => array('x' => 24, 'y' => 100, 'h' => 90),
+			'unidades' => array('x' => 16, 'y' => 250, 'font' => 28),
+			'lote' => array('x' => 16, 'y' => 295, 'font' => 28),
+			'elaboracion' => array('x' => 16, 'y' => 340, 'font' => 28),
+			'fecha' => array('x' => 16, 'y' => 385, 'font' => 28),
+		),
+	);
+}
+
 function label_layout_ensure_shared($tipo)
 {
-	$path = label_layout_shared_path($tipo);
+	$key = label_layout_shared_key($tipo);
+	$path = label_layout_shared_path($key);
 	$existing = label_layout_read_json_file($path);
 	if ($existing) {
 		return $existing;
 	}
-	if ($tipo == 1) {
+	if ($key === '1') {
 		$d = label_layout_default_shared_1();
-	} elseif ($tipo == 5) {
+	} elseif ($key === '5') {
 		$d = label_layout_default_shared_5();
-	} elseif ($tipo == 9) {
+	} elseif ($key === '9') {
 		$d = label_layout_default_shared_9();
+	} elseif ($key === 'gtin') {
+		$d = label_layout_default_shared_gtin();
+	} elseif ($key === 'gti13') {
+		$d = label_layout_default_shared_gti13();
+	} elseif ($key === 'cajas') {
+		$d = label_layout_default_shared_cajas();
 	} else {
-		$d = array('version' => 1, 'etiqueta' => (string)$tipo, 'shared' => true, 'fields' => array());
+		$d = array('version' => 1, 'etiqueta' => $key, 'shared' => true, 'fields' => array());
 	}
 	label_layout_write_json_file($path, $d);
 	return $d;

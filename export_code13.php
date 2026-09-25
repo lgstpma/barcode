@@ -45,7 +45,9 @@ if (trim((string)$codigo2) === '') {
 	$codigo2 = $txt_codigo2;
 }
 
-$zpl = build_zpl_etiqueta_gtin($codigo2, $descrip, $descrip2, $cant);
+include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
+$layoutGtin = label_layout_ensure_shared('gtin');
+$zpl = build_zpl_etiqueta_gtin($codigo2, $descrip, $descrip2, $cant, $layoutGtin);
 file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . 'chica_gti13.zpl', $zpl);
 
 $printerGtin = 'GK420t_chica';
