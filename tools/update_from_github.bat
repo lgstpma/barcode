@@ -74,8 +74,9 @@ if errorlevel 1 (
   "%GIT%" pull --ff-only --quiet origin master
 )
 if errorlevel 1 (
-  echo [aviso] No se pudo aplicar el Pull. En GitHub Desktop: Fetch + Pull.
-  echo         O ejecute tools\marcar_pc_servicio.bat en esta PC.
+  echo [aviso] Pull bloqueado ^(commits locales o conflictos^).
+  echo         En PC de servicio: tools\forzar_sync.bat
+  echo         O GitHub Desktop: Fetch + Pull.
   exit /b 0
 )
 set "UPDATED=1"

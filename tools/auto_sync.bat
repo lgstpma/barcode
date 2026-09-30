@@ -41,9 +41,16 @@ if not exist ".git" (
   exit /b 0
 )
 
-"%GIT%" fetch --quiet origin
+"%GIT%" remote get-url origin >nul 2>&1
 if errorlevel 1 (
-  call :log "fetch fallo"
+  call :log "origin no configurado"
+  exit /b 0
+)
+for /f "delims=" %%U in ('"%GIT%" remote get-url origin 2^>nul') do call :log "origin=%%U"
+
+"%GIT%" fetch origin >>"%LOG%" 2>&1
+if errorlevel 1 (
+  call :log "fetch fallo - credenciales/red. Use tools\forzar_sync.bat con sesion de usuario"
   exit /b 0
 )
 
@@ -57,7 +64,7 @@ if "%LOCAL%"=="" (
   exit /b 0
 )
 if "%REMOTE%"=="" (
-  call :log "no se pudo leer origin/master"
+  call :log "no se pudo leer origin/master - branch master ausente?"
   exit /b 0
 )
 

@@ -86,14 +86,17 @@ En la PC nueva: `start.bat` abierto (API `http://127.0.0.1:8080/api_print_21.php
 
 Si ya marco la PC con `tools\marcar_pc_servicio.bat` + `tools\install_auto_sync.bat`, **no hace falta pull a mano** (cada ~5 min).
 
-Si aun no:
+Si aun no, o si la PC **no actualiza**:
 
 ```bat
 cd C:\Servicios\barcode
-git pull --ff-only origin master
+tools\forzar_sync.bat
 ```
 
-O solo abra `start.bat`. Luego, si cambio el worker: `print_service_21\install_tarea.bat` (Admin) o deje que `arrancar_worker.bat` lo refresque al sincronizar.
+Eso hace `fetch` + `reset --hard origin/master`, reinicia worker y `start.bat`.
+Si `fetch` falla: abra GitHub Desktop en esa PC → Fetch origin (login).
+
+Diagnostico: `tools\auto_sync.log` y `git log -1 --oneline` vs GitHub `master`.
 
 ## Notas
 

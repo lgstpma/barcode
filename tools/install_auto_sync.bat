@@ -29,8 +29,14 @@ if not exist "%TR%" (
   exit /b 1
 )
 
+REM cmd /c + usuario actual: la tarea hereda credenciales de GitHub Desktop/GCM.
+REM Sin eso, fetch a repo privado suele fallar en silencio.
 schtasks /Delete /TN "%TASK%" /F >nul 2>&1
-schtasks /Create /TN "%TASK%" /SC MINUTE /MO 5 /RL HIGHEST /F /TR "%TR%"
+schtasks /Create /TN "%TASK%" /SC MINUTE /MO 5 /RL LIMITED /F /RU "%USERNAME%" /IT /TR "cmd /c \"%TR%\""
+if errorlevel 1 (
+  echo Reintento sin /IT...
+  schtasks /Create /TN "%TASK%" /SC MINUTE /MO 5 /RL LIMITED /F /RU "%USERNAME%" /TR "cmd /c \"%TR%\""
+)
 if errorlevel 1 (
   echo ERROR creando tarea.
   pause
