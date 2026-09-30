@@ -211,32 +211,32 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$lote = lote_code($elab_ts);
 	$exp_txt = date('d/m/y', strtotime('+' . $expirDays . ' days', $elab_ts));
 
-	$pw = 406;
-	$ll = 609;
+	$pw = 609;
+	$ll = 406;
 
-	// Nombre arriba; bloque barcode+datos más arriba y separados
+	// Apaisada 3"×2": nombre arriba; bloque bajo el nombre (sin hueco fijo de 2 renglones)
 	$nameX = 0;
 	$nameY = 6;
 	$nameFont = 68;
 	$nameCharW = 52;
-	$nameLineGap = 10;
+	$nameLineGap = 8;
 	$wrapCharW = 28;
-	$sepY = 155;
+	$sepY = 90; // se recalcula según renglones reales del nombre
 
-	$dataX = 120;
-	$uniY = 175;
+	$dataX = 130;
+	$uniY = 110;
 	$uniFont = 32;
-	$loteY = 225;
+	$loteY = 155;
 	$loteFont = 32;
-	$elabY = 275;
+	$elabY = 200;
 	$elabFont = 30;
-	$expY = 325;
+	$expY = 245;
 	$expFont = 32;
 
-	$barX = 4;
-	$barY = 168;
+	$barX = 6;
+	$barY = 100;
 	$barH = 55;
-	$shiftLeft = 40;
+	$shiftLeft = 20;
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']['width_dots'])) {
@@ -280,6 +280,16 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$nameLines = array($nameZ);
 	}
 
+	// Pegar línea/barcode/datos justo debajo del nombre (1 o 2 renglones)
+	$lineStep = $nameFont + $nameLineGap;
+	$nameBottom = $nameY + (count($nameLines) * $lineStep) - $nameLineGap + 12;
+	$sepY = $nameBottom;
+	$barY = $sepY + 10;
+	$uniY = $sepY + 16;
+	$loteY = $uniY + 45;
+	$elabY = $loteY + 45;
+	$expY = $elabY + 45;
+
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);
 	if ($gtinDigits === '') {
 		$gtinDigits = zpl_escape_field($gtin);
@@ -297,9 +307,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$sepX = 0;
 	$sepW = max(200, $pw - 4);
 
-	// Cada renglón con el mismo ^A0N que Nachos (sin ^FB que estrecha)
 	$nameBlock = '';
-	$lineStep = $nameFont + $nameLineGap;
 	foreach ($nameLines as $i => $line) {
 		$y = $nameY + ($i * $lineStep);
 		$nameBlock .= '^FO' . $nameX . ',' . $y . '^A0N,' . $nameFont . ',' . $nameCharW . '^FD' . $line . '^FS' . "\n";
@@ -315,7 +323,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS
 ^FO' . $dataX . ',' . $loteY . '^A0N,' . $loteFont . ',' . $loteFont . '^FDLote: ' . zpl_escape_field($lote) . '^FS
-^FO' . $dataX . ',' . $elabY . '^A0N,' . $elabFont . ',' . $elabFont . '^FDElaboracion: ' . zpl_escape_field($elab_txt) . '^FS
+^FO' . $dataX . ',' . $elabY . '^A0N,' . $elabFont . ',' . $elabFont . '^FDElab: ' . zpl_escape_field($elab_txt) . '^FS
 ';
 	if ($expirDays > 0) {
 		$zpl .= '^FO' . $dataX . ',' . $expY . '^A0N,' . $expFont . ',' . $expFont . '^FDExp: ' . zpl_escape_field($exp_txt) . '^FS' . "\n";
