@@ -64,7 +64,7 @@ function fval($fields, $name, $key, $default = '')
 		.ec-btn-primary { background: #0f2744; color: #fff; border-color: #0f2744; }
 		.ec-btn-ghost { text-decoration: none; color: #0f2744; display: inline-flex; align-items: center; }
 		.ec-status { min-height: 1.3em; color: #374151; font-size: 0.9rem; margin: 0 0 10px; }
-		.ec-preview { width: 100%; max-width: 520px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; display: none; }
+		.ec-preview { width: 100%; max-width: 320px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; display: none; }
 		.ec-zpl { max-height: 180px; overflow: auto; font-size: 11px; background: #0b1220; color: #d1e7ff; padding: 10px; border-radius: 8px; display: none; }
 		.ec-hint { font-size: 0.8rem; color: #6b7280; margin: 0; }
 	</style>
