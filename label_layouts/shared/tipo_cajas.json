@@ -1,23 +1,22 @@
-{
-    "version": 16,
-    "etiqueta": "cajas",
-    "shared": true,
-    "unit": "dots",
-    "note": "3x2 apaisada. Bloque bajo el nombre (sin hueco). Elab: corto. Numero con barcode.",
-    "label": {
-        "width_in": 3.0,
-        "height_in": 2.0,
-        "width_dots": 609,
-        "height_dots": 406
-    },
-    "fields": {
-        "origen": { "shift_left": 20 },
-        "nombre": { "x": 0, "y": 6, "font": 68, "w": 52, "line_gap": 8, "wrap_w": 28 },
-        "separador": { "y": 90 },
-        "barcode": { "x": 6, "y": 100, "h": 55 },
-        "unidades": { "x": 130, "y": 110, "font": 32 },
-        "lote": { "x": 130, "y": 155, "font": 32 },
-        "elaboracion": { "x": 130, "y": 200, "font": 30 },
-        "fecha": { "x": 130, "y": 245, "font": 32 }
-    }
-}
+{
+    "version": 16,
+    "etiqueta": "cajas",
+    "shared": true,
+    "unit": "dots",
+    "note": "Estructura anclada al nombre: si hay 2 renglones, baja sola. shift_left=0 (margen izq. del formato).",
+    "label": {
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
+    },
+    "fields": {
+        "origen": { "shift_left": 0, "gap_after_name": 14, "row_gap": 48 },
+        "nombre": { "x": 0, "y": 6, "font": 68, "w": 52, "line_gap": 10, "wrap_w": 28 },
+        "barcode": { "x": 0, "h": 55 },
+        "unidades": { "x": 110, "font": 32 },
+        "lote": { "font": 32 },
+        "elaboracion": { "font": 28 },
+        "fecha": { "font": 32 }
+    }
+}

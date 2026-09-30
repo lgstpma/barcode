@@ -97,14 +97,17 @@ function fval($fields, $name, $key, $default = '')
 				<h2>Campos (dots)</h2>
 
 				<div class="ec-section">
-					<h3>Tamaño de media</h3>
+					<h3>Tamaño de media / origen</h3>
 					<div class="ec-row">
 						<label>Ancho dots <input type="number" id="w_dots" value="<?php echo h(isset($lab['width_dots']) ? $lab['width_dots'] : 406); ?>" /></label>
 						<label>Alto dots <input type="number" id="h_dots" value="<?php echo h(isset($lab['height_dots']) ? $lab['height_dots'] : 609); ?>" /></label>
 						<label>Ancho in <input type="number" step="0.01" id="w_in" value="<?php echo h(isset($lab['width_in']) ? $lab['width_in'] : 2); ?>" /></label>
 						<label>Alto in <input type="number" step="0.01" id="h_in" value="<?php echo h(isset($lab['height_in']) ? $lab['height_in'] : 3); ?>" /></label>
-						<label>Correr izq. (shift_left) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 40)); ?>" title="Dots hacia la izquierda (^LS)" /></label>
+						<label>Correr izq. (0=apagado) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 0)); ?>" title="Solo si hace falta; 0 deja el formato pegado a la izquierda" /></label>
+						<label>Hueco tras nombre <input type="number" id="gap_after_name" value="<?php echo h(fval($fields, 'origen', 'gap_after_name', 14)); ?>" title="Espacio entre el último renglón del nombre y la línea" /></label>
+						<label>Espacio entre datos <input type="number" id="row_gap" value="<?php echo h(fval($fields, 'origen', 'row_gap', 48)); ?>" /></label>
 					</div>
+					<p class="ec-hint">Si el nombre salta a 2 renglones, la línea, el barcode y los datos bajan solos.</p>
 				</div>
 
 				<div class="ec-section">
@@ -117,36 +120,23 @@ function fval($fields, $name, $key, $default = '')
 						<label>Espacio entre renglones <input type="number" id="nombre_line_gap" value="<?php echo h(fval($fields, 'nombre', 'line_gap', 10)); ?>" /></label>
 						<label>Ancho p/ salto (wrap_w) <input type="number" id="nombre_wrap_w" value="<?php echo h(fval($fields, 'nombre', 'wrap_w', 28)); ?>" title="Solo decide en qué palabra saltar; no achica la letra" /></label>
 					</div>
-					<p class="ec-hint">font/w = tamaño visual (como Nachos). wrap_w más chico ⇒ salta antes a 2.ª línea, sin reducir la letra.</p>
-				</div>
-
-				<div class="ec-section">
-					<h3>Línea separadora</h3>
-					<div class="ec-row">
-						<label>Y <input type="number" id="sep_y" value="<?php echo h(fval($fields, 'separador', 'y', 210)); ?>" /></label>
-					</div>
 				</div>
 
 				<div class="ec-section">
 					<h3>Código de barras</h3>
 					<div class="ec-row">
 						<label>X <input type="number" id="bar_x" value="<?php echo h(fval($fields, 'barcode', 'x', 0)); ?>" /></label>
-						<label>Y <input type="number" id="bar_y" value="<?php echo h(fval($fields, 'barcode', 'y', 225)); ?>" /></label>
-						<label>Alto (h) <input type="number" id="bar_h" value="<?php echo h(fval($fields, 'barcode', 'h', 70)); ?>" /></label>
+						<label>Alto barras (h) <input type="number" id="bar_h" value="<?php echo h(fval($fields, 'barcode', 'h', 55)); ?>" /></label>
 					</div>
 				</div>
 
 				<div class="ec-section">
 					<h3>Datos</h3>
 					<div class="ec-row">
-						<label>Unidades X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 120)); ?>" /></label>
-						<label>Unidades Y <input type="number" id="uni_y" value="<?php echo h(fval($fields, 'unidades', 'y', 175)); ?>" /></label>
+						<label>Datos X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 110)); ?>" /></label>
 						<label>Unidades font <input type="number" id="uni_font" value="<?php echo h(fval($fields, 'unidades', 'font', 32)); ?>" /></label>
-						<label>Lote Y <input type="number" id="lote_y" value="<?php echo h(fval($fields, 'lote', 'y', 225)); ?>" /></label>
 						<label>Lote font <input type="number" id="lote_font" value="<?php echo h(fval($fields, 'lote', 'font', 32)); ?>" /></label>
-						<label>Elab. Y <input type="number" id="elab_y" value="<?php echo h(fval($fields, 'elaboracion', 'y', 275)); ?>" /></label>
-						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 30)); ?>" /></label>
-						<label>Exp Y <input type="number" id="exp_y" value="<?php echo h(fval($fields, 'fecha', 'y', 325)); ?>" /></label>
+						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 28)); ?>" /></label>
 						<label>Exp font <input type="number" id="exp_font" value="<?php echo h(fval($fields, 'fecha', 'font', 32)); ?>" /></label>
 					</div>
 				</div>
@@ -208,14 +198,13 @@ function fval($fields, $name, $key, $default = '')
 				if (v !== null) L.fields[name][k] = Math.round(v);
 			});
 		}
-		field('origen', { shift_left: 'shift_left' });
+		field('origen', { shift_left: 'shift_left', gap_after_name: 'gap_after_name', row_gap: 'row_gap' });
 		field('nombre', { x: 'nombre_x', y: 'nombre_y', font: 'nombre_font', w: 'nombre_w', line_gap: 'nombre_line_gap', wrap_w: 'nombre_wrap_w' });
-		field('separador', { y: 'sep_y' });
-		field('barcode', { x: 'bar_x', y: 'bar_y', h: 'bar_h' });
-		field('unidades', { x: 'uni_x', y: 'uni_y', font: 'uni_font' });
-		field('lote', { x: 'uni_x', y: 'lote_y', font: 'lote_font' });
-		field('elaboracion', { x: 'uni_x', y: 'elab_y', font: 'elab_font' });
-		field('fecha', { x: 'uni_x', y: 'exp_y', font: 'exp_font' });
+		field('barcode', { x: 'bar_x', h: 'bar_h' });
+		field('unidades', { x: 'uni_x', font: 'uni_font' });
+		field('lote', { font: 'lote_font' });
+		field('elaboracion', { font: 'elab_font' });
+		field('fecha', { font: 'exp_font' });
 		return L;
 	}
 
