@@ -208,10 +208,16 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$codigo = str_pad(preg_replace('/\D/', '', (string)$codigo), 6, '0', STR_PAD_LEFT);
 	$codigo = substr($codigo, -6);
 
-	// SoftShop VB: fields.descripcion.alcance = 24 (tipo_1 / tipo_9)
-	$descLines = zpl_chica_wrap_descrip($descrip, $descrip2, 24, 2);
+	// SoftShop VB alcance=24 era para fuente chica; con ^CFA,14 hay que cortar antes (~18)
+	// para que no se salga del margen de la chica.
+	$alcance = 18;
+	$descLines = zpl_chica_wrap_descrip($descrip, $descrip2, $alcance, 2);
 	if (count($descLines) < 1) {
 		$descLines = array('');
+	}
+	// Segunda línea: no dejar que se desborde otra vez
+	if (isset($descLines[1]) && zpl_chica_mb_len($descLines[1]) > $alcance) {
+		$descLines[1] = trim(zpl_chica_mb_sub($descLines[1], 0, $alcance));
 	}
 
 	$precio = (float)$precio;
@@ -228,29 +234,38 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$lhx = (int)$off['lh_x'];
 	$lhy = (int)$off['lh_y'];
 
-	// Offsets solo en este formato (^XA…^XZ). No ^JUS → no cambia config permanente.
+	// Espaciado real (antes y=0/12/20 con fuente 14 → se montaban)
+	$nDesc = count($descLines);
+	$step = 17;
+	$y0 = 0;
+	$y1 = $step;
+	$yPrecio = ($nDesc >= 2 ? $y1 : $y0) + $step + 2;
+	$yLote = $yPrecio + $step;
+	$yExp = $yLote + $step;
+	$yReg = $yExp + $step;
+	$yBar = $con_fecha ? ($yReg + 6) : ($yPrecio + 16);
+	if ($yBar < 42) {
+		$yBar = 42;
+	}
+
 	$zpl = "^XA\n";
-	$zpl .= "^FX chica-plantilla job-offset lt=$lt ls=$ls (VB6 intacto; wrap alcance=24)\n";
+	$zpl .= "^FX chica #1/#9 wrap=$alcance step=$step nDesc=$nDesc\n";
 	$zpl .= "^LH" . $lhx . "," . $lhy . "\n";
 	$zpl .= "^LS" . $ls . "\n";
 	$zpl .= "^AD,54\n";
 	$zpl .= "^CFA,12\n";
 	$zpl .= "^LT" . $lt . "\n";
 	$zpl .= "^CWZ,E:LEXENDDECA.TTF\n";
-	$zpl .= "^FO180,45\n";
+	$zpl .= "^FO160," . (int)$yBar . "\n";
 	$zpl .= "^BY1\n";
-	$zpl .= "^BCN,40,N,N,N\n";
+	$zpl .= "^BCN,36,N,N,N\n";
 	$zpl .= "^FD" . $codigo . "^FS\n";
-	$zpl .= "^CFA,10\n";
 	$zpl .= "^CFA,14\n";
-	$zpl .= "^FO20,20^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
-	$zpl .= "^CFA,14\n";
-	$zpl .= "^FO20,0^FD" . $descLines[0] . "^FS\n";
-	if (isset($descLines[1]) && $descLines[1] !== '') {
-		$zpl .= "^FO20,12^FD" . $descLines[1] . "^FS\n";
-	} else {
-		$zpl .= "^FO20,12^FD^FS\n";
+	$zpl .= "^FO20," . (int)$y0 . "^FD" . $descLines[0] . "^FS\n";
+	if ($nDesc >= 2 && $descLines[1] !== '') {
+		$zpl .= "^FO20," . (int)$y1 . "^FD" . $descLines[1] . "^FS\n";
 	}
+	$zpl .= "^FO20," . (int)$yPrecio . "^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
 
 	if ($con_fecha) {
 		$base = zpl_chica_parse_fecha($fecha_manufact);
@@ -264,19 +279,16 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 			$expTxt = date('d/m/y', strtotime('+' . $expir . ' days', $base));
 		}
 
-		$zpl .= "^CFA,14\n";
-		$zpl .= "^FO20,40^FD#Lote:" . zpl_escape_field($lote) . "^FS\n";
-		$zpl .= "^CFA,14\n";
+		$zpl .= "^FO20," . (int)$yLote . "^FD#Lote:" . zpl_escape_field($lote) . "^FS\n";
 		if ($expTxt !== '') {
-			$zpl .= "^FO20,58^FDExp.:" . zpl_escape_field($expTxt) . "^FS\n";
+			$zpl .= "^FO20," . (int)$yExp . "^FDExp.:" . zpl_escape_field($expTxt) . "^FS\n";
 		}
 
 		if ($con_reg) {
 			$reg = zpl_escape_field(trim((string)$reg_sanitario));
 			if ($reg !== '') {
 				$regLine = (stripos($reg, 'Reg.') === 0) ? $reg : ('Reg.:' . $reg);
-				$zpl .= "^CFA,14\n";
-				$zpl .= "^FO20,75^FD" . $regLine . "^FS\n";
+				$zpl .= "^FO20," . (int)$yReg . "^FD" . $regLine . "^FS\n";
 			}
 		}
 	}
