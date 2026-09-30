@@ -1,21 +1,21 @@
 {
-    "version": 8,
+    "version": 9,
     "etiqueta": "cajas",
     "shared": true,
     "unit": "dots",
-    "note": "2x3 sin marca ni Producto:. Nombre extra grande, X=0, barcode vertical + datos.",
+    "note": "3x2 apaisada (609x406). Nombre grande X=0; barcode + datos. Llena el ancho del medio.",
     "label": {
-        "width_in": 2.0,
-        "height_in": 3.0,
-        "width_dots": 406,
-        "height_dots": 609
+        "width_in": 3.0,
+        "height_in": 2.0,
+        "width_dots": 609,
+        "height_dots": 406
     },
     "fields": {
-        "nombre": { "x": 0, "y": 12, "font": 68 },
-        "barcode": { "x": 4, "y": 135, "h": 50 },
-        "unidades": { "x": 88, "y": 145, "font": 32 },
-        "lote": { "x": 88, "y": 195, "font": 32 },
-        "elaboracion": { "x": 88, "y": 245, "font": 30 },
-        "fecha": { "x": 88, "y": 295, "font": 32 }
+        "nombre": { "x": 0, "y": 6, "font": 78 },
+        "barcode": { "x": 0, "y": 100, "h": 70 },
+        "unidades": { "x": 100, "y": 110, "font": 34 },
+        "lote": { "x": 100, "y": 155, "font": 34 },
+        "elaboracion": { "x": 100, "y": 200, "font": 32 },
+        "fecha": { "x": 100, "y": 245, "font": 34 }
     }
 }
