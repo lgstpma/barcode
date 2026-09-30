@@ -216,18 +216,18 @@ function label_layout_default_shared_gti13()
 function label_layout_default_shared_cajas()
 {
 	return array(
-		'version' => 9,
+		'version' => 10,
 		'etiqueta' => 'cajas',
 		'shared' => true,
 		'unit' => 'dots',
-		'label' => array('width_in' => 3.0, 'height_in' => 2.0, 'width_dots' => 609, 'height_dots' => 406),
+		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
 		'fields' => array(
-			'nombre' => array('x' => 0, 'y' => 6, 'font' => 78),
-			'barcode' => array('x' => 0, 'y' => 100, 'h' => 70),
-			'unidades' => array('x' => 100, 'y' => 110, 'font' => 34),
-			'lote' => array('x' => 100, 'y' => 155, 'font' => 34),
-			'elaboracion' => array('x' => 100, 'y' => 200, 'font' => 32),
-			'fecha' => array('x' => 100, 'y' => 245, 'font' => 34),
+			'nombre' => array('x' => 0, 'y' => 8, 'font' => 64),
+			'barcode' => array('x' => 0, 'y' => 185, 'h' => 70),
+			'unidades' => array('x' => 92, 'y' => 195, 'font' => 34),
+			'lote' => array('x' => 92, 'y' => 250, 'font' => 34),
+			'elaboracion' => array('x' => 92, 'y' => 305, 'font' => 32),
+			'fecha' => array('x' => 92, 'y' => 360, 'font' => 34),
 		),
 	);
 }

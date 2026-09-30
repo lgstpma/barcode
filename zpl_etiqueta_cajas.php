@@ -1,7 +1,7 @@
 <?php
 /**
- * ZPL etiqueta de caja (3" × 2" @ 203 dpi = 609 × 406, apaisada).
- * Layout: nombre grande a la izquierda; barcode vertical + datos.
+ * ZPL etiqueta de caja (2" × 3" @ 203 dpi = 406 × 609).
+ * Nombre con salto de línea si es largo; barcode vertical + datos.
  * Botón "Imprimir Caja" → export_code_cajas.php → cola cajas → GK420t_2x3.
  */
 if (!function_exists('zpl_escape_field')) {
@@ -139,8 +139,8 @@ function cajas_logo_path()
 }
 
 /**
- * 3"×2" apaisada: sin marca. Nombre grande al borde izquierdo; barcode + datos.
- * (La foto del rollo muestra ~3" de ancho; PW 406 dejaba la mitad derecha vacía.)
+ * 2"×3": nombre grande (hasta 2 renglones), línea, barcode izq + datos.
+ * Reserva espacio bajo el nombre para nombres largos con ^FB.
  */
 function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies = 1, $elab_day = '', $expirDays = 0, $layoutOverride = null)
 {
@@ -169,28 +169,29 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$lote = lote_code($elab_ts);
 	$exp_txt = date('d/m/y', strtotime('+' . $expirDays . ' days', $elab_ts));
 
-	// 3" ancho × 2" alto (apaisada) — llena el medio que se ve en la impresora
-	$pw = 609;
-	$ll = 406;
+	// 2" ancho × 3" alto (retrato) — llena el vacío inferior del medio
+	$pw = 406;
+	$ll = 609;
 
 	$nameX = 0;
-	$nameY = 6;
-	$nameFont = 78;
-	$sepY = 88;
+	$nameY = 8;
+	$nameFont = 64;
+	// Espacio fijo para 2 renglones de nombre + aire antes de la línea
+	$sepY = 168;
 
-	$dataX = 100;
-	$uniY = 110;
+	$dataX = 92;
+	$uniY = 195;
 	$uniFont = 34;
-	$loteY = 155;
+	$loteY = 250;
 	$loteFont = 34;
-	$elabY = 200;
+	$elabY = 305;
 	$elabFont = 32;
-	$expY = 245;
+	$expY = 360;
 	$expFont = 34;
-	$gtinY = 300;
+	$gtinY = 430;
 
 	$barX = 0;
-	$barY = 100;
+	$barY = 185;
 	$barH = 70;
 
 	if (is_array($layoutOverride)) {
@@ -223,11 +224,15 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	}
 	$nameZ = zpl_escape_field($name);
 	$nameLen = function_exists('mb_strlen') ? mb_strlen($nameZ, 'UTF-8') : strlen($nameZ);
-	if ($nameLen > 22) {
-		$nameFont = min($nameFont, 52);
-	} elseif ($nameLen > 16) {
-		$nameFont = min($nameFont, 64);
+	if ($nameLen > 28) {
+		$nameFont = min($nameFont, 48);
+	} elseif ($nameLen > 18) {
+		$nameFont = min($nameFont, 56);
 	}
+
+	$nameCharW = max(28, $nameFont - 2);
+	$nameLineGap = (int)round($nameFont * 1.15);
+	$nameFbW = max(200, $pw - $nameX - 4);
 
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);
 	if ($gtinDigits === '') {
@@ -246,12 +251,13 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$sepX = 0;
 	$sepW = max(200, $pw - 4);
 
+	// ^FB: ancho, máx 2 líneas, espacio entre líneas — nombres largos bajan al 2.º renglón
 	$zpl = '^XA
 ^CI28
 ^PW' . $pw . '
 ^LL' . $ll . '
 ^LH0,0
-^FO' . $nameX . ',' . $nameY . '^A0N,' . $nameFont . ',' . max(28, $nameFont - 2) . '^FD' . $nameZ . '^FS
+^FO' . $nameX . ',' . $nameY . '^A0N,' . $nameFont . ',' . $nameCharW . '^FB' . $nameFbW . ',2,' . $nameLineGap . ',L,0^FD' . $nameZ . '\&^FS
 ^FO' . $sepX . ',' . $sepY . '^GB' . $sepW . ',2,2^FS
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS

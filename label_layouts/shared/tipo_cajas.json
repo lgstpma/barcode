@@ -1,21 +1,21 @@
 {
-    "version": 9,
+    "version": 10,
     "etiqueta": "cajas",
     "shared": true,
     "unit": "dots",
-    "note": "3x2 apaisada (609x406). Nombre grande X=0; barcode + datos. Llena el ancho del medio.",
+    "note": "2x3 (406x609). Nombre con wrap 2 lineas; linea y datos mas abajo.",
     "label": {
-        "width_in": 3.0,
-        "height_in": 2.0,
-        "width_dots": 609,
-        "height_dots": 406
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
     },
     "fields": {
-        "nombre": { "x": 0, "y": 6, "font": 78 },
-        "barcode": { "x": 0, "y": 100, "h": 70 },
-        "unidades": { "x": 100, "y": 110, "font": 34 },
-        "lote": { "x": 100, "y": 155, "font": 34 },
-        "elaboracion": { "x": 100, "y": 200, "font": 32 },
-        "fecha": { "x": 100, "y": 245, "font": 34 }
+        "nombre": { "x": 0, "y": 8, "font": 64 },
+        "barcode": { "x": 0, "y": 185, "h": 70 },
+        "unidades": { "x": 92, "y": 195, "font": 34 },
+        "lote": { "x": 92, "y": 250, "font": 34 },
+        "elaboracion": { "x": 92, "y": 305, "font": 32 },
+        "fecha": { "x": 92, "y": 360, "font": 34 }
     }
 }
