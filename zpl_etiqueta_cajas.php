@@ -1,7 +1,7 @@
 <?php
 /**
  * ZPL etiqueta de caja (2" × 3" @ 203 dpi = 406 × 609).
- * Layout: logo + nombre arriba; datos al centro; barcode abajo.
+ * Layout: nombre grande arriba; barcode vertical izq + datos der.
  * Botón "Imprimir Caja" → export_code_cajas.php → cola cajas → GK420t_2x3.
  */
 if (!function_exists('zpl_escape_field')) {
@@ -139,7 +139,7 @@ function cajas_logo_path()
 }
 
 /**
- * 2"×3": sin logo. Empresa arriba; Producto; barcode vertical izq + datos der (compacto).
+ * 2"×3": sin marca ni "Producto:". Nombre grande arriba; barcode vertical izq + datos der.
  */
 function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies = 1, $elab_day = '', $expirDays = 0, $layoutOverride = null)
 {
@@ -171,33 +171,28 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$pw = 406;
 	$ll = 609;
 
-	$brandY = 14;
-	$brandFont = 22;
-	$prodLabelY = 52;
-	$nameX = 14;
-	$nameY = 78;
-	$nameFont = 36;
+	// Margen izquierdo reducido (contenido más a la izquierda)
+	$nameX = 4;
+	$nameY = 18;
+	$nameFont = 52;
+	$sepY = 90;
 
-	$dataX = 100;
-	$uniY = 175;
+	$dataX = 88;
+	$uniY = 145;
 	$uniFont = 32;
-	$loteY = 225;
+	$loteY = 195;
 	$loteFont = 32;
-	$elabY = 275;
+	$elabY = 245;
 	$elabFont = 30;
-	$expY = 325;
+	$expY = 295;
 	$expFont = 32;
-	$gtinY = 380;
+	$gtinY = 350;
 
-	$barX = 12;
-	$barY = 165;
+	$barX = 4;
+	$barY = 135;
 	$barH = 50;
 
-	// Layout JSON solo afina coords si existen (sin logo)
 	if (is_array($layoutOverride)) {
-		$brandY = (int)cajas_layout_num($layoutOverride, 'brand', 'y', $brandY);
-		$brandFont = (int)cajas_layout_num($layoutOverride, 'brand', 'font', $brandFont);
-		$prodLabelY = (int)cajas_layout_num($layoutOverride, 'producto_label', 'y', $prodLabelY);
 		$nameX = (int)cajas_layout_num($layoutOverride, 'nombre', 'x', $nameX);
 		$nameY = (int)cajas_layout_num($layoutOverride, 'nombre', 'y', $nameY);
 		$nameFont = (int)cajas_layout_num($layoutOverride, 'nombre', 'font', $nameFont);
@@ -221,8 +216,10 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	}
 	$nameZ = zpl_escape_field($name);
 	$nameLen = function_exists('mb_strlen') ? mb_strlen($nameZ, 'UTF-8') : strlen($nameZ);
-	if ($nameLen > 16) {
-		$nameFont = min($nameFont, 30);
+	if ($nameLen > 18) {
+		$nameFont = min($nameFont, 42);
+	} elseif ($nameLen > 14) {
+		$nameFont = min($nameFont, 46);
 	}
 
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);
@@ -239,18 +236,16 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 			. '^FD' . zpl_escape_field($gtinDigits) . '^FS';
 	}
 
-	$brand = 'La Cocina de Sofy S.A';
+	$sepX = max(2, $nameX);
+	$sepW = max(200, $pw - $sepX - 4);
 
 	$zpl = '^XA
 ^CI28
 ^PW' . $pw . '
 ^LL' . $ll . '
 ^LH0,0
-^FO14,' . $brandY . '^A0N,' . $brandFont . ',' . max(14, $brandFont - 2) . '^FD' . zpl_escape_field($brand) . '^FS
-^FO8,44^GB390,2,2^FS
-^FO' . $nameX . ',' . $prodLabelY . '^A0N,22,20^FDProducto:^FS
-^FO' . $nameX . ',' . $nameY . '^A0N,' . $nameFont . ',' . max(18, $nameFont - 4) . '^FD' . $nameZ . '^FS
-^FO8,130^GB390,2,2^FS
+^FO' . $nameX . ',' . $nameY . '^A0N,' . $nameFont . ',' . max(24, $nameFont - 4) . '^FD' . $nameZ . '^FS
+^FO' . $sepX . ',' . $sepY . '^GB' . $sepW . ',2,2^FS
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS
 ^FO' . $dataX . ',' . $loteY . '^A0N,' . $loteFont . ',' . $loteFont . '^FDLote: ' . zpl_escape_field($lote) . '^FS

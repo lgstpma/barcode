@@ -1,23 +1,21 @@
-{
-    "version": 6,
-    "etiqueta": "cajas",
-    "shared": true,
-    "unit": "dots",
-    "note": "2x3 sin logo. Empresa + Producto + barcode vertical + datos compactos.",
-    "label": {
-        "width_in": 2.0,
-        "height_in": 3.0,
-        "width_dots": 406,
-        "height_dots": 609
-    },
-    "fields": {
-        "brand": { "y": 14, "font": 22 },
-        "producto_label": { "y": 52 },
-        "nombre": { "x": 14, "y": 78, "font": 36 },
-        "barcode": { "x": 12, "y": 165, "h": 50 },
-        "unidades": { "x": 100, "y": 175, "font": 32 },
-        "lote": { "x": 100, "y": 225, "font": 32 },
-        "elaboracion": { "x": 100, "y": 275, "font": 30 },
-        "fecha": { "x": 100, "y": 325, "font": 32 }
-    }
-}
+{
+    "version": 7,
+    "etiqueta": "cajas",
+    "shared": true,
+    "unit": "dots",
+    "note": "2x3 sin marca ni Producto:. Nombre grande, margen izquierdo reducido, barcode vertical + datos.",
+    "label": {
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
+    },
+    "fields": {
+        "nombre": { "x": 4, "y": 18, "font": 52 },
+        "barcode": { "x": 4, "y": 135, "h": 50 },
+        "unidades": { "x": 88, "y": 145, "font": 32 },
+        "lote": { "x": 88, "y": 195, "font": 32 },
+        "elaboracion": { "x": 88, "y": 245, "font": 30 },
+        "fecha": { "x": 88, "y": 295, "font": 32 }
+    }
+}
