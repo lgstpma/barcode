@@ -1,6 +1,6 @@
 <?php
 /**
- * API JSON — cola ZPL unificada (formatos 1,5,9,10,14,21 + gtin).
+ * API JSON — cola ZPL unificada (formatos 1,5,9,10,14,15,21 + gtin/gti13/cajas).
  * Formato #13 se imprime por IP (exportarimg), no por este servicio.
  *
  * Claim (toma jobs; no se repiten entre workers):

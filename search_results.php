@@ -1178,7 +1178,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 										    <td>Caja (GTIN / codigo2):</td>
 										    <td><input type="text" name="txt_codigo2" id="txt_codigo2_cajas" value="<?php echo htmlspecialchars($row['codigo2']); ?>" /></td>
 										    <td>Unidades:</td>
-										    <td><input type="number" min="1" inputmode="numeric" name="cant_caja2" id="cant_caja2" value="" size="6" required title="Unidades en la caja" /></td>
+										    <td><input type="number" min="1" inputmode="numeric" name="cant_caja2" id="cant_caja2" value="" size="6" required placeholder="ej. 100" title="Unidades dentro de la caja (obligatorio)" /></td>
 										    <td>Etiquetas:</td>
 										    <td><input type="number" min="1" inputmode="numeric" name="cant" id="cant_cajas" value="1" size="4" required title="Copias a imprimir" /></td>
 										    <td><input type="Submit" name="btn_cajas" id="btn_cajas" value="Imprimir Caja" title="Etiqueta de caja → GK420t_2x3" /></td>
@@ -1186,7 +1186,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 									  </table>
 										<input type="hidden" name="elab_day" id="cajas_elab_day" value="" />
 										<input type="hidden" name="caducidad" id="cajas_caducidad" value="" />
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja = etiqueta grande con GTIN (<code>codigo2</code>), unidades, lote y elaboración. Usa fecha y días de vencimiento de arriba. Impresora <strong>GK420t_2x3</strong>.</p>
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja = etiqueta 2×3 con GTIN (<code>codigo2</code>), unidades, lote y elaboración. Usa fecha y días de vencimiento de arriba. Impresora <strong>GK420t_2x3</strong>.</p>
 										<p>&nbsp;</p>
   </div>
 				</form>

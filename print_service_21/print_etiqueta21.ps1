@@ -1,6 +1,6 @@
 # Servicio UNICO de cola ZPL (PowerShell 2.0+)
 # NO genera formatos: solo toma ZPL de la API (PC Servicios) e imprime RAW.
-# Formatos: 1,5,9,10,14,21,gtin (y 13 por IP en el web).
+# Formatos: 1,5,9,10,14,21,gtin,gti13,cajas (y 13 por IP en el web).
 # Impresoras: print_migrate.cfg (todas las GK420t_* migradas).
 #
 # Multi-PC:

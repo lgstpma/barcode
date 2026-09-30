@@ -1,8 +1,9 @@
 {
-    "version": 1,
+    "version": 6,
     "etiqueta": "cajas",
     "shared": true,
     "unit": "dots",
+    "note": "2x3 sin logo. Empresa + Producto + barcode vertical + datos compactos.",
     "label": {
         "width_in": 2.0,
         "height_in": 3.0,
@@ -10,12 +11,13 @@
         "height_dots": 609
     },
     "fields": {
-        "logo": { "x": 8, "y": 8, "w": 80, "h": 80 },
-        "nombre": { "x": 96, "y": 16, "font": 28 },
-        "barcode": { "x": 24, "y": 100, "h": 90 },
-        "unidades": { "x": 16, "y": 250, "font": 28 },
-        "lote": { "x": 16, "y": 295, "font": 28 },
-        "elaboracion": { "x": 16, "y": 340, "font": 28 },
-        "fecha": { "x": 16, "y": 385, "font": 28 }
+        "brand": { "y": 14, "font": 22 },
+        "producto_label": { "y": 52 },
+        "nombre": { "x": 14, "y": 78, "font": 36 },
+        "barcode": { "x": 12, "y": 165, "h": 50 },
+        "unidades": { "x": 100, "y": 175, "font": 32 },
+        "lote": { "x": 100, "y": 225, "font": 32 },
+        "elaboracion": { "x": 100, "y": 275, "font": 30 },
+        "fecha": { "x": 100, "y": 325, "font": 32 }
     }
 }
