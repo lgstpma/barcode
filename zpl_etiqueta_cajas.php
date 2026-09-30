@@ -232,12 +232,11 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$elabFont = 30;
 	$expY = 325;
 	$expFont = 32;
-	$gtinY = 390;
 
 	$barX = 4;
 	$barY = 168;
 	$barH = 55;
-	$shiftLeft = 24;
+	$shiftLeft = 40;
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']['width_dots'])) {
@@ -263,7 +262,6 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$elabFont = (int)cajas_layout_num($layoutOverride, 'elaboracion', 'font', $elabFont);
 		$expY = (int)cajas_layout_num($layoutOverride, 'fecha', 'y', $expY);
 		$expFont = (int)cajas_layout_num($layoutOverride, 'fecha', 'font', $expFont);
-		$gtinY = (int)cajas_layout_num($layoutOverride, 'gtin', 'y', $gtinY);
 		$barX = (int)cajas_layout_num($layoutOverride, 'barcode', 'x', $barX);
 		$barY = (int)cajas_layout_num($layoutOverride, 'barcode', 'y', $barY);
 		$barH = (int)cajas_layout_num($layoutOverride, 'barcode', 'h', $barH);
@@ -286,7 +284,6 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	if ($gtinDigits === '') {
 		$gtinDigits = zpl_escape_field($gtin);
 	}
-	$gtinDisp = $gtinDigits !== '' ? $gtinDigits : zpl_escape_field($gtin);
 
 	// HRI (número) visible junto al barcode: 3.er param = Y
 	if (strlen($gtinDigits) === 13) {
@@ -323,8 +320,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	if ($expirDays > 0) {
 		$zpl .= '^FO' . $dataX . ',' . $expY . '^A0N,' . $expFont . ',' . $expFont . '^FDExp: ' . zpl_escape_field($exp_txt) . '^FS' . "\n";
 	}
-	$zpl .= '^FO' . $dataX . ',' . $gtinY . '^A0N,20,18^FDGTIN: ' . zpl_escape_field($gtinDisp) . '^FS
-^PQ' . $copies . '
+	$zpl .= '^PQ' . $copies . '
 ^XZ';
 	return $zpl;
 }

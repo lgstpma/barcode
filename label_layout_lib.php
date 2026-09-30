@@ -216,14 +216,14 @@ function label_layout_default_shared_gti13()
 function label_layout_default_shared_cajas()
 {
 	return array(
-		'version' => 14,
+		'version' => 15,
 		'etiqueta' => 'cajas',
 		'shared' => true,
 		'unit' => 'dots',
 		'note' => 'Formato compartido para TODOS los productos (Imprimir Caja). No afecta etiquetas por producto.',
 		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
 		'fields' => array(
-			'origen' => array('shift_left' => 24),
+			'origen' => array('shift_left' => 40),
 			'nombre' => array('x' => 0, 'y' => 6, 'font' => 68, 'w' => 52, 'line_gap' => 10, 'wrap_w' => 28),
 			'separador' => array('y' => 155),
 			'barcode' => array('x' => 4, 'y' => 168, 'h' => 55),
@@ -231,7 +231,6 @@ function label_layout_default_shared_cajas()
 			'lote' => array('x' => 120, 'y' => 225, 'font' => 32),
 			'elaboracion' => array('x' => 120, 'y' => 275, 'font' => 30),
 			'fecha' => array('x' => 120, 'y' => 325, 'font' => 32),
-			'gtin' => array('x' => 120, 'y' => 390, 'font' => 20),
 		),
 	);
 }

@@ -103,7 +103,7 @@ function fval($fields, $name, $key, $default = '')
 						<label>Alto dots <input type="number" id="h_dots" value="<?php echo h(isset($lab['height_dots']) ? $lab['height_dots'] : 609); ?>" /></label>
 						<label>Ancho in <input type="number" step="0.01" id="w_in" value="<?php echo h(isset($lab['width_in']) ? $lab['width_in'] : 2); ?>" /></label>
 						<label>Alto in <input type="number" step="0.01" id="h_in" value="<?php echo h(isset($lab['height_in']) ? $lab['height_in'] : 3); ?>" /></label>
-						<label>Correr izq. (shift_left) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 24)); ?>" title="Dots hacia la izquierda (^LS)" /></label>
+						<label>Correr izq. (shift_left) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 40)); ?>" title="Dots hacia la izquierda (^LS)" /></label>
 					</div>
 				</div>
 
@@ -217,7 +217,6 @@ function fval($fields, $name, $key, $default = '')
 		field('lote', { x: 'uni_x', y: 'lote_y', font: 'lote_font' });
 		field('elaboracion', { x: 'uni_x', y: 'elab_y', font: 'elab_font' });
 		field('fecha', { x: 'uni_x', y: 'exp_y', font: 'exp_font' });
-		field('gtin', { x: 'uni_x', y: 'gtin_y' });
 		return L;
 	}
 
