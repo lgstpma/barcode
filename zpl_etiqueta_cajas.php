@@ -140,13 +140,13 @@ function cajas_logo_path()
 
 /**
  * Parte el nombre solo en espacios (no a mitad de palabra). Máx $maxLines.
- * Devuelve texto ZPL con \& entre renglones.
+ * Devuelve array de renglones.
  */
-function cajas_name_word_wrap($name, $fbWidthDots, $charW, $maxLines = 2)
+function cajas_name_word_wrap_lines($name, $fbWidthDots, $charW, $maxLines = 2)
 {
 	$name = trim(preg_replace('/\s+/', ' ', (string)$name));
 	if ($name === '') {
-		return '';
+		return array();
 	}
 	$charW = max(8, (int)$charW);
 	$maxChars = max(6, (int)floor(((int)$fbWidthDots) / $charW));
@@ -170,23 +170,19 @@ function cajas_name_word_wrap($name, $fbWidthDots, $charW, $maxLines = 2)
 		$lines[] = $cur;
 		$cur = $w;
 		if (count($lines) === $maxLines - 1) {
-			// última línea: meter el resto sin partir palabras
 			$idx = array_search($w, $words, true);
-			$rest = array_slice($words, (int)$idx);
-			$cur = implode(' ', $rest);
+			$cur = implode(' ', array_slice($words, (int)$idx));
 			break;
 		}
 	}
 	if ($cur !== '') {
 		$lines[] = $cur;
 	}
-	$lines = array_slice($lines, 0, $maxLines);
-	return implode('\&', $lines) . '\&';
+	return array_slice($lines, 0, $maxLines);
 }
 
 /**
- * 2"×3": nombre grande (hasta 2 renglones), línea, barcode izq + datos.
- * Reserva espacio bajo el nombre para nombres largos con ^FB.
+ * 2"×3": nombre tamaño Nachos (fijo), hasta 2 renglones; barcode + datos.
  */
 function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies = 1, $elab_day = '', $expirDays = 0, $layoutOverride = null)
 {
@@ -215,30 +211,31 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$lote = lote_code($elab_ts);
 	$exp_txt = date('d/m/y', strtotime('+' . $expirDays . ' days', $elab_ts));
 
-	// 2" ancho × 3" alto (retrato) — llena el vacío inferior del medio
 	$pw = 406;
 	$ll = 609;
 
+	// Mismo cuerpo que Nachos; zona de nombre más alta para 2 renglones
 	$nameX = 0;
-	$nameY = 8;
-	$nameFont = 64; // fijo: nunca reducir por longitud
-	$nameCharW = 36;
-	// Espacio fijo para 2 renglones al mismo tamaño + aire antes de la línea
-	$sepY = 175;
+	$nameY = 6;
+	$nameFont = 68;
+	$nameCharW = 52;
+	$nameLineGap = 10;
+	$wrapCharW = 28; // solo para decidir saltos; la letra impresa usa nameCharW
+	$sepY = 210;
 
 	$dataX = 92;
-	$uniY = 200;
+	$uniY = 235;
 	$uniFont = 34;
-	$loteY = 255;
+	$loteY = 290;
 	$loteFont = 34;
-	$elabY = 310;
+	$elabY = 345;
 	$elabFont = 32;
-	$expY = 365;
+	$expY = 400;
 	$expFont = 34;
-	$gtinY = 435;
+	$gtinY = 470;
 
 	$barX = 0;
-	$barY = 190;
+	$barY = 225;
 	$barH = 70;
 
 	if (is_array($layoutOverride)) {
@@ -251,6 +248,10 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$nameX = (int)cajas_layout_num($layoutOverride, 'nombre', 'x', $nameX);
 		$nameY = (int)cajas_layout_num($layoutOverride, 'nombre', 'y', $nameY);
 		$nameFont = (int)cajas_layout_num($layoutOverride, 'nombre', 'font', $nameFont);
+		$nameCharW = (int)cajas_layout_num($layoutOverride, 'nombre', 'w', $nameCharW);
+		$nameLineGap = (int)cajas_layout_num($layoutOverride, 'nombre', 'line_gap', $nameLineGap);
+		$wrapCharW = (int)cajas_layout_num($layoutOverride, 'nombre', 'wrap_w', $wrapCharW);
+		$sepY = (int)cajas_layout_num($layoutOverride, 'separador', 'y', $sepY);
 		$dataX = (int)cajas_layout_num($layoutOverride, 'unidades', 'x', $dataX);
 		$uniY = (int)cajas_layout_num($layoutOverride, 'unidades', 'y', $uniY);
 		$uniFont = (int)cajas_layout_num($layoutOverride, 'unidades', 'font', $uniFont);
@@ -260,6 +261,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$elabFont = (int)cajas_layout_num($layoutOverride, 'elaboracion', 'font', $elabFont);
 		$expY = (int)cajas_layout_num($layoutOverride, 'fecha', 'y', $expY);
 		$expFont = (int)cajas_layout_num($layoutOverride, 'fecha', 'font', $expFont);
+		$gtinY = (int)cajas_layout_num($layoutOverride, 'gtin', 'y', $gtinY);
 		$barX = (int)cajas_layout_num($layoutOverride, 'barcode', 'x', $barX);
 		$barY = (int)cajas_layout_num($layoutOverride, 'barcode', 'y', $barY);
 		$barH = (int)cajas_layout_num($layoutOverride, 'barcode', 'h', $barH);
@@ -271,8 +273,10 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	}
 	$nameZ = zpl_escape_field($name);
 	$nameFbW = max(200, $pw - $nameX - 4);
-	// Salto solo entre palabras (no cortar a mitad de palabra); mismo tamaño siempre
-	$nameFd = cajas_name_word_wrap($nameZ, $nameFbW, $nameCharW, 2);
+	$nameLines = cajas_name_word_wrap_lines($nameZ, $nameFbW, max(16, $wrapCharW), 2);
+	if (count($nameLines) < 1) {
+		$nameLines = array($nameZ);
+	}
 
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);
 	if ($gtinDigits === '') {
@@ -291,14 +295,20 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$sepX = 0;
 	$sepW = max(200, $pw - 4);
 
-	// ^FB 2 líneas; \& fuerza salto solo donde partimos por palabra
+	// Cada renglón con el mismo ^A0N que Nachos (sin ^FB que estrecha)
+	$nameBlock = '';
+	$lineStep = $nameFont + $nameLineGap;
+	foreach ($nameLines as $i => $line) {
+		$y = $nameY + ($i * $lineStep);
+		$nameBlock .= '^FO' . $nameX . ',' . $y . '^A0N,' . $nameFont . ',' . $nameCharW . '^FD' . $line . '^FS' . "\n";
+	}
+
 	$zpl = '^XA
 ^CI28
 ^PW' . $pw . '
 ^LL' . $ll . '
 ^LH0,0
-^FO' . $nameX . ',' . $nameY . '^A0N,' . $nameFont . ',' . $nameCharW . '^FB' . $nameFbW . ',2,8,L,0^FD' . $nameFd . '^FS
-^FO' . $sepX . ',' . $sepY . '^GB' . $sepW . ',2,2^FS
+' . $nameBlock . '^FO' . $sepX . ',' . $sepY . '^GB' . $sepW . ',2,2^FS
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS
 ^FO' . $dataX . ',' . $loteY . '^A0N,' . $loteFont . ',' . $loteFont . '^FDLote: ' . zpl_escape_field($lote) . '^FS

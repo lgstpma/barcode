@@ -801,6 +801,7 @@ else {
     <div class="menu-panel">
       <a class="btn-sync-odoo" href="index.php?action=check_fm" title="Compara productos de Odoo con MySQL y actualiza el filtro FM">Sincronizar con Odoo</a>
       <a href="ajustes_formatos.php" title="Editar layouts de formatos de etiqueta">Formatos de etiqueta</a>
+      <a href="editar_etiqueta_cajas.php" title="Editor del formato compartido Imprimir Caja">Editor etiqueta de caja</a>
       <a href="control_impresoras.php" title="Calibrar, probar y recuperar impresoras Zebra">Control de impresoras</a>
       <a href="index.php?action=help" title="Help"><img src="IMG/emergency.png" width="15" height="15" alt="">Ayuda</a>
     </div>

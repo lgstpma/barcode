@@ -111,7 +111,7 @@ $catalog = array(
 		'printer' => 'GK420t_2x3',
 		'size' => '2x3',
 		'shared' => true,
-		'note' => 'Etiqueta de caja con logo LCDS, lote y elaboración. Layout compartido JSON. Cola cajas → GK420t_2x3.',
+		'note' => 'Formato compartido para Imprimir Caja (todos los productos). Editor dedicado: editar_etiqueta_cajas.php. No afecta etiquetas por producto.',
 	),
 );
 
@@ -235,6 +235,9 @@ function h($s)
 			<div class="af-editor-head">
 				<h2>#<?php echo h($selected['id']); ?> — <?php echo h($selected['nombre']); ?></h2>
 				<p><?php echo h($selected['note']); ?></p>
+				<?php if ((string)$selected['id'] === 'cajas') { ?>
+				<p class="af-sample"><a class="af-btn af-btn-primary" href="editar_etiqueta_cajas.php">Abrir editor de etiqueta de caja</a> (recomendado: coords en dots, vista previa y guardar compartido)</p>
+				<?php } ?>
 				<?php if ($sampleCode !== '') { ?>
 				<p class="af-sample">Muestra: <a href="search_results.php?code=<?php echo h(urlencode($sampleCode)); ?>&amp;bttn_actualizar=FM"><?php echo h($sampleCode); ?></a></p>
 				<?php } else { ?>

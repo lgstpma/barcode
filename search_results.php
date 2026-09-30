@@ -1186,7 +1186,7 @@ id = '" . mysqli_real_escape_string($link, (string)$temp_id) . "'";
 									  </table>
 										<input type="hidden" name="elab_day" id="cajas_elab_day" value="" />
 										<input type="hidden" name="caducidad" id="cajas_caducidad" value="" />
-										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja = etiqueta 2×3 con GTIN (<code>codigo2</code>), unidades, lote y elaboración. Usa fecha y días de vencimiento de arriba. Impresora <strong>GK420t_2x3</strong>.</p>
+										<p class="desktop-hint" style="margin:4px 0 0 0;font-size:11px;">Caja = etiqueta 2×3 con GTIN (<code>codigo2</code>), unidades, lote y elaboración. Usa fecha y días de vencimiento de arriba. Impresora <strong>GK420t_2x3</strong>. <a href="editar_etiqueta_cajas.php" title="Editar layout compartido de caja (todos los productos)">Editar formato de caja</a></p>
 										<p>&nbsp;</p>
   </div>
 				</form>

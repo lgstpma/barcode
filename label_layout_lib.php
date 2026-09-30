@@ -216,18 +216,21 @@ function label_layout_default_shared_gti13()
 function label_layout_default_shared_cajas()
 {
 	return array(
-		'version' => 11,
+		'version' => 12,
 		'etiqueta' => 'cajas',
 		'shared' => true,
 		'unit' => 'dots',
+		'note' => 'Formato compartido para TODOS los productos (Imprimir Caja). No afecta etiquetas por producto.',
 		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
 		'fields' => array(
-			'nombre' => array('x' => 0, 'y' => 8, 'font' => 64),
-			'barcode' => array('x' => 0, 'y' => 190, 'h' => 70),
-			'unidades' => array('x' => 92, 'y' => 200, 'font' => 34),
-			'lote' => array('x' => 92, 'y' => 255, 'font' => 34),
-			'elaboracion' => array('x' => 92, 'y' => 310, 'font' => 32),
-			'fecha' => array('x' => 92, 'y' => 365, 'font' => 34),
+			'nombre' => array('x' => 0, 'y' => 6, 'font' => 68, 'w' => 52, 'line_gap' => 10, 'wrap_w' => 28),
+			'separador' => array('y' => 210),
+			'barcode' => array('x' => 0, 'y' => 225, 'h' => 70),
+			'unidades' => array('x' => 92, 'y' => 235, 'font' => 34),
+			'lote' => array('x' => 92, 'y' => 290, 'font' => 34),
+			'elaboracion' => array('x' => 92, 'y' => 345, 'font' => 32),
+			'fecha' => array('x' => 92, 'y' => 400, 'font' => 34),
+			'gtin' => array('x' => 92, 'y' => 470, 'font' => 20),
 		),
 	);
 }
