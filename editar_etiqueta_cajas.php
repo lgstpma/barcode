@@ -139,16 +139,15 @@ function fval($fields, $name, $key, $default = '')
 				<div class="ec-section">
 					<h3>Datos</h3>
 					<div class="ec-row">
-						<label>Unidades X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 68)); ?>" /></label>
-						<label>Unidades Y <input type="number" id="uni_y" value="<?php echo h(fval($fields, 'unidades', 'y', 235)); ?>" /></label>
-						<label>Unidades font <input type="number" id="uni_font" value="<?php echo h(fval($fields, 'unidades', 'font', 34)); ?>" /></label>
-						<label>Lote Y <input type="number" id="lote_y" value="<?php echo h(fval($fields, 'lote', 'y', 290)); ?>" /></label>
-						<label>Lote font <input type="number" id="lote_font" value="<?php echo h(fval($fields, 'lote', 'font', 34)); ?>" /></label>
-						<label>Elab. Y <input type="number" id="elab_y" value="<?php echo h(fval($fields, 'elaboracion', 'y', 345)); ?>" /></label>
-						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 32)); ?>" /></label>
-						<label>Exp Y <input type="number" id="exp_y" value="<?php echo h(fval($fields, 'fecha', 'y', 400)); ?>" /></label>
-						<label>Exp font <input type="number" id="exp_font" value="<?php echo h(fval($fields, 'fecha', 'font', 34)); ?>" /></label>
-						<label>GTIN Y <input type="number" id="gtin_y" value="<?php echo h(fval($fields, 'gtin', 'y', 470)); ?>" /></label>
+						<label>Unidades X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 120)); ?>" /></label>
+						<label>Unidades Y <input type="number" id="uni_y" value="<?php echo h(fval($fields, 'unidades', 'y', 175)); ?>" /></label>
+						<label>Unidades font <input type="number" id="uni_font" value="<?php echo h(fval($fields, 'unidades', 'font', 32)); ?>" /></label>
+						<label>Lote Y <input type="number" id="lote_y" value="<?php echo h(fval($fields, 'lote', 'y', 225)); ?>" /></label>
+						<label>Lote font <input type="number" id="lote_font" value="<?php echo h(fval($fields, 'lote', 'font', 32)); ?>" /></label>
+						<label>Elab. Y <input type="number" id="elab_y" value="<?php echo h(fval($fields, 'elaboracion', 'y', 275)); ?>" /></label>
+						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 30)); ?>" /></label>
+						<label>Exp Y <input type="number" id="exp_y" value="<?php echo h(fval($fields, 'fecha', 'y', 325)); ?>" /></label>
+						<label>Exp font <input type="number" id="exp_font" value="<?php echo h(fval($fields, 'fecha', 'font', 32)); ?>" /></label>
 					</div>
 				</div>
 			</div>
