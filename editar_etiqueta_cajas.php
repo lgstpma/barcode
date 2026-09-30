@@ -64,7 +64,7 @@ function fval($fields, $name, $key, $default = '')
 		.ec-btn-primary { background: #0f2744; color: #fff; border-color: #0f2744; }
 		.ec-btn-ghost { text-decoration: none; color: #0f2744; display: inline-flex; align-items: center; }
 		.ec-status { min-height: 1.3em; color: #374151; font-size: 0.9rem; margin: 0 0 10px; }
-		.ec-preview { width: 100%; max-width: 320px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; display: none; }
+		.ec-preview { width: 100%; max-width: 520px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; display: none; }
 		.ec-zpl { max-height: 180px; overflow: auto; font-size: 11px; background: #0b1220; color: #d1e7ff; padding: 10px; border-radius: 8px; display: none; }
 		.ec-hint { font-size: 0.8rem; color: #6b7280; margin: 0; }
 	</style>
@@ -103,6 +103,7 @@ function fval($fields, $name, $key, $default = '')
 						<label>Alto dots <input type="number" id="h_dots" value="<?php echo h(isset($lab['height_dots']) ? $lab['height_dots'] : 609); ?>" /></label>
 						<label>Ancho in <input type="number" step="0.01" id="w_in" value="<?php echo h(isset($lab['width_in']) ? $lab['width_in'] : 2); ?>" /></label>
 						<label>Alto in <input type="number" step="0.01" id="h_in" value="<?php echo h(isset($lab['height_in']) ? $lab['height_in'] : 3); ?>" /></label>
+						<label>Correr izq. (shift_left) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 24)); ?>" title="Dots hacia la izquierda (^LS)" /></label>
 					</div>
 				</div>
 
@@ -138,7 +139,7 @@ function fval($fields, $name, $key, $default = '')
 				<div class="ec-section">
 					<h3>Datos</h3>
 					<div class="ec-row">
-						<label>Unidades X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 92)); ?>" /></label>
+						<label>Unidades X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 68)); ?>" /></label>
 						<label>Unidades Y <input type="number" id="uni_y" value="<?php echo h(fval($fields, 'unidades', 'y', 235)); ?>" /></label>
 						<label>Unidades font <input type="number" id="uni_font" value="<?php echo h(fval($fields, 'unidades', 'font', 34)); ?>" /></label>
 						<label>Lote Y <input type="number" id="lote_y" value="<?php echo h(fval($fields, 'lote', 'y', 290)); ?>" /></label>
@@ -208,6 +209,7 @@ function fval($fields, $name, $key, $default = '')
 				if (v !== null) L.fields[name][k] = Math.round(v);
 			});
 		}
+		field('origen', { shift_left: 'shift_left' });
 		field('nombre', { x: 'nombre_x', y: 'nombre_y', font: 'nombre_font', w: 'nombre_w', line_gap: 'nombre_line_gap', wrap_w: 'nombre_wrap_w' });
 		field('separador', { y: 'sep_y' });
 		field('barcode', { x: 'bar_x', y: 'bar_y', h: 'bar_h' });

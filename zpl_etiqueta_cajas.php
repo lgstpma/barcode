@@ -223,7 +223,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$wrapCharW = 28; // solo para decidir saltos; la letra impresa usa nameCharW
 	$sepY = 210;
 
-	$dataX = 92;
+	$dataX = 68;
 	$uniY = 235;
 	$uniFont = 34;
 	$loteY = 290;
@@ -237,6 +237,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$barX = 0;
 	$barY = 225;
 	$barH = 70;
+	$shiftLeft = 24; // corre todo a la izquierda (^LS negativo)
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']['width_dots'])) {
@@ -245,6 +246,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		if (!empty($layoutOverride['label']['height_dots'])) {
 			$ll = (int)$layoutOverride['label']['height_dots'];
 		}
+		$shiftLeft = (int)cajas_layout_num($layoutOverride, 'origen', 'shift_left', $shiftLeft);
 		$nameX = (int)cajas_layout_num($layoutOverride, 'nombre', 'x', $nameX);
 		$nameY = (int)cajas_layout_num($layoutOverride, 'nombre', 'y', $nameY);
 		$nameFont = (int)cajas_layout_num($layoutOverride, 'nombre', 'font', $nameFont);
@@ -266,6 +268,8 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$barY = (int)cajas_layout_num($layoutOverride, 'barcode', 'y', $barY);
 		$barH = (int)cajas_layout_num($layoutOverride, 'barcode', 'h', $barH);
 	}
+
+	$ls = -1 * abs((int)$shiftLeft);
 
 	$name = trim((string)$descrip);
 	if ($name === '') {
@@ -308,6 +312,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 ^PW' . $pw . '
 ^LL' . $ll . '
 ^LH0,0
+^LS' . $ls . '
 ' . $nameBlock . '^FO' . $sepX . ',' . $sepY . '^GB' . $sepW . ',2,2^FS
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS

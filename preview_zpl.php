@@ -341,6 +341,14 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$zpl = build_zpl_etiqueta_cajas($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $caducidad, $layoutOverride);
 	$pw = 406;
 	$ll = 609;
+	if (!empty($layoutOverride['label']['width_dots'])) {
+		$pw = (int)$layoutOverride['label']['width_dots'];
+	}
+	if (!empty($layoutOverride['label']['height_dots'])) {
+		$ll = (int)$layoutOverride['label']['height_dots'];
+	}
+	// El rollo se ve apaisado; Labelary por defecto muestra 2x3 en vertical.
+	$previewRotateCw = 90;
 	$printer = 'GK420t_2x3';
 } elseif ($etiqueta === '21' || $etiqueta === 21) {
 	$err = 'Tipo 21 no tiene generador ZPL en preview (usa cola dedicada).';
