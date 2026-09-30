@@ -171,11 +171,11 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$pw = 406;
 	$ll = 609;
 
-	// Margen izquierdo reducido (contenido más a la izquierda)
-	$nameX = 4;
-	$nameY = 18;
-	$nameFont = 52;
-	$sepY = 90;
+	// Nombre al borde izquierdo, tipografía grande
+	$nameX = 0;
+	$nameY = 12;
+	$nameFont = 68;
+	$sepY = 100;
 
 	$dataX = 88;
 	$uniY = 145;
@@ -216,10 +216,10 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	}
 	$nameZ = zpl_escape_field($name);
 	$nameLen = function_exists('mb_strlen') ? mb_strlen($nameZ, 'UTF-8') : strlen($nameZ);
-	if ($nameLen > 18) {
-		$nameFont = min($nameFont, 42);
-	} elseif ($nameLen > 14) {
-		$nameFont = min($nameFont, 46);
+	if ($nameLen > 20) {
+		$nameFont = min($nameFont, 48);
+	} elseif ($nameLen > 15) {
+		$nameFont = min($nameFont, 56);
 	}
 
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);

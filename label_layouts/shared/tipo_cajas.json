@@ -1,9 +1,9 @@
 {
-    "version": 7,
+    "version": 8,
     "etiqueta": "cajas",
     "shared": true,
     "unit": "dots",
-    "note": "2x3 sin marca ni Producto:. Nombre grande, margen izquierdo reducido, barcode vertical + datos.",
+    "note": "2x3 sin marca ni Producto:. Nombre extra grande, X=0, barcode vertical + datos.",
     "label": {
         "width_in": 2.0,
         "height_in": 3.0,
@@ -11,7 +11,7 @@
         "height_dots": 609
     },
     "fields": {
-        "nombre": { "x": 4, "y": 18, "font": 52 },
+        "nombre": { "x": 0, "y": 12, "font": 68 },
         "barcode": { "x": 4, "y": 135, "h": 50 },
         "unidades": { "x": 88, "y": 145, "font": 32 },
         "lote": { "x": 88, "y": 195, "font": 32 },
