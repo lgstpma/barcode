@@ -214,30 +214,30 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$pw = 406;
 	$ll = 609;
 
-	// Mismo cuerpo que Nachos; zona de nombre más alta para 2 renglones
+	// Nombre arriba; bloque barcode+datos más arriba y separados
 	$nameX = 0;
 	$nameY = 6;
 	$nameFont = 68;
 	$nameCharW = 52;
 	$nameLineGap = 10;
-	$wrapCharW = 28; // solo para decidir saltos; la letra impresa usa nameCharW
-	$sepY = 210;
+	$wrapCharW = 28;
+	$sepY = 155;
 
-	$dataX = 68;
-	$uniY = 235;
-	$uniFont = 34;
-	$loteY = 290;
-	$loteFont = 34;
-	$elabY = 345;
-	$elabFont = 32;
-	$expY = 400;
-	$expFont = 34;
-	$gtinY = 470;
+	$dataX = 120;
+	$uniY = 175;
+	$uniFont = 32;
+	$loteY = 225;
+	$loteFont = 32;
+	$elabY = 275;
+	$elabFont = 30;
+	$expY = 325;
+	$expFont = 32;
+	$gtinY = 390;
 
-	$barX = 0;
-	$barY = 225;
-	$barH = 70;
-	$shiftLeft = 24; // corre todo a la izquierda (^LS negativo)
+	$barX = 4;
+	$barY = 168;
+	$barH = 55;
+	$shiftLeft = 24;
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']['width_dots'])) {
@@ -288,11 +288,12 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	}
 	$gtinDisp = $gtinDigits !== '' ? $gtinDigits : zpl_escape_field($gtin);
 
+	// HRI (número) visible junto al barcode: 3.er param = Y
 	if (strlen($gtinDigits) === 13) {
-		$barcodeBlock = '^FO' . $barX . ',' . $barY . '^BY2^BEB,' . $barH . ',N,N,N^FD' . $gtinDigits . '^FS';
+		$barcodeBlock = '^FO' . $barX . ',' . $barY . '^BY2^BEB,' . $barH . ',Y,N,N^FD' . $gtinDigits . '^FS';
 	} else {
 		$barcodeBlock = '^BY2,2,' . $barH . "\n"
-			. '^FO' . $barX . ',' . $barY . '^BCB,' . $barH . ',N,N,N' . "\n"
+			. '^FO' . $barX . ',' . $barY . '^BCB,' . $barH . ',Y,N,N' . "\n"
 			. '^FD' . zpl_escape_field($gtinDigits) . '^FS';
 	}
 

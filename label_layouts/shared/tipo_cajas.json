@@ -1,24 +1,24 @@
-{
-    "version": 13,
-    "etiqueta": "cajas",
-    "shared": true,
-    "unit": "dots",
-    "note": "Formato compartido Imprimir Caja. shift_left corre todo a la izquierda.",
-    "label": {
-        "width_in": 2.0,
-        "height_in": 3.0,
-        "width_dots": 406,
-        "height_dots": 609
-    },
-    "fields": {
-        "origen": { "shift_left": 24 },
-        "nombre": { "x": 0, "y": 6, "font": 68, "w": 52, "line_gap": 10, "wrap_w": 28 },
-        "separador": { "y": 210 },
-        "barcode": { "x": 0, "y": 225, "h": 70 },
-        "unidades": { "x": 68, "y": 235, "font": 34 },
-        "lote": { "x": 68, "y": 290, "font": 34 },
-        "elaboracion": { "x": 68, "y": 345, "font": 32 },
-        "fecha": { "x": 68, "y": 400, "font": 34 },
-        "gtin": { "x": 68, "y": 470, "font": 20 }
-    }
-}
+{
+    "version": 14,
+    "etiqueta": "cajas",
+    "shared": true,
+    "unit": "dots",
+    "note": "Bloque barcode/datos más arriba; datos separados del barcode; HRI (número) con el código.",
+    "label": {
+        "width_in": 2.0,
+        "height_in": 3.0,
+        "width_dots": 406,
+        "height_dots": 609
+    },
+    "fields": {
+        "origen": { "shift_left": 24 },
+        "nombre": { "x": 0, "y": 6, "font": 68, "w": 52, "line_gap": 10, "wrap_w": 28 },
+        "separador": { "y": 155 },
+        "barcode": { "x": 4, "y": 168, "h": 55 },
+        "unidades": { "x": 120, "y": 175, "font": 32 },
+        "lote": { "x": 120, "y": 225, "font": 32 },
+        "elaboracion": { "x": 120, "y": 275, "font": 30 },
+        "fecha": { "x": 120, "y": 325, "font": 32 },
+        "gtin": { "x": 120, "y": 390, "font": 20 }
+    }
+}

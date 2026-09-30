@@ -216,7 +216,7 @@ function label_layout_default_shared_gti13()
 function label_layout_default_shared_cajas()
 {
 	return array(
-		'version' => 13,
+		'version' => 14,
 		'etiqueta' => 'cajas',
 		'shared' => true,
 		'unit' => 'dots',
@@ -225,13 +225,13 @@ function label_layout_default_shared_cajas()
 		'fields' => array(
 			'origen' => array('shift_left' => 24),
 			'nombre' => array('x' => 0, 'y' => 6, 'font' => 68, 'w' => 52, 'line_gap' => 10, 'wrap_w' => 28),
-			'separador' => array('y' => 210),
-			'barcode' => array('x' => 0, 'y' => 225, 'h' => 70),
-			'unidades' => array('x' => 68, 'y' => 235, 'font' => 34),
-			'lote' => array('x' => 68, 'y' => 290, 'font' => 34),
-			'elaboracion' => array('x' => 68, 'y' => 345, 'font' => 32),
-			'fecha' => array('x' => 68, 'y' => 400, 'font' => 34),
-			'gtin' => array('x' => 68, 'y' => 470, 'font' => 20),
+			'separador' => array('y' => 155),
+			'barcode' => array('x' => 4, 'y' => 168, 'h' => 55),
+			'unidades' => array('x' => 120, 'y' => 175, 'font' => 32),
+			'lote' => array('x' => 120, 'y' => 225, 'font' => 32),
+			'elaboracion' => array('x' => 120, 'y' => 275, 'font' => 30),
+			'fecha' => array('x' => 120, 'y' => 325, 'font' => 32),
+			'gtin' => array('x' => 120, 'y' => 390, 'font' => 20),
 		),
 	);
 }
