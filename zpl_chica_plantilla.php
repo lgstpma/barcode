@@ -125,6 +125,80 @@ function zpl_chica_parse_fecha($fecha)
 	return $ts;
 }
 
+function zpl_chica_mb_len($s)
+{
+	return function_exists('mb_strlen') ? mb_strlen($s, 'UTF-8') : strlen($s);
+}
+
+function zpl_chica_mb_sub($s, $start, $len = null)
+{
+	if (function_exists('mb_substr')) {
+		return $len === null ? mb_substr($s, $start, null, 'UTF-8') : mb_substr($s, $start, $len, 'UTF-8');
+	}
+	return $len === null ? substr($s, $start) : substr($s, $start, $len);
+}
+
+/**
+ * Corte SoftShop: retrocede hasta espacio para no partir palabra (como VB alcance/renglón).
+ */
+function zpl_chica_corte_renglon($cadena, $alcance)
+{
+	$cadena = (string)$cadena;
+	$alcance = (int)$alcance;
+	if ($alcance < 1 || zpl_chica_mb_len($cadena) <= $alcance) {
+		return 0;
+	}
+	$char_cont = 0;
+	$pos = $alcance;
+	$tempstring = zpl_chica_mb_sub($cadena, $pos - 1, 1);
+	while ($tempstring !== ' ' && $pos > 1) {
+		$char_cont++;
+		$pos--;
+		if ($char_cont > $alcance) {
+			break;
+		}
+		$tempstring = zpl_chica_mb_sub($cadena, $pos - 1, 1);
+	}
+	return $char_cont;
+}
+
+/**
+ * SoftShop #1/#9: descripcion.alcance = 24 → máx. 2 renglones.
+ * @return string[]
+ */
+function zpl_chica_wrap_descrip($descrip, $descrip2 = '', $alcance = 24, $maxLines = 2)
+{
+	$d1 = trim(preg_replace('/\s+/', ' ', (string)$descrip));
+	$d2 = trim(preg_replace('/\s+/', ' ', (string)$descrip2));
+	$text = $d1;
+	if ($d2 !== '' && stripos($d1, $d2) === false) {
+		$text = trim($d1 . ' ' . $d2);
+	}
+	$text = zpl_escape_field($text);
+	$alcance = (int)$alcance;
+	if ($alcance < 8) {
+		$alcance = 24;
+	}
+	$maxLines = max(1, (int)$maxLines);
+	$lines = array();
+	while ($text !== '' && count($lines) < $maxLines) {
+		$len = zpl_chica_mb_len($text);
+		if ($len <= $alcance || count($lines) === $maxLines - 1) {
+			$lines[] = $text;
+			$text = '';
+			break;
+		}
+		$cut = zpl_chica_corte_renglon($text, $alcance);
+		$take = $alcance - $cut;
+		if ($take < 1) {
+			$take = $alcance;
+		}
+		$lines[] = trim(zpl_chica_mb_sub($text, 0, $take));
+		$text = trim(zpl_chica_mb_sub($text, $take));
+	}
+	return $lines;
+}
+
 /**
  * @param bool $con_fecha  true = lote/exp/reg (tipos 1 y 15); false = solo nombre+precio+barras (tipo 9)
  * @param bool $con_reg    incluir línea Reg. si hay valor
@@ -134,8 +208,11 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$codigo = str_pad(preg_replace('/\D/', '', (string)$codigo), 6, '0', STR_PAD_LEFT);
 	$codigo = substr($codigo, -6);
 
-	$descrip = zpl_escape_field(trim(preg_replace('/\s+/', ' ', (string)$descrip)));
-	$descrip2 = zpl_escape_field(trim(preg_replace('/\s+/', ' ', (string)$descrip2)));
+	// SoftShop VB: fields.descripcion.alcance = 24 (tipo_1 / tipo_9)
+	$descLines = zpl_chica_wrap_descrip($descrip, $descrip2, 24, 2);
+	if (count($descLines) < 1) {
+		$descLines = array('');
+	}
 
 	$precio = (float)$precio;
 	$priceTxt = number_format($precio, 2, '.', '');
@@ -153,7 +230,7 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 
 	// Offsets solo en este formato (^XA…^XZ). No ^JUS → no cambia config permanente.
 	$zpl = "^XA\n";
-	$zpl .= "^FX chica-plantilla job-offset lt=$lt ls=$ls (VB6 intacto)\n";
+	$zpl .= "^FX chica-plantilla job-offset lt=$lt ls=$ls (VB6 intacto; wrap alcance=24)\n";
 	$zpl .= "^LH" . $lhx . "," . $lhy . "\n";
 	$zpl .= "^LS" . $ls . "\n";
 	$zpl .= "^AD,54\n";
@@ -168,11 +245,11 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$zpl .= "^CFA,14\n";
 	$zpl .= "^FO20,20^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
 	$zpl .= "^CFA,14\n";
-	$zpl .= "^FO20,0^FD" . $descrip . "^FS\n";
-	if ($descrip2 !== '') {
-		$zpl .= "^FO20,12^FD" . $descrip2 . "^FS\n";
+	$zpl .= "^FO20,0^FD" . $descLines[0] . "^FS\n";
+	if (isset($descLines[1]) && $descLines[1] !== '') {
+		$zpl .= "^FO20,12^FD" . $descLines[1] . "^FS\n";
 	} else {
-		$zpl .= "^FO20,20^FD^FS\n";
+		$zpl .= "^FO20,12^FD^FS\n";
 	}
 
 	if ($con_fecha) {

@@ -1,7 +1,7 @@
 <?php
 /**
- * Etiqueta 1 / 9 — solo plantilla ZPL chica (la que compartiste).
- * Sin parámetros VB6, sin JSON de layout SoftShop.
+ * Etiqueta 1 / 9 — plantilla ZPL chica.
+ * Descripción con wrap SoftShop (alcance 24, máx. 2 renglones), como VB6.
  */
 include_once __DIR__ . DIRECTORY_SEPARATOR . 'zpl_chica_plantilla.php';
 
