@@ -3,7 +3,7 @@
  * Cola ZPL compartida (isabel_zpl_queue).
  * Web (Servicios) genera ZPL; worker unico (print_service_21) imprime RAW.
  * Impresoras: print_migrate.cfg
- *   1/9/21/15/gtin → GK420t_chica | gti13/cajas → GK420t_2x3 | 5 → grande | 10/14 → 3x1.25 o 3x2
+ *   1/9/21/15/gtin → GK420t_chica | gti13/cajas → GK420t_2x3 | 5 → grande | 10/14 → 3x1.25
  * Formato 13: por IP (no esta cola).
  *
  * estados: 0=pendiente 1=impreso 2=error 3=tomado (claim)
@@ -87,9 +87,15 @@ function enqueue_zpl_resolve_printer($link, $etiqueta, $itemid, $printer = '')
 		return (string)$printer;
 	}
 	if ($printer === '' || $printer === null) {
-		return lookup_item_printer($link, $itemid);
+		$printer = lookup_item_printer($link, $itemid);
+	} else {
+		$printer = (string)$printer;
 	}
-	return (string)$printer;
+	// Impresora fantasma: nunca existio; 10/14 usan 3x1.25
+	if (strcasecmp($printer, 'GK420t_3x2') === 0) {
+		return 'GK420t_3x1.25';
+	}
+	return $printer;
 }
 
 function enqueue_zpl_path_html($qid, $printer)

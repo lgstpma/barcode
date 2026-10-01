@@ -2,7 +2,7 @@
 echo ========================================
 echo  Worker UNICO - cola ZPL (todas las Zebras)
 echo ========================================
-echo  Lee print_migrate.cfg (chica/grande/3x1.25/3x2)
+echo  Lee print_migrate.cfg (chica/grande/3x1.25/2x3)
 echo  NO genera formatos: solo imprime ZPL de la API
 echo.
 echo  Ctrl+C para parar. NO instala tarea.
