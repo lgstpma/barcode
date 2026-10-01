@@ -158,18 +158,32 @@ function Invoke-PrintApiLegacy {
         [string]$Method = "GET",
         [string]$Body = $null
     )
-    $wc = New-Object System.Net.WebClient
-    $wc.Encoding = [System.Text.Encoding]::UTF8
-    $wc.Headers["X-Api-Key"] = $script:ApiKey
+    # Timeout corto: el PHP -S es single-thread; un claim largo cuelga la web.
+    $timeoutMs = 5000
+    $req = [System.Net.HttpWebRequest]::Create($Url)
+    $req.Method = $Method
+    $req.Timeout = $timeoutMs
+    $req.ReadWriteTimeout = $timeoutMs
+    $req.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor [System.Net.DecompressionMethods]::Deflate
+    $req.Headers.Add("X-Api-Key", $script:ApiKey)
+    if ($Method -eq "POST") {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($(if ($null -eq $Body) { "" } else { $Body }))
+        $req.ContentType = "application/json; charset=utf-8"
+        $req.ContentLength = $bytes.Length
+        $stream = $req.GetRequestStream()
+        $stream.Write($bytes, 0, $bytes.Length)
+        $stream.Close()
+    }
+    $resp = $req.GetResponse()
     try {
-        if ($Method -eq "POST") {
-            $wc.Headers["Content-Type"] = "application/json; charset=utf-8"
-            $raw = $wc.UploadString($Url, "POST", $Body)
-        } else {
-            $raw = $wc.DownloadString($Url)
+        $sr = New-Object System.IO.StreamReader($resp.GetResponseStream(), [System.Text.Encoding]::UTF8)
+        try {
+            $raw = $sr.ReadToEnd()
+        } finally {
+            $sr.Close()
         }
     } finally {
-        $wc.Dispose()
+        $resp.Close()
     }
     return (ConvertFrom-JsonLegacy $raw)
 }
@@ -355,8 +369,54 @@ function Post-JobEstado([string]$base, $jobId, [string]$estado) {
     return $false
 }
 
+function Get-PendingAckPath {
+    return (Join-Path $PSScriptRoot "pending_ack.txt")
+}
+
+function Save-PendingAck($jobId) {
+    try {
+        $path = Get-PendingAckPath
+        $jobId = [string]$jobId
+        $lines = @()
+        if (Test-Path $path) {
+            $lines = @(Get-Content $path -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() -ne "" -and $_.Trim() -ne $jobId })
+        }
+        $lines += $jobId
+        Set-Content -Path $path -Value $lines -Encoding ASCII
+    } catch {}
+}
+
+function Remove-PendingAck($jobId) {
+    try {
+        $path = Get-PendingAckPath
+        if (-not (Test-Path $path)) { return }
+        $jobId = [string]$jobId
+        $lines = @(Get-Content $path -ErrorAction SilentlyContinue | Where-Object { $_ -and $_.Trim() -ne "" -and $_.Trim() -ne $jobId })
+        if ($lines.Count -eq 0) {
+            Remove-Item -Force $path -ErrorAction SilentlyContinue
+        } else {
+            Set-Content -Path $path -Value $lines -Encoding ASCII
+        }
+    } catch {}
+}
+
+function Flush-PendingAcks([string]$base) {
+    $path = Get-PendingAckPath
+    if (-not (Test-Path $path)) { return }
+    $ids = @(Get-Content $path -ErrorAction SilentlyContinue | Where-Object { $_ -match '^\d+$' })
+    foreach ($id in $ids) {
+        if (Post-JobEstado $base $id "impreso") {
+            Write-Log ("Ack pendiente OK id={0}" -f $id)
+            Remove-PendingAck $id
+        } else {
+            Write-Log ("Ack pendiente aún falla id={0}" -f $id)
+        }
+    }
+}
+
 function Process-RemoteApi {
     $base = Get-ApiBaseUrl
+    Flush-PendingAcks $base
     $pendingUrl = $base + "?key=" + [System.Uri]::EscapeDataString($script:ApiKey)
     $pendingUrl = $pendingUrl + "&worker=" + [System.Uri]::EscapeDataString($script:WorkerId)
     $pendingUrl = $pendingUrl + "&claim=1"
@@ -410,8 +470,10 @@ function Process-RemoteApi {
         }
         if (Post-JobEstado $base $jobId "impreso") {
             Write-Log ("Marcado impreso id={0}" -f $jobId)
+            Remove-PendingAck $jobId
         } else {
-            Write-Log ("No se pudo marcar impreso id={0} (reintento en siguiente ciclo)" -f $jobId)
+            Write-Log ("No se pudo marcar impreso id={0} — queda en pending_ack (no reimprime)" -f $jobId)
+            Save-PendingAck $jobId
         }
     }
 }

@@ -79,7 +79,8 @@ echo.
 echo Si otra PC no entra: tools\abrir_red_8080.bat ^(Admin, una vez^)
 echo.
 
-start "" "%LOCALURL%"
+REM Abrir navegador cuando :8080 ya este arriba (no antes del -S).
+start "" cmd /c "ping -n 3 127.0.0.1 >nul & start %LOCALURL%"
 
 "%PHP%" -c "%~dp0tools\php\php.ini" -S %HOST%:%PORT% -t . router.php
 set ERR=%ERRORLEVEL%

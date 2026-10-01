@@ -102,8 +102,10 @@ function print_report_render($ctx)
 	echo '<div class="pr-preview-grid">';
 	if ($qid > 0) {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL encolado (Labelary)</p>';
-		echo '<img class="pr-preview-img" id="prPreviewImg" alt="Vista previa" src="preview_job_zpl.php?key=barcode21&amp;id=' . (int)$qid . '&amp;t=' . time() . '" onerror="this.style.display=\'none\';var e=document.getElementById(\'prPrevErr\');if(e)e.style.display=\'block\';">';
-		echo '<p id="prPrevErr" class="pr-notes" style="display:none">Vista previa online no disponible (esta PC no llega a Labelary). <b>No afecta la impresión</b> — revise el estado del job o Print Viewer.</p></div>';
+		echo '<p class="pr-notes" id="prPrevHint">La vista previa online es opcional y <b>no afecta la impresión</b>.</p>';
+		echo '<button type="button" class="pr-btn" id="prPreviewBtn" data-qid="' . (int)$qid . '">Ver preview Labelary</button>';
+		echo '<img class="pr-preview-img" id="prPreviewImg" alt="Vista previa" style="display:none">';
+		echo '<p id="prPrevErr" class="pr-notes" style="display:none">Vista previa online no disponible (esta PC no llega a Labelary). <b>No afecta la impresión</b>.</p></div>';
 	} elseif ($zpl !== '') {
 		echo '<div class="pr-preview-box"><p class="pr-preview-cap">ZPL generado</p>';
 		echo '<p class="pr-notes">Sin id de cola; vea ZPL abajo o Print Viewer.</p></div>';
@@ -213,6 +215,30 @@ function print_report_render($ctx)
   }
   tick();
   setInterval(tick, 2000);
+  var prevBtn = document.getElementById("prPreviewBtn");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", function () {
+      var img = document.getElementById("prPreviewImg");
+      var err = document.getElementById("prPrevErr");
+      var q = prevBtn.getAttribute("data-qid") || qid;
+      if (!img || !q) return;
+      prevBtn.disabled = true;
+      prevBtn.textContent = "Cargando…";
+      img.onload = function () {
+        img.style.display = "block";
+        prevBtn.textContent = "Actualizar preview";
+        prevBtn.disabled = false;
+        if (err) err.style.display = "none";
+      };
+      img.onerror = function () {
+        img.style.display = "none";
+        if (err) err.style.display = "block";
+        prevBtn.textContent = "Reintentar preview";
+        prevBtn.disabled = false;
+      };
+      img.src = "preview_job_zpl.php?key=barcode21&id=" + encodeURIComponent(q) + "&t=" + Date.now();
+    });
+  }
 })();
 </script>';
 	echo '</body></html>';

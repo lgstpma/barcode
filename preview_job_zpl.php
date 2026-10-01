@@ -8,7 +8,7 @@
  * falla — la impresión RAW local no depende de esto.
  */
 @ini_set('memory_limit', '256M');
-@set_time_limit(60);
+@set_time_limit(8);
 
 $key = isset($_REQUEST['key']) ? (string)$_REQUEST['key'] : '';
 if ($key !== 'barcode21') {
@@ -82,10 +82,10 @@ function preview_job_try_labelary($url, $zplRender)
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $zplRender);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: image/png', 'Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+		// Timeout corto: PHP -S es un solo hilo; si Labelary no responde, no cuelgue la cola/impresión.
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 3);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		// Win7 / PHP viejo a veces falla SSL; Labelary acepta http
 		if (stripos($url, 'https://') === 0) {
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -102,7 +102,7 @@ function preview_job_try_labelary($url, $zplRender)
 				'method' => 'POST',
 				'header' => "Accept: image/png\r\nContent-Type: application/x-www-form-urlencoded\r\n",
 				'content' => $zplRender,
-				'timeout' => 20,
+				'timeout' => 3,
 				'ignore_errors' => true,
 			),
 			'ssl' => array(
@@ -122,9 +122,9 @@ function preview_job_try_labelary($url, $zplRender)
 }
 
 $path = $wIn . 'x' . $hIn . '/0/';
+// Solo HTTP una vez (HTTPS duplicaba el bloqueo cuando no hay internet).
 $urls = array(
 	'http://api.labelary.com/v1/printers/8dpmm/labels/' . $path,
-	'https://api.labelary.com/v1/printers/8dpmm/labels/' . $path,
 );
 $png = null;
 foreach ($urls as $url) {

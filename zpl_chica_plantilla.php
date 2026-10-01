@@ -83,6 +83,102 @@ function zpl_chica_save_offsets($lt, $ls, $lh_x = 0, $lh_y = 0)
 	return @file_put_contents(zpl_chica_offset_cfg_path(), $txt) !== false;
 }
 
+/**
+ * Geometría editable de la plantilla chica (#1 / #9 / #15).
+ * Archivo: label_layouts/shared/tipo_chica.json
+ */
+function zpl_chica_layout_path()
+{
+	return __DIR__ . DIRECTORY_SEPARATOR . 'label_layouts' . DIRECTORY_SEPARATOR . 'shared' . DIRECTORY_SEPARATOR . 'tipo_chica.json';
+}
+
+function zpl_chica_default_layout()
+{
+	return array(
+		'version' => 1,
+		'etiqueta' => 'chica',
+		'shared' => true,
+		'unit' => 'dots',
+		'note' => 'Plantilla ZPL chica compartida por #1 (con fecha), #9 (sin fecha) y #15.',
+		'fields' => array(
+			'texto' => array(
+				'alcance' => 18,
+				'font' => 14,
+				'x' => 20,
+				'y0' => 0,
+				'step' => 17,
+				'precio_gap' => 2,
+			),
+			'barcode' => array(
+				'x' => 160,
+				'h' => 36,
+				'by' => 1,
+				'y_min' => 42,
+				'gap_con_fecha' => 6,
+				'gap_sin_fecha' => 16,
+			),
+		),
+	);
+}
+
+function zpl_chica_load_layout()
+{
+	$def = zpl_chica_default_layout();
+	$path = zpl_chica_layout_path();
+	if (!is_readable($path)) {
+		return $def;
+	}
+	$raw = @file_get_contents($path);
+	$data = $raw ? json_decode($raw, true) : null;
+	if (!is_array($data)) {
+		return $def;
+	}
+	if (!isset($data['fields']) || !is_array($data['fields'])) {
+		$data['fields'] = $def['fields'];
+	}
+	foreach ($def['fields'] as $name => $vals) {
+		if (!isset($data['fields'][$name]) || !is_array($data['fields'][$name])) {
+			$data['fields'][$name] = $vals;
+			continue;
+		}
+		foreach ($vals as $k => $v) {
+			if (!array_key_exists($k, $data['fields'][$name])) {
+				$data['fields'][$name][$k] = $v;
+			}
+		}
+	}
+	$data['etiqueta'] = 'chica';
+	$data['shared'] = true;
+	$data['unit'] = 'dots';
+	return $data;
+}
+
+function zpl_chica_save_layout(array $layout)
+{
+	$def = zpl_chica_default_layout();
+	$out = $def;
+	$out['version'] = isset($layout['version']) ? (int)$layout['version'] : 1;
+	$out['updated_at'] = date('c');
+	if (isset($layout['fields']) && is_array($layout['fields'])) {
+		foreach ($def['fields'] as $name => $vals) {
+			if (!isset($layout['fields'][$name]) || !is_array($layout['fields'][$name])) {
+				continue;
+			}
+			foreach ($vals as $k => $v) {
+				if (array_key_exists($k, $layout['fields'][$name])) {
+					$out['fields'][$name][$k] = (int)$layout['fields'][$name][$k];
+				}
+			}
+		}
+	}
+	$dir = dirname(zpl_chica_layout_path());
+	if (!is_dir($dir)) {
+		@mkdir($dir, 0775, true);
+	}
+	$json = json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	return @file_put_contents(zpl_chica_layout_path(), $json . "\n") !== false;
+}
+
 function zpl_chica_lote_code($ts)
 {
 	$mes = (int)date('n', $ts);
@@ -208,9 +304,41 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$codigo = str_pad(preg_replace('/\D/', '', (string)$codigo), 6, '0', STR_PAD_LEFT);
 	$codigo = substr($codigo, -6);
 
-	// SoftShop VB alcance=24 era para fuente chica; con ^CFA,14 hay que cortar antes (~18)
-	// para que no se salga del margen de la chica.
-	$alcance = 18;
+	$lay = zpl_chica_load_layout();
+	$tx = isset($lay['fields']['texto']) ? $lay['fields']['texto'] : array();
+	$bc = isset($lay['fields']['barcode']) ? $lay['fields']['barcode'] : array();
+	// SoftShop VB alcance=24 era para fuente chica; con ^CFA,14 hay que cortar antes (~18).
+	$alcance = isset($tx['alcance']) ? (int)$tx['alcance'] : 18;
+	if ($alcance < 8) {
+		$alcance = 8;
+	}
+	if ($alcance > 40) {
+		$alcance = 40;
+	}
+	$fontTxt = isset($tx['font']) ? (int)$tx['font'] : 14;
+	if ($fontTxt < 8) {
+		$fontTxt = 8;
+	}
+	if ($fontTxt > 28) {
+		$fontTxt = 28;
+	}
+	$foX = isset($tx['x']) ? (int)$tx['x'] : 20;
+	$step = isset($tx['step']) ? (int)$tx['step'] : 17;
+	if ($step < 10) {
+		$step = 10;
+	}
+	$y0 = isset($tx['y0']) ? (int)$tx['y0'] : 0;
+	$precioGap = isset($tx['precio_gap']) ? (int)$tx['precio_gap'] : 2;
+	$barX = isset($bc['x']) ? (int)$bc['x'] : 160;
+	$barH = isset($bc['h']) ? (int)$bc['h'] : 36;
+	$barBy = isset($bc['by']) ? (int)$bc['by'] : 1;
+	if ($barBy < 1) {
+		$barBy = 1;
+	}
+	$yBarMin = isset($bc['y_min']) ? (int)$bc['y_min'] : 42;
+	$gapFecha = isset($bc['gap_con_fecha']) ? (int)$bc['gap_con_fecha'] : 6;
+	$gapSin = isset($bc['gap_sin_fecha']) ? (int)$bc['gap_sin_fecha'] : 16;
+
 	$descLines = zpl_chica_wrap_descrip($descrip, $descrip2, $alcance, 2);
 	if (count($descLines) < 1) {
 		$descLines = array('');
@@ -234,18 +362,15 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$lhx = (int)$off['lh_x'];
 	$lhy = (int)$off['lh_y'];
 
-	// Espaciado real (antes y=0/12/20 con fuente 14 → se montaban)
 	$nDesc = count($descLines);
-	$step = 17;
-	$y0 = 0;
-	$y1 = $step;
-	$yPrecio = ($nDesc >= 2 ? $y1 : $y0) + $step + 2;
+	$y1 = $y0 + $step;
+	$yPrecio = ($nDesc >= 2 ? $y1 : $y0) + $step + $precioGap;
 	$yLote = $yPrecio + $step;
 	$yExp = $yLote + $step;
 	$yReg = $yExp + $step;
-	$yBar = $con_fecha ? ($yReg + 6) : ($yPrecio + 16);
-	if ($yBar < 42) {
-		$yBar = 42;
+	$yBar = $con_fecha ? ($yReg + $gapFecha) : ($yPrecio + $gapSin);
+	if ($yBar < $yBarMin) {
+		$yBar = $yBarMin;
 	}
 
 	$zpl = "^XA\n";
@@ -256,16 +381,16 @@ function build_zpl_chica_plantilla($codigo, $descrip, $descrip2, $precio, $cant,
 	$zpl .= "^CFA,12\n";
 	$zpl .= "^LT" . $lt . "\n";
 	$zpl .= "^CWZ,E:LEXENDDECA.TTF\n";
-	$zpl .= "^FO160," . (int)$yBar . "\n";
-	$zpl .= "^BY1\n";
-	$zpl .= "^BCN,36,N,N,N\n";
+	$zpl .= "^FO" . $barX . "," . (int)$yBar . "\n";
+	$zpl .= "^BY" . $barBy . "\n";
+	$zpl .= "^BCN," . $barH . ",N,N,N\n";
 	$zpl .= "^FD" . $codigo . "^FS\n";
-	$zpl .= "^CFA,14\n";
-	$zpl .= "^FO20," . (int)$y0 . "^FD" . $descLines[0] . "^FS\n";
+	$zpl .= "^CFA," . $fontTxt . "\n";
+	$zpl .= "^FO" . $foX . "," . (int)$y0 . "^FD" . $descLines[0] . "^FS\n";
 	if ($nDesc >= 2 && $descLines[1] !== '') {
-		$zpl .= "^FO20," . (int)$y1 . "^FD" . $descLines[1] . "^FS\n";
+		$zpl .= "^FO" . $foX . "," . (int)$y1 . "^FD" . $descLines[1] . "^FS\n";
 	}
-	$zpl .= "^FO20," . (int)$yPrecio . "^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
+	$zpl .= "^FO" . $foX . "," . (int)$yPrecio . "^FDPrecio:" . zpl_escape_field($priceTxt) . "^FS\n";
 
 	if ($con_fecha) {
 		$base = zpl_chica_parse_fecha($fecha_manufact);

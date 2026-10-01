@@ -339,8 +339,8 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	$codigo2 = isset($row['codigo2']) ? $row['codigo2'] : $codigo;
 	$layoutOverride = $layoutFromPost ? $layoutFromPost : label_layout_ensure_shared('cajas');
 	$zpl = build_zpl_etiqueta_cajas($codigo2, $descrip, $descrip2, $unidades, $cant, $elab_day, $caducidad, $layoutOverride);
-	$pw = 609;
-	$ll = 406;
+	$pw = 406;
+	$ll = 609;
 	if (!empty($layoutOverride['label']['width_dots'])) {
 		$pw = (int)$layoutOverride['label']['width_dots'];
 	}

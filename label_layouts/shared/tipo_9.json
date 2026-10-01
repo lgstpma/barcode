@@ -4,7 +4,7 @@
     "shared": true,
     "unit": "twips_vb",
     "label": {
-        "width_in": 1.0,
+        "width_in": 1,
         "height_in": 0.5,
         "width_dots": 203,
         "height_dots": 102
@@ -34,8 +34,9 @@
             "font": 6,
             "alcance": 24,
             "renglon": 117,
-            "font_w_ratio": 1.0,
+            "font_w_ratio": 1,
             "titulo": ""
         }
-    }
+    },
+    "updated_at": "2026-09-30T18:08:40-05:00"
 }

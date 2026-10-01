@@ -73,15 +73,16 @@ function conec_mysql()
 { 
 global $mysql_adress, $mysql_user, $mysql_pass, $mysql_db;
 
-$link_mysql = mysqli_connect($mysql_adress, $mysql_user, $mysql_pass);
-if (!$link_mysql) 
+// Timeout corto: si MySQL remoto no responde, la web no se queda colgada minutos.
+$link_mysql = mysqli_init();
+if (!$link_mysql) {
+  echo "Error iniciando MySQL.";
+  exit();
+}
+mysqli_options($link_mysql, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+if (!@mysqli_real_connect($link_mysql, $mysql_adress, $mysql_user, $mysql_pass, $mysql_db)) 
 { 
 echo "Error conectando a la base de datos."; 
-exit(); 
-} 
-if (!mysqli_select_db($link_mysql, $mysql_db)) 
-{ 
-echo "Error seleccionando la tabla  ."; 
 exit(); 
 } 
 

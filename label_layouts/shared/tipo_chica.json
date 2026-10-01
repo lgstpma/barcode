@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "etiqueta": "chica",
+    "shared": true,
+    "unit": "dots",
+    "note": "Plantilla ZPL chica compartida por #1 (con fecha), #9 (sin fecha) y #15.",
+    "fields": {
+        "texto": {
+            "alcance": 18,
+            "font": 14,
+            "x": 20,
+            "y0": 0,
+            "step": 17,
+            "precio_gap": 2
+        },
+        "barcode": {
+            "x": 160,
+            "h": 36,
+            "by": 1,
+            "y_min": 42,
+            "gap_con_fecha": 6,
+            "gap_sin_fecha": 16
+        }
+    }
+}

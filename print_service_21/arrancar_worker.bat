@@ -32,12 +32,13 @@ if exist "%~dp0..\print_migrate.cfg" (
   echo   print_migrate.cfg: SI
 )
 
-REM Ventana visible minima: mas facil ver errores que VBS oculto
-start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0print_etiqueta21.ps1"
+REM Esperar a que start.bat levante :8080 (PHP es de un solo hilo; si el worker
+REM pega antes, satura y la web parece colgada).
+start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 4; & '%~dp0print_etiqueta21.ps1'"
 
 ping -n 2 127.0.0.1 >nul
 echo.
-echo Worker unico: iniciado (todas las impresoras de print_migrate.cfg).
+echo Worker unico: se inicia en ~4s (espera a que el web este en :8080).
 echo Log: %~dp0print_service.log
 echo Para parar: stop_worker.bat
 exit /b 0

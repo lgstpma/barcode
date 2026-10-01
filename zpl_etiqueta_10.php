@@ -511,48 +511,76 @@ function etiqueta10_region_clear($bits, $x, $y, $rw, $rh, $maxInk = 0.12)
 }
 
 /**
- * Ancla lbl_lines; si cae sobre arte, mueve Y al hueco libre (sin pisar barcode).
+ * Coloca texto en coords pedidas (editor/JSON).
+ * Ya NO “empuja” el texto por tinta del BMP (eso hacía que en otra PC con otra
+ * imagen el precio no bajara). Solo evita solaparse con el rectángulo del barcode
+ * y recorta al borde de la etiqueta.
+ *
+ * @param array|null $barBox {x,y,w,h} en dots; null/vacío = sin barra
  * @return array{0:int,1:int}
  */
-function etiqueta10_place_text_xy($labelBits, $x, $y, $tw, $th, $pw, $ll, $barTop)
+function etiqueta10_place_text_xy($labelBits, $x, $y, $tw, $th, $pw, $ll, $barTop, $barBox = null)
 {
-	$tw = max(24, (int)$tw);
-	$th = max(10, (int)$th);
-	$x = max(0, min((int)$x, $pw - 8));
-	$y = max(0, (int)$y);
-	if ($barTop > 0 && $y + $th > $barTop - 2) {
-		$y = max(0, $barTop - $th - 2);
+	$tw = max(8, (int)$tw);
+	$th = max(8, (int)$th);
+	$x = (int)$x;
+	$y = (int)$y;
+	if ($x < 0) {
+		$x = 0;
+	}
+	if ($x > $pw - 4) {
+		$x = max(0, $pw - 4);
+	}
+	if ($y < 0) {
+		$y = 0;
 	}
 	if ($y + $th > $ll) {
 		$y = max(0, $ll - $th);
 	}
-	if (etiqueta10_region_clear($labelBits, $x, $y, $tw, $th)) {
-		return array($x, $y);
+
+	$bx = 0;
+	$by = 0;
+	$bw = 0;
+	$bh = 0;
+	$hasBar = false;
+	if (is_array($barBox) && !empty($barBox['w']) && !empty($barBox['h'])) {
+		$bx = (int)$barBox['x'];
+		$by = (int)$barBox['y'];
+		$bw = (int)$barBox['w'];
+		$bh = (int)$barBox['h'];
+		$hasBar = ($bw > 10 && $bh > 8 && $by >= 0);
+	} elseif ($barTop > 0) {
+		// Compat: solo Y del barcode (comportamiento viejo, menos preciso)
+		$by = (int)$barTop;
+		$bx = 0;
+		$bw = (int)$pw;
+		$bh = max(1, $ll - $by);
+		$hasBar = true;
 	}
-	$deltas = array(0, -8, -16, -24, -36, -48, -64, -80, 8, 16, 24, 36, 48);
-	$best = null;
-	$bestScore = -1;
-	foreach ($deltas as $dy) {
-		$yy = $y + $dy;
-		if ($yy < 0 || $yy + $th > $ll) {
-			continue;
-		}
-		if ($barTop > 0 && $yy + $th > $barTop - 2) {
-			continue;
-		}
-		if (!etiqueta10_region_clear($labelBits, $x, $yy, $tw, $th, 0.14)) {
-			continue;
-		}
-		$score = 1000 - abs($dy) + (int)($yy * 0.5);
-		if ($score > $bestScore) {
-			$bestScore = $score;
-			$best = $yy;
+
+	if ($hasBar) {
+		$textRight = $x + $tw;
+		$textBottom = $y + $th;
+		$barRight = $bx + $bw;
+		$barBottom = $by + $bh;
+		$overlapX = ($x < $barRight) && ($textRight > $bx);
+		$overlapY = ($y < $barBottom) && ($textBottom > $by);
+		if ($overlapX && $overlapY) {
+			// Preferir subir el texto encima de la barra (sin mover X: el precio suele ir a la derecha)
+			$yAbove = $by - $th - 2;
+			if ($yAbove >= 0) {
+				$y = $yAbove;
+			} else {
+				// Si no cabe arriba, desplazar a la derecha del barcode
+				$xRight = $bx + $bw + 4;
+				if ($xRight + min($tw, 40) < $pw) {
+					$x = $xRight;
+				}
+			}
 		}
 	}
-	if ($best !== null) {
-		return array($x, (int)$best);
-	}
-	return array($x, $y);
+
+	return array($x, (int)$y);
 }
 
 function etiqueta10_compose_label_bits($artBits, $ox, $oy, $pw, $ll)
@@ -579,12 +607,13 @@ function etiqueta10_compose_label_bits($artBits, $ox, $oy, $pw, $ll)
 }
 
 /**
- * Textos lbl_lines: coords BD (+ sesgo); si pisan BMP, se acomodan al hueco.
- * @param array|null $labelBits arte compuesto al tamano etiqueta
- * @param int $barTop Y barcode dots (0 = sin barra)
+ * Textos lbl_lines: coords BD/JSON (+ sesgo). Respeta Y/X del editor.
+ * @param array|null $labelBits arte compuesto (solo preview; ya no mueve textos)
+ * @param int $barTop Y barcode dots (compat)
  * @param array|null $overlaysOut si se pasa, guarda {x,y,h,text} para preview PNG
+ * @param array|null $barBox {x,y,w,h} dots del barcode
  */
-function etiqueta10_append_lbl_lines(&$zpl, $lines, $ctx, $pw, $ll, $labelBits = null, $barTop = 0, &$overlaysOut = null)
+function etiqueta10_append_lbl_lines(&$zpl, $lines, $ctx, $pw, $ll, $labelBits = null, $barTop = 0, &$overlaysOut = null, $barBox = null)
 {
 	if (!is_array($lines) || count($lines) === 0) {
 		return;
@@ -657,7 +686,7 @@ function etiqueta10_append_lbl_lines(&$zpl, $lines, $ctx, $pw, $ll, $labelBits =
 			$x = max(0, $pw - min($estW, 80));
 		}
 		$blockH = $h + (($extraLote !== '') ? ($h + 4) : 0);
-		$xy = etiqueta10_place_text_xy($labelBits, $x, $y, $estW, $blockH, $pw, $ll, $barTop);
+		$xy = etiqueta10_place_text_xy($labelBits, $x, $y, $estW, $blockH, $pw, $ll, $barTop, $barBox);
 		$x = $xy[0];
 		$y = $xy[1];
 
@@ -667,10 +696,11 @@ function etiqueta10_append_lbl_lines(&$zpl, $lines, $ctx, $pw, $ll, $labelBits =
 		}
 		if ($extraLote !== '') {
 			$yLote = $y + $h + 2;
-			if ($yLote + $h < $ll && ($barTop <= 0 || $yLote + $h <= $barTop - 2)) {
-				$zpl .= "^FO" . $x . "," . $yLote . "^A0N," . $h . "," . $w . "^FD" . zpl_escape_field($extraLote) . "^FS\n";
+			if ($yLote + $h <= $ll) {
+				$xy2 = etiqueta10_place_text_xy($labelBits, $x, $yLote, $estW, $h, $pw, $ll, $barTop, $barBox);
+				$zpl .= "^FO" . $xy2[0] . "," . $xy2[1] . "^A0N," . $h . "," . $w . "^FD" . zpl_escape_field($extraLote) . "^FS\n";
 				if ($collect) {
-					$overlaysOut[] = array('x' => $x, 'y' => $yLote, 'h' => $h, 'text' => $extraLote);
+					$overlaysOut[] = array('x' => $xy2[0], 'y' => $xy2[1], 'h' => $h, 'text' => $extraLote);
 				}
 			}
 		}
@@ -728,14 +758,13 @@ function build_zpl_etiqueta_10($codigo, $cant = 1, $lbls = array(), $barcode_dat
 	}
 
 	$dx = !empty($lbls['design_x']) ? etiqueta10_twips_to_dots($lbls['design_x']) : 0;
-	$dy = !empty($lbls['design_y']) ? etiqueta10_twips_to_dots($lbls['design_y']) : 0;
+	$dy = isset($lbls['design_y']) && $lbls['design_y'] !== '' && $lbls['design_y'] !== null
+		? etiqueta10_twips_to_dots($lbls['design_y']) : 0;
 	$dw = !empty($lbls['design_width']) ? etiqueta10_twips_to_dots($lbls['design_width']) : $pw;
 	$dh = !empty($lbls['design_height']) ? etiqueta10_twips_to_dots($lbls['design_height']) : $ll;
+	// design_y negativo permitido (sube el arte); design_x negativo se ignora
 	if ($dx < 0) {
 		$dx = 0;
-	}
-	if ($dy < 0) {
-		$dy = 0;
 	}
 	if ($dw < 8) {
 		$dw = $pw;
@@ -804,10 +833,15 @@ function build_zpl_etiqueta_10($codigo, $cant = 1, $lbls = array(), $barcode_dat
 		$lines = etiqueta10_lookup_lines($link, $codigo);
 	}
 	$overlays = array();
+	$barBox = null;
+	if ($useBar && $barTop > 0) {
+		$barBox = array('x' => $bx, 'y' => $by, 'w' => $bw, 'h' => $bh);
+	}
 	if (!empty($GLOBALS['etiqueta10_want_preview_bits'])) {
-		etiqueta10_append_lbl_lines($zpl, $lines, $ctx, $pw, $ll, $labelBits, $barTop, $overlays);
+		etiqueta10_append_lbl_lines($zpl, $lines, $ctx, $pw, $ll, $labelBits, $barTop, $overlays, $barBox);
 	} else {
-		etiqueta10_append_lbl_lines($zpl, $lines, $ctx, $pw, $ll, $labelBits, $barTop);
+		$noOverlays = null;
+		etiqueta10_append_lbl_lines($zpl, $lines, $ctx, $pw, $ll, $labelBits, $barTop, $noOverlays, $barBox);
 	}
 
 	$zpl .= "^PQ" . $cant . "\n^XZ\n";

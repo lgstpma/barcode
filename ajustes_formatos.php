@@ -31,7 +31,7 @@ $catalog = array(
 		'printer' => 'GK420t_chica',
 		'size' => 'media de la impresora',
 		'shared' => false,
-		'note' => 'Usa tu ZPL bueno (sin ^PW/^LL). Misma plantilla que #15. Edición de coords JSON ya no aplica.',
+		'note' => 'Plantilla ZPL chica con lote/exp/reg. Edite diseño (ZPL + preview) en el editor chica. Aquí solo el offset de margen.',
 	),
 	array(
 		'id' => '9',
@@ -39,7 +39,7 @@ $catalog = array(
 		'printer' => 'GK420t_chica',
 		'size' => 'media de la impresora',
 		'shared' => false,
-		'note' => 'Misma plantilla chica sin lote/exp.',
+		'note' => 'Misma plantilla chica que #1, sin lote/exp. Edite el ZPL real en el editor chica; aquí solo el offset.',
 	),
 	array(
 		'id' => '5',
@@ -47,7 +47,7 @@ $catalog = array(
 		'printer' => 'GK420t_grande',
 		'size' => '~3" × 2"',
 		'shared' => true,
-		'note' => 'Con ingredientes. Layout compartido.',
+		'note' => 'Con ingredientes. Layout JSON compartido editable abajo (coords + preview).',
 	),
 	array(
 		'id' => '15',
@@ -55,7 +55,7 @@ $catalog = array(
 		'printer' => 'GK420t_chica',
 		'size' => 'media chica',
 		'shared' => false,
-		'note' => 'ZPL fijo en zpl_etiqueta_15.php (aún no editable aquí).',
+		'note' => 'Misma plantilla chica que #1. Use el editor chica para el diseño.',
 	),
 	array(
 		'id' => '10',
@@ -238,6 +238,9 @@ function h($s)
 				<?php if ((string)$selected['id'] === 'cajas') { ?>
 				<p class="af-sample"><a class="af-btn af-btn-primary" href="editar_etiqueta_cajas.php">Abrir editor de etiqueta de caja</a> (recomendado: coords en dots, vista previa y guardar compartido)</p>
 				<?php } ?>
+				<?php if (in_array((string)$selected['id'], array('1', '9', '15'), true)) { ?>
+				<p class="af-sample"><a class="af-btn af-btn-primary" href="editar_etiqueta_chica.php?tipo=<?php echo h(urlencode($selected['id'] === '15' ? '1' : $selected['id'])); ?>">Editar ZPL chica + preview</a> (diseño real de #1 / #9 / #15)</p>
+				<?php } ?>
 				<?php if ($sampleCode !== '') { ?>
 				<p class="af-sample">Muestra: <a href="search_results.php?code=<?php echo h(urlencode($sampleCode)); ?>&amp;bttn_actualizar=FM"><?php echo h($sampleCode); ?></a></p>
 				<?php } else { ?>
@@ -248,6 +251,12 @@ function h($s)
 			<?php if (empty($selected['shared'])) { ?>
 			<div class="af-notice">
 				<?php if (in_array($selected['id'], array('1', '9', '15'), true)) { ?>
+					<p style="margin:0 0 12px;">
+						<strong>Dos cosas distintas:</strong>
+						(1) el <em>diseño ZPL</em> (nombre, wrap, barras) se edita en
+						<a href="editar_etiqueta_chica.php?tipo=<?php echo h(urlencode($selected['id'] === '15' ? '1' : $selected['id'])); ?>">Editor etiqueta chica</a>;
+						(2) abajo solo mueve el job entero en la media (^LT/^LS/^LH) sin tocar VB6.
+					</p>
 					<strong>Compensar margen de la chica solo en este sistema</strong>
 					(comandos <code>^LT</code>/<code>^LS</code>/<code>^LH</code> en el ZPL del job).
 					<strong>No se graba nada en la impresora</strong> → VB6 SoftShop sigue igual.
@@ -276,6 +285,46 @@ function h($s)
 						</p>
 						<button type="submit" class="af-btn af-btn-primary" style="margin-top:10px;">Guardar offset chica</button>
 					</form>
+					<?php if ($sampleCode !== '') { ?>
+					<div class="af-preview-pane" style="margin-top:18px;">
+						<div class="af-toolbar">
+							<button type="button" class="af-btn" id="afChicaPreviewBtn">Ver preview ZPL #<?php echo h($selected['id']); ?></button>
+							<a class="af-btn af-btn-primary" href="editar_etiqueta_chica.php?tipo=<?php echo h(urlencode($selected['id'] === '15' ? '1' : $selected['id'])); ?>">Abrir editor</a>
+						</div>
+						<p id="afChicaStatus" class="af-status">Pulse «Ver preview» para ver la etiqueta y el ZPL actual.</p>
+						<img id="afChicaPreviewImg" alt="Vista previa chica" class="af-preview-img" style="display:none;" />
+						<pre id="afChicaZpl" class="af-zpl" style="display:none;"></pre>
+					</div>
+					<script>
+					(function () {
+						var sample = <?php echo json_encode($sampleCode); ?>;
+						var tipo = <?php echo json_encode((string)$selected['id']); ?>;
+						var btn = document.getElementById('afChicaPreviewBtn');
+						if (!btn) return;
+						btn.addEventListener('click', function () {
+							var st = document.getElementById('afChicaStatus');
+							var img = document.getElementById('afChicaPreviewImg');
+							var zpl = document.getElementById('afChicaZpl');
+							if (st) st.textContent = 'Generando…';
+							var qs = 'codigo=' + encodeURIComponent(sample) + '&tipo=' + encodeURIComponent(tipo) + '&fmt=json&cache=0&v=' + Date.now();
+							fetch('preview_zpl.php?' + qs).then(function (r) { return r.json(); }).then(function (data) {
+								if (!data || !data.ok) {
+									if (st) st.textContent = (data && data.error) ? data.error : 'Error';
+									return;
+								}
+								if (zpl) { zpl.style.display = 'block'; zpl.textContent = data.zpl || ''; }
+								if (img) {
+									img.style.display = 'block';
+									img.src = 'preview_zpl.php?codigo=' + encodeURIComponent(sample) + '&tipo=' + encodeURIComponent(tipo) + '&fmt=png&cache=0&v=' + Date.now();
+								}
+								if (st) st.textContent = 'Preview #' + tipo + ' · ' + sample;
+							}).catch(function (e) {
+								if (st) st.textContent = 'Error: ' + (e && e.message ? e.message : e);
+							});
+						});
+					})();
+					</script>
+					<?php } ?>
 				<?php } elseif (in_array($selected['id'], array('10', '14'), true) && $sampleCode !== '') { ?>
 					Este formato no usa layout compartido editable aquí.
 					Abra un producto (ej. <?php echo h($sampleCode); ?>) y use <em>Opciones avanzadas / Vista previa</em>.
@@ -285,6 +334,9 @@ function h($s)
 				<?php } ?>
 			</div>
 			<?php } else { ?>
+			<?php if ((string)$selected['id'] === '5') { ?>
+			<p class="af-sample" style="margin-top:0;">Editor en vivo del formato <strong>#5</strong>: mueva campos, pulse «Ver etiqueta» y «Guardar para todos los ítems #5».</p>
+			<?php } ?>
 			<div class="af-grid">
 				<div class="af-preview-pane">
 					<div class="af-toolbar">
