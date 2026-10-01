@@ -526,25 +526,38 @@ function label_layout_apply_to_lbls_lines($layout, $lbls, $lines)
 			if ($key === '' || !is_array($f)) {
 				continue;
 			}
-			if (isset($byKey[$key])) {
-				$i = $byKey[$key];
+			// Aliases SoftShop / editor
+			$aliases = array($key);
+			if ($key === 'eg_sanitario' || $key === 'reg_sanitario') {
+				$aliases = array('eg_sanitario', 'reg_sanitario', 'registro_sanitario');
+			}
+			$matched = false;
+			foreach ($aliases as $ak) {
+				if (!isset($byKey[$ak])) {
+					continue;
+				}
+				$i = $byKey[$ak];
 				foreach (array('x', 'y', 'font', 'bold', 'alcance', 'renglon', 'titulo') as $prop) {
 					if (array_key_exists($prop, $f)) {
 						$lines[$i][$prop] = $f[$prop];
 					}
 				}
-			} else {
-				$lines[] = array(
-					'descrip' => $key,
-					'x' => isset($f['x']) ? $f['x'] : 0,
-					'y' => isset($f['y']) ? $f['y'] : 0,
-					'font' => isset($f['font']) ? $f['font'] : 8,
-					'bold' => !empty($f['bold']),
-					'alcance' => isset($f['alcance']) ? $f['alcance'] : 0,
-					'renglon' => isset($f['renglon']) ? $f['renglon'] : 0,
-					'titulo' => isset($f['titulo']) ? $f['titulo'] : '',
-				);
+				$matched = true;
+				break;
 			}
+			if ($matched) {
+				continue;
+			}
+			$lines[] = array(
+				'descrip' => $key,
+				'x' => isset($f['x']) ? $f['x'] : 0,
+				'y' => isset($f['y']) ? $f['y'] : 0,
+				'font' => isset($f['font']) ? $f['font'] : 8,
+				'bold' => !empty($f['bold']),
+				'alcance' => isset($f['alcance']) ? $f['alcance'] : 0,
+				'renglon' => isset($f['renglon']) ? $f['renglon'] : 0,
+				'titulo' => isset($f['titulo']) ? $f['titulo'] : '',
+			);
 		}
 	}
 	return array('lbls' => $lbls, 'lines' => $lines);

@@ -234,9 +234,13 @@ if ($etiqueta === '1' || $etiqueta === 1 || $etiqueta === '9' || $etiqueta === 9
 	include_once(__DIR__ . DIRECTORY_SEPARATOR . 'label_layout_lib.php');
 	$lbls = etiqueta10_lookup_lbls($link, $codigo);
 	$lines = etiqueta10_lookup_lines($link, $codigo);
-	// Preview / pruebas: preferir JSON local si existe (no afecta cola de produccion)
+	// Preview / pruebas: preferir JSON local si existe; layout_json POST gana (editor en vivo).
 	$useJson = !isset($_REQUEST['use_json']) || (string)$_REQUEST['use_json'] !== '0';
-	if ($useJson) {
+	if ($layoutFromPost) {
+		$merged = label_layout_apply_to_lbls_lines($layoutFromPost, $lbls, $lines);
+		$lbls = $merged['lbls'];
+		$lines = $merged['lines'];
+	} elseif ($useJson) {
 		$layoutJson = label_layout_load_item($link, $codigo, true);
 		if ($layoutJson) {
 			$merged = label_layout_apply_to_lbls_lines($layoutJson, $lbls, $lines);
@@ -451,6 +455,8 @@ $payload = array(
 	'height_in' => preview_zpl_inches($ll),
 	'preview_rotate_cw' => isset($previewRotateCw) ? (int)$previewRotateCw : 0,
 	'zpl_len' => $zplLen,
+	'build' => @filemtime(__DIR__ . DIRECTORY_SEPARATOR . 'zpl_etiqueta_10.php'),
+	'layout_live' => $layoutFromPost ? 1 : 0,
 );
 // No devolver ^GFA completo por defecto (congela el navegador).
 if ($includeZpl && $zplLen <= 80000) {

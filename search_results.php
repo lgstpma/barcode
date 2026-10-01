@@ -1898,15 +1898,20 @@ lblid = '" . $temp_id . "'";
 									var ce = layout_cad_elab();
 									var img = document.getElementById('zpl_preview_img');
 									var ph = document.getElementById('zpl_preview_placeholder');
-									layout_set_status('Generando vista (JSON local)...');
+									layout_read_inputs_to_state();
+									layout_set_status('Generando vista (coords en vivo)...');
 									if (img) { img.style.display = 'none'; img.removeAttribute('src'); }
-									var base = 'codigo=' + encodeURIComponent(code)
-										+ '&caducidad=' + encodeURIComponent(ce.cad)
-										+ '&elab_day=' + encodeURIComponent(ce.elab)
-										+ '&use_json=1'
-										+ '&_=' + (new Date().getTime());
+									var fd = new FormData();
+									fd.append('codigo', code);
+									fd.append('caducidad', ce.cad);
+									fd.append('elab_day', ce.elab);
+									fd.append('use_json', '1');
+									fd.append('fmt', 'json');
+									if (LAYOUT_STATE.layout) {
+										fd.append('layout_json', JSON.stringify(LAYOUT_STATE.layout));
+									}
 									var xhr = new XMLHttpRequest();
-									xhr.open('GET', 'preview_zpl.php?fmt=json&' + base, true);
+									xhr.open('POST', 'preview_zpl.php?_=' + (new Date().getTime()), true);
 									xhr.timeout = 60000;
 									xhr.onreadystatechange = function () {
 										if (xhr.readyState !== 4) return;
@@ -1920,20 +1925,41 @@ lblid = '" . $temp_id . "'";
 											layout_set_status((r && r.error) ? r.error : 'No se pudo generar');
 											return;
 										}
-										layout_set_status('Tipo ' + r.etiqueta + ' — cargando imagen...');
-										if (img) {
-											img.onload = function () {
-												img.style.display = 'inline';
-												if (ph) ph.style.display = 'none';
-												layout_set_status('Tipo ' + r.etiqueta + ' — ' + r.pw + 'x' + r.ll
-													+ ' dots (' + r.width_in + '\" x ' + r.height_in + '\")');
-											};
-											img.onerror = function () { layout_set_status('Imagen fallo'); };
-											img.src = 'preview_zpl.php?fmt=png&' + base;
+										var live = r.layout_live ? 'vivo' : 'disco';
+										layout_set_status('Tipo ' + r.etiqueta + ' — cargando imagen (' + live + ')...');
+										if (!img) return;
+										var fd2 = new FormData();
+										fd2.append('codigo', code);
+										fd2.append('caducidad', ce.cad);
+										fd2.append('elab_day', ce.elab);
+										fd2.append('use_json', '1');
+										fd2.append('fmt', 'png');
+										if (LAYOUT_STATE.layout) {
+											fd2.append('layout_json', JSON.stringify(LAYOUT_STATE.layout));
 										}
+										fetch('preview_zpl.php?fmt=png&_=' + (new Date().getTime()), { method: 'POST', body: fd2, cache: 'no-store' })
+											.then(function (resp) {
+												if (!resp.ok) throw new Error('png ' + resp.status);
+												return resp.blob();
+											})
+											.then(function (blob) {
+												if (img._blobUrl) {
+													try { URL.revokeObjectURL(img._blobUrl); } catch (e2) {}
+												}
+												img._blobUrl = URL.createObjectURL(blob);
+												img.onload = function () {
+													img.style.display = 'inline';
+													if (ph) ph.style.display = 'none';
+													layout_set_status('Tipo ' + r.etiqueta + ' — ' + r.pw + 'x' + r.ll
+														+ ' dots (' + r.width_in + '\" x ' + r.height_in + '\") · ' + live);
+												};
+												img.onerror = function () { layout_set_status('Imagen fallo'); };
+												img.src = img._blobUrl;
+											})
+											.catch(function () { layout_set_status('Imagen fallo'); });
 									};
 									xhr.ontimeout = function () { layout_set_status('Tiempo agotado'); };
-									xhr.send(null);
+									xhr.send(fd);
 								}
 								function layout_upload_image() {
 									var code = layout_codigo();
