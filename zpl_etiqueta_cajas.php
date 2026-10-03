@@ -229,10 +229,11 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$loteFont = 32;
 	$elabFont = 28;
 	$expFont = 32;
+	$showElab = false;
 
 	$barX = 0;
 	$barH = 55;
-	$shiftLeft = 0;
+	$shiftLeft = 18;
 
 	if (is_array($layoutOverride)) {
 		if (!empty($layoutOverride['label']['width_dots'])) {
@@ -254,6 +255,7 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 		$uniFont = (int)cajas_layout_num($layoutOverride, 'unidades', 'font', $uniFont);
 		$loteFont = (int)cajas_layout_num($layoutOverride, 'lote', 'font', $loteFont);
 		$elabFont = (int)cajas_layout_num($layoutOverride, 'elaboracion', 'font', $elabFont);
+		$showElab = ((int)cajas_layout_num($layoutOverride, 'elaboracion', 'show', 0) === 1);
 		$expFont = (int)cajas_layout_num($layoutOverride, 'fecha', 'font', $expFont);
 		$barX = (int)cajas_layout_num($layoutOverride, 'barcode', 'x', $barX);
 		$barH = (int)cajas_layout_num($layoutOverride, 'barcode', 'h', $barH);
@@ -277,8 +279,13 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 	$barY = $sepY + 12;
 	$uniY = $barY + 8;
 	$loteY = $uniY + max(36, $rowGap);
-	$elabY = $loteY + max(36, $rowGap);
-	$expY = $elabY + max(36, $rowGap);
+	if ($showElab) {
+		$elabY = $loteY + max(36, $rowGap);
+		$expY = $elabY + max(36, $rowGap);
+	} else {
+		$elabY = $loteY;
+		$expY = $loteY + max(36, $rowGap);
+	}
 
 	$gtinDigits = preg_replace('/\D+/', '', (string)$gtin);
 	if ($gtinDigits === '') {
@@ -316,8 +323,10 @@ function build_zpl_etiqueta_cajas($gtin, $descrip, $descrip2, $unidades, $copies
 ' . $barcodeBlock . '
 ^FO' . $dataX . ',' . $uniY . '^A0N,' . $uniFont . ',' . $uniFont . '^FDUnidades: ' . $unidades . '^FS
 ^FO' . $dataX . ',' . $loteY . '^A0N,' . $loteFont . ',' . $loteFont . '^FDLote: ' . zpl_escape_field($lote) . '^FS
-^FO' . $dataX . ',' . $elabY . '^A0N,' . $elabFont . ',' . $elabFont . '^FDElaboracion: ' . zpl_escape_field($elab_txt) . '^FS
 ';
+	if ($showElab) {
+		$zpl .= '^FO' . $dataX . ',' . $elabY . '^A0N,' . $elabFont . ',' . $elabFont . '^FDElaboracion: ' . zpl_escape_field($elab_txt) . '^FS' . "\n";
+	}
 	if ($expirDays > 0) {
 		$zpl .= '^FO' . $dataX . ',' . $expY . '^A0N,' . $expFont . ',' . $expFont . '^FDExp: ' . zpl_escape_field($exp_txt) . '^FS' . "\n";
 	}

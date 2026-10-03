@@ -216,19 +216,19 @@ function label_layout_default_shared_gti13()
 function label_layout_default_shared_cajas()
 {
 	return array(
-		'version' => 16,
+		'version' => 17,
 		'etiqueta' => 'cajas',
 		'shared' => true,
 		'unit' => 'dots',
-		'note' => 'Formato compartido Imprimir Caja. Si el nombre tiene 2 renglones, la estructura baja sola.',
+		'note' => 'Sin Elaboracion. Corrido un poco a la izquierda (shift_left).',
 		'label' => array('width_in' => 2.0, 'height_in' => 3.0, 'width_dots' => 406, 'height_dots' => 609),
 		'fields' => array(
-			'origen' => array('shift_left' => 0, 'gap_after_name' => 14, 'row_gap' => 48),
+			'origen' => array('shift_left' => 18, 'gap_after_name' => 14, 'row_gap' => 48),
 			'nombre' => array('x' => 0, 'y' => 6, 'font' => 68, 'w' => 52, 'line_gap' => 10, 'wrap_w' => 28),
 			'barcode' => array('x' => 0, 'h' => 55),
 			'unidades' => array('x' => 110, 'font' => 32),
 			'lote' => array('font' => 32),
-			'elaboracion' => array('font' => 28),
+			'elaboracion' => array('font' => 28, 'show' => 0),
 			'fecha' => array('font' => 32),
 		),
 	);

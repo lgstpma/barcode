@@ -103,7 +103,7 @@ function fval($fields, $name, $key, $default = '')
 						<label>Alto dots <input type="number" id="h_dots" value="<?php echo h(isset($lab['height_dots']) ? $lab['height_dots'] : 609); ?>" /></label>
 						<label>Ancho in <input type="number" step="0.01" id="w_in" value="<?php echo h(isset($lab['width_in']) ? $lab['width_in'] : 2); ?>" /></label>
 						<label>Alto in <input type="number" step="0.01" id="h_in" value="<?php echo h(isset($lab['height_in']) ? $lab['height_in'] : 3); ?>" /></label>
-						<label>Correr izq. (0=apagado) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 0)); ?>" title="Solo si hace falta; 0 deja el formato pegado a la izquierda" /></label>
+						<label>Correr izq. (0=apagado) <input type="number" id="shift_left" value="<?php echo h(fval($fields, 'origen', 'shift_left', 18)); ?>" title="Dots a la izquierda (^LS). 18 ≈ 2mm" /></label>
 						<label>Hueco tras nombre <input type="number" id="gap_after_name" value="<?php echo h(fval($fields, 'origen', 'gap_after_name', 14)); ?>" title="Espacio entre el último renglón del nombre y la línea" /></label>
 						<label>Espacio entre datos <input type="number" id="row_gap" value="<?php echo h(fval($fields, 'origen', 'row_gap', 48)); ?>" /></label>
 					</div>
@@ -136,8 +136,14 @@ function fval($fields, $name, $key, $default = '')
 						<label>Datos X <input type="number" id="uni_x" value="<?php echo h(fval($fields, 'unidades', 'x', 110)); ?>" /></label>
 						<label>Unidades font <input type="number" id="uni_font" value="<?php echo h(fval($fields, 'unidades', 'font', 32)); ?>" /></label>
 						<label>Lote font <input type="number" id="lote_font" value="<?php echo h(fval($fields, 'lote', 'font', 32)); ?>" /></label>
-						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 28)); ?>" /></label>
 						<label>Exp font <input type="number" id="exp_font" value="<?php echo h(fval($fields, 'fecha', 'font', 32)); ?>" /></label>
+						<label>Mostrar Elaboracion
+							<select id="elab_show">
+								<option value="0"<?php echo ((int)fval($fields, 'elaboracion', 'show', 0) === 1) ? '' : ' selected'; ?>>No</option>
+								<option value="1"<?php echo ((int)fval($fields, 'elaboracion', 'show', 0) === 1) ? ' selected' : ''; ?>>Si</option>
+							</select>
+						</label>
+						<label>Elab. font <input type="number" id="elab_font" value="<?php echo h(fval($fields, 'elaboracion', 'font', 28)); ?>" /></label>
 					</div>
 				</div>
 			</div>
@@ -182,8 +188,8 @@ function fval($fields, $name, $key, $default = '')
 		L.etiqueta = 'cajas';
 		L.shared = true;
 		L.unit = 'dots';
-		L.version = (L.version || 12);
-		L.note = 'Formato compartido para TODOS los productos (Imprimir Caja). No afecta etiquetas por producto.';
+		L.version = 17;
+		L.note = 'Sin Elaboracion. shift_left corre a la izquierda. Exp sube al hueco.';
 		L.label = L.label || {};
 		var wd = num('w_dots'), hd = num('h_dots'), wi = num('w_in'), hi = num('h_in');
 		if (wd !== null) L.label.width_dots = Math.round(wd);
@@ -203,7 +209,7 @@ function fval($fields, $name, $key, $default = '')
 		field('barcode', { x: 'bar_x', h: 'bar_h' });
 		field('unidades', { x: 'uni_x', font: 'uni_font' });
 		field('lote', { font: 'lote_font' });
-		field('elaboracion', { font: 'elab_font' });
+		field('elaboracion', { font: 'elab_font', show: 'elab_show' });
 		field('fecha', { font: 'exp_font' });
 		return L;
 	}

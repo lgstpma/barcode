@@ -1,9 +1,9 @@
 {
-    "version": 16,
+    "version": 17,
     "etiqueta": "cajas",
     "shared": true,
     "unit": "dots",
-    "note": "Estructura anclada al nombre: si hay 2 renglones, baja sola. shift_left=0 (margen izq. del formato).",
+    "note": "Sin Elaboracion. shift_left=18 (~2mm a la izquierda). Exp sube al hueco de Elaboracion.",
     "label": {
         "width_in": 2.0,
         "height_in": 3.0,
@@ -11,12 +11,12 @@
         "height_dots": 609
     },
     "fields": {
-        "origen": { "shift_left": 0, "gap_after_name": 14, "row_gap": 48 },
+        "origen": { "shift_left": 18, "gap_after_name": 14, "row_gap": 48 },
         "nombre": { "x": 0, "y": 6, "font": 68, "w": 52, "line_gap": 10, "wrap_w": 28 },
         "barcode": { "x": 0, "h": 55 },
         "unidades": { "x": 110, "font": 32 },
         "lote": { "font": 32 },
-        "elaboracion": { "font": 28 },
+        "elaboracion": { "font": 28, "show": 0 },
         "fecha": { "font": 32 }
     }
 }
