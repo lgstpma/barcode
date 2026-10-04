@@ -1,43 +1,55 @@
 @echo off
-REM Diagnostico del servicio UNICO (PC impresoras).
+REM Diagnostico del servicio UNICO (PC impresoras / produccion).
 setlocal
 cd /d "%~dp0"
 call "%~dp0..\tools\win_paths.bat"
 
 echo ========================================
-echo  DIAGNOSTICO worker unico / impresoras
+echo  DIAGNOSTICO worker / impresoras / cola
+echo  Carpeta: %CD%
 echo ========================================
 echo.
 
-echo [1] print_migrate.cfg:
+echo [1] print_migrate.cfg (nombres que DEBE tener Windows):
 if exist "%~dp0..\print_migrate.cfg" (type "%~dp0..\print_migrate.cfg") else echo    FALTA
 echo.
 
-echo [2] config.local.ps1:
+echo [2] config.local.ps1 (ApiUrl debe apuntar al web que encola):
 if exist "%~dp0config.local.ps1" (type "%~dp0config.local.ps1") else echo    Falta — ejecute configurar_api_servicios.bat
 echo.
 
-echo [3] API local (si Servicios es otra PC, ignore fallo aqui):
-if exist "%~dp0..\tools\php\php.exe" (
-  "%~dp0..\tools\php\php.exe" -r "echo @file_get_contents('http://127.0.0.1:8080/api_print_21.php?key=barcode21&claim=0') ? 'OK API local' : 'API local no responde (normal si API es remota)'; echo PHP_EOL;"
+echo [3] Impresoras Windows con GK420 / Zebra / 2x3 / chica:
+if defined PSHEXE (
+  "%PSHEXE%" -NoProfile -Command "Get-Printer | Where-Object { $_.Name -match 'GK420|Zebra|2x3|chica|3x1|grande' } | Select-Object Name, PortName, DriverName | Format-Table -AutoSize"
 ) else (
-  echo    PHP no en esta copia
+  echo    PowerShell no encontrado
 )
 echo.
 
-echo [4] Impresoras GK420t_*:
-if defined WMICEXE (
-  "%WMICEXE%" printer get name 2>nul | findstr /i "GK420t"
+echo [4] Worker print_etiqueta21 corriendo?
+if defined PSHEXE (
+  "%PSHEXE%" -NoProfile -Command "$n=@(Get-CimInstance Win32_Process -EA SilentlyContinue | Where-Object { $_.CommandLine -like '*print_etiqueta21.ps1*' }).Count; if($n -gt 0){'    SI - procesos='+$n} else {'    NO - ejecute arrancar_worker.bat o start.bat'}"
 ) else (
-  echo    wmic no disponible
+  echo    (sin powershell)
 )
 echo.
 
-echo [5] Worker:
-if defined WMICEXE (
-  "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" get ProcessId 2>nul | findstr /r "[0-9]"
-  if errorlevel 1 echo    No hay proceso print_etiqueta21
+echo [5] API claim (pendientes para impresoras del cfg):
+if defined PSHEXE (
+  "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0_probe_claim.ps1"
+) else (
+  echo    omitido
 )
 echo.
-echo Imagenes 10/14: solo en PC Servicios → printserver\
+
+echo [6] Ultimas lineas del log:
+if exist "%~dp0print_service.log" (
+  powershell -NoProfile -Command "Get-Content -Path '%~dp0print_service.log' -Tail 15"
+) else (
+  echo    No hay print_service.log — el worker no ha arrancado aqui
+)
+echo.
+echo Si [3] no muestra exactamente GK420t_2x3 / GK420t_chica / etc.,
+echo renombre la impresora en Windows al nombre del cfg (mismo texto).
+echo.
 pause

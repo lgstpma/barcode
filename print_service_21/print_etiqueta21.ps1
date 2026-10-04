@@ -220,20 +220,24 @@ function Show-LocalPrinters {
 function Find-WindowsPrinterName([string]$wanted) {
     if ([string]::IsNullOrEmpty($wanted)) { return $null }
     $wanted = $wanted.Trim()
-    # Solo coincidencia exacta de Name. Sin parcial, sin ShareName, sin alias.
+    # Coincidencia por Name (case-insensitive). Sin parcial, sin ShareName, sin alias.
     try {
         $list = @(Get-Printer -ErrorAction Stop)
         foreach ($p in $list) {
-            $name = [string]$p.Name
+            $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
-            if ($name -eq $wanted) { return $name }
+            if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $name
+            }
         }
     } catch {
         $wmi = @(Get-WmiObject -Class Win32_Printer -ErrorAction SilentlyContinue)
         foreach ($p in $wmi) {
-            $name = [string]$p.Name
+            $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
-            if ($name -eq $wanted) { return $name }
+            if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $name
+            }
         }
     }
     return $null
@@ -488,21 +492,34 @@ if ($LocalQueueDir -ne "") {
     exit 1
 }
 Write-Log ("WorkerId: " + $WorkerId)
-# Dejar AcceptPrinters solo con nombres exactos instalados (sin fantasmas / sin redirigir).
+# Dejar AcceptPrinters solo con nombres instalados (sin fantasmas / sin redirigir).
 if ($AcceptPrinters -ne "") {
     $alive = @()
+    $missing = @()
     foreach ($x in $AcceptPrinters.Split(",")) {
         $t = ([string]$x).Trim()
         if ($t -eq "") { continue }
         if (Test-LocalPrinterExists $t) {
             $alive += $t
         } else {
-            Write-Log ("Ignorada (no instalada): " + $t)
+            $missing += $t
+            Write-Log ("Ignorada (no instalada con ese nombre exacto): " + $t)
         }
     }
     $AcceptPrinters = [string]::Join(",", $alive)
+    if ($missing.Count -gt 0) {
+        Write-Log "AVISO: renombre en Windows (Dispositivos e impresoras) al nombre exacto del cfg."
+        Write-Log ("Faltan: " + [string]::Join(", ", $missing))
+    }
 }
-if ($AcceptPrinters -ne "") { Write-Log "Acepta impresoras (exactas): $AcceptPrinters" } else { Write-Log "AVISO: ninguna impresora de print_migrate.cfg esta instalada" }
+if ($AcceptPrinters -ne "") {
+    Write-Log "Acepta impresoras (exactas): $AcceptPrinters"
+} else {
+    Write-Log "ERROR: ninguna impresora de print_migrate.cfg esta instalada con el nombre exacto."
+    Write-Log "Sin eso el worker NO tomara jobs de cola (quedan en pendiente)."
+    Write-Log "Ejecute print_service_21\diagnostico.bat y compare nombres."
+    exit 1
+}
 if (Test-Path $localCfg) { Write-Log "Usando config.local.ps1" }
 if ($ShowPrinterList) {
     Show-LocalPrinters
