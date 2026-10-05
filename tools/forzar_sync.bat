@@ -96,10 +96,10 @@ if not exist "print_service_21\print_etiqueta21.ps1" (
 
 echo.
 echo [4/4] arrancando worker + start.bat...
-if exist "print_service_21\arrancar_worker.bat" (
-  call "print_service_21\arrancar_worker.bat"
+if exist "%CD%\print_service_21\arrancar_worker.bat" (
+  call "%CD%\print_service_21\arrancar_worker.bat"
 ) else (
-  echo [ERROR] falta print_service_21\arrancar_worker.bat
+  echo [ERROR] falta %CD%\print_service_21\arrancar_worker.bat
 )
 echo. > "tools\.skip_update_once"
 start "BARCODE" /D "%CD%" cmd /k start.bat
