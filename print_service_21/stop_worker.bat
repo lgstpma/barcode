@@ -12,9 +12,9 @@ if defined WMICEXE (
   "%WMICEXE%" process where "CommandLine like '%%print_etiqueta21.ps1%%'" call terminate >nul 2>&1
 )
 
-REM Fallback sin wmic (Windows 10/11 recientes)
+REM Fallback sin wmic (Win7: Get-WmiObject; Win10+: Get-CimInstance)
 if defined PSHEXE (
-  "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'powershell|pwsh' -and $_.CommandLine -like '*print_etiqueta21.ps1*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+  "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -Command "$procs=@(); try { $procs=@(Get-CimInstance Win32_Process -EA Stop) } catch { $procs=@(Get-WmiObject Win32_Process -EA SilentlyContinue) }; foreach($p in $procs){ $c=[string]$p.CommandLine; if($c -like '*print_etiqueta21.ps1*'){ try { Stop-Process -Id $p.ProcessId -Force -EA SilentlyContinue } catch {} } }" >nul 2>&1
 )
 
 ping -n 2 127.0.0.1 >nul
