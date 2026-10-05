@@ -82,10 +82,24 @@ echo.
 echo [3/4] cerrando PHP/worker...
 call "%~dp0stop_barcode_runtime.bat"
 
+REM Asegurar worker ps1 presente tras reset (Win7 / antivirus a veces lo deja a medias)
+if not exist "print_service_21\print_etiqueta21.ps1" (
+  echo [AVISO] Faltaba print_etiqueta21.ps1 — restaurando desde origin/master...
+  "%GIT%" checkout origin/master -- print_service_21/print_etiqueta21.ps1
+)
+if not exist "print_service_21\print_etiqueta21.ps1" (
+  echo [ERROR] Sigue faltando print_service_21\print_etiqueta21.ps1
+  echo         Revise antivirus o ejecute: dir print_service_21
+  pause
+  exit /b 1
+)
+
 echo.
 echo [4/4] arrancando worker + start.bat...
 if exist "print_service_21\arrancar_worker.bat" (
   call "print_service_21\arrancar_worker.bat"
+) else (
+  echo [ERROR] falta print_service_21\arrancar_worker.bat
 )
 echo. > "tools\.skip_update_once"
 start "BARCODE" /D "%CD%" cmd /k start.bat
