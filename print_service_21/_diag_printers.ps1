@@ -1,5 +1,8 @@
 # Lista impresoras relevantes (PS2 / Win7 OK).
 $ErrorActionPreference = 'SilentlyContinue'
+if (-not $PSScriptRoot) {
+  $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
 $list = @()
 try {
   $list = @(Get-Printer -ErrorAction Stop)

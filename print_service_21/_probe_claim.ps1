@@ -1,5 +1,8 @@
-# Probe API claim - PS2 compatible (WebClient, sin Invoke-WebRequest).
+# Probe API claim - PS2 compatible ($PSScriptRoot puede ser null).
 $ErrorActionPreference = 'Continue'
+if (-not $PSScriptRoot) {
+  $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
 $api = 'http://127.0.0.1:8080/api_print_21.php'
 $localCfg = Join-Path $PSScriptRoot 'config.local.ps1'
 if (Test-Path $localCfg) {
@@ -33,18 +36,24 @@ try {
     $count = '?'
     if ($raw -match '"count"\s*:\s*(\d+)') { $count = $Matches[1] }
     Write-Host ('    OK API - pendientes visibles count=' + $count)
+    # Mostrar primero jobs de impresoras vivas (2x3, chica, etc.)
     $shown = 0
-    $rx = [regex]'"id"\s*:\s*(\d+).*?"itemid"\s*:\s*"([^"]*)".*?"etiqueta"\s*:\s*"([^"]*)".*?"printer"\s*:\s*"([^"]*)"'
+    $rx = [regex]'"id"\s*:\s*(\d+)[^}]*?"itemid"\s*:\s*"([^"]*)"[^}]*?"etiqueta"\s*:\s*"([^"]*)"[^}]*?"printer"\s*:\s*"([^"]*)"'
     foreach ($m in $rx.Matches($raw)) {
-      if ($shown -ge 5) { break }
-      Write-Host ('      id=' + $m.Groups[1].Value + ' etiq=' + $m.Groups[3].Value + ' printer=' + $m.Groups[4].Value + ' item=' + $m.Groups[2].Value)
+      $pr = $m.Groups[4].Value
+      if ($pr -notmatch 'GK420t_(chica|2x3|3x1|grande)') { continue }
+      if ($shown -ge 8) { break }
+      Write-Host ('      id=' + $m.Groups[1].Value + ' etiq=' + $m.Groups[3].Value + ' printer=' + $pr + ' item=' + $m.Groups[2].Value)
       $shown++
+    }
+    if ($shown -eq 0) {
+      Write-Host '      (no hay pendientes con printer GK420t_chica/2x3/3x1.25/grande en el lote)'
+      Write-Host '      Puede haber jobs viejos con printer=GK420t_3x2 (impresora que no existe).'
     }
   } else {
     Write-Host '    API respondio pero no ok=true'
-    Write-Host ('    ' + $raw.Substring(0, [Math]::Min(120, $raw.Length)))
   }
 } catch {
   Write-Host ('    FALLO API: ' + $_.Exception.Message)
-  Write-Host '    Arranque start.bat (web :8080) en ESTA PC, o corrija ApiUrl en config.local.ps1'
+  Write-Host '    Arranque start.bat (web :8080) en ESTA PC'
 }

@@ -247,6 +247,15 @@ function zpl_queue_release_stale($link, $minutes = 2)
 	mysqli_query($link, "UPDATE isabel_zpl_queue SET estado=0, locked_by=NULL, locked_at=NULL WHERE estado=3 AND (locked_at IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL $m MINUTE))");
 }
 
+/** Corrige jobs viejos con impresora fantasma / vacia para que el worker los tome. */
+function zpl_queue_remap_phantom_printers($link)
+{
+	mysqli_query($link, "UPDATE isabel_zpl_queue SET printer='GK420t_2x3' WHERE estado=0 AND printer='GK420t_3x2' AND etiqueta IN ('gti13','cajas')");
+	mysqli_query($link, "UPDATE isabel_zpl_queue SET printer='GK420t_3x1.25' WHERE estado=0 AND printer='GK420t_3x2'");
+	mysqli_query($link, "UPDATE isabel_zpl_queue SET printer='GK420t_chica' WHERE estado=0 AND (printer IS NULL OR printer='') AND etiqueta IN ('1','9','15','21','gtin')");
+	mysqli_query($link, "UPDATE isabel_zpl_queue SET printer='GK420t_2x3' WHERE estado=0 AND (printer IS NULL OR printer='') AND etiqueta IN ('gti13','cajas')");
+}
+
 /**
  * Toma jobs pendientes de forma atómica (estado 0 → 3).
  * Varios workers / usuarios no reciben el mismo id.
@@ -257,6 +266,7 @@ function zpl_queue_claim($link, $etiqIn, $worker, $limit = 20, $printerFilter = 
 {
 	ensure_zpl_queue($link);
 	zpl_queue_release_stale($link, 2);
+	zpl_queue_remap_phantom_printers($link);
 	$worker = substr(preg_replace('/[^\w.\-:@]/', '', (string)$worker), 0, 64);
 	if ($worker === '') {
 		$worker = 'worker';
