@@ -43,8 +43,8 @@ echo ============================================
 echo  BARCODE - arranque unificado
 echo ============================================
 echo  1^) Chequeo impresoras ^(solo detectar nombres exactos^)
-echo  2^) Worker cola ZPL ^(print_service_21^)
-echo  3^) Servidor web en :%PORT%
+echo  2^) Servidor web en :%PORT%
+echo  3^) Worker cola ZPL ^(cuando :%PORT% ya escucha^)
 echo ============================================
 echo.
 
@@ -53,13 +53,6 @@ echo.
 echo.
 echo [INFO] Solo se detectan nombres exactos de print_migrate.cfg. Sin renombrar ni redirigir.
 :after_check
-
-echo.
-if exist "%~dp0print_service_21\arrancar_worker.bat" (
-  call "%~dp0print_service_21\arrancar_worker.bat"
-) else (
-  echo [AVISO] Falta print_service_21\arrancar_worker.bat
-)
 
 echo.
 echo ============================================
@@ -78,6 +71,13 @@ echo ============================================
 echo.
 echo Si otra PC no entra: tools\abrir_red_8080.bat ^(Admin, una vez^)
 echo.
+
+REM Worker DESPUES de que PHP escuche (si no, llena el log con "no conectar").
+if exist "%~dp0print_service_21\arrancar_worker.bat" (
+  start "BARCODE-worker-delay" cmd /c "ping -n 5 127.0.0.1 >nul & call "%~dp0print_service_21\arrancar_worker.bat""
+) else (
+  echo [AVISO] Falta print_service_21\arrancar_worker.bat
+)
 
 REM Abrir navegador cuando :8080 ya este arriba (no antes del -S).
 start "" cmd /c "ping -n 3 127.0.0.1 >nul & start %LOCALURL%"

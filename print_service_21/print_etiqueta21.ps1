@@ -46,6 +46,15 @@ function Write-Log($msg) {
     try { Add-Content -Path $script:LogFile -Value $line -ErrorAction SilentlyContinue } catch {}
 }
 
+# Si el log es enorme (spam viejo), archivar para ver arranques nuevos.
+try {
+    if ((Test-Path $LogFile) -and ((Get-Item $LogFile).Length -gt 400000)) {
+        $bak = Join-Path $scriptDir ("print_service_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".log.bak")
+        Move-Item -Path $LogFile -Destination $bak -Force -ErrorAction SilentlyContinue
+        Write-Log ("Log anterior archivado: " + $bak)
+    }
+} catch {}
+
 trap {
     $m = "TRAP: " + $_.Exception.Message
     try { Write-Log $m } catch {}
@@ -508,6 +517,9 @@ function Flush-PendingAcks([string]$base) {
     }
 }
 
+$script:ClaimFailLastLog = Get-Date
+$script:ClaimFailCount = 0
+
 function Process-RemoteApi {
     $base = Get-ApiBaseUrl
     Flush-PendingAcks $base
@@ -521,8 +533,19 @@ function Process-RemoteApi {
     }
     try {
         $data = Invoke-PrintApiLegacy -Url $pendingUrl -Method "GET"
+        if ($script:ClaimFailCount -gt 0) {
+            Write-Log ("API claim OK otra vez (tras " + $script:ClaimFailCount + " fallos)")
+            $script:ClaimFailCount = 0
+        }
     } catch {
-        Write-Log ("API claim fallo: " + $_.Exception.Message)
+        $script:ClaimFailCount++
+        $now = Get-Date
+        $elapsed = ($now - $script:ClaimFailLastLog).TotalSeconds
+        # No inundar el log (PHP caido / ocupado): 1a vez y luego cada 60s
+        if ($script:ClaimFailCount -eq 1 -or $elapsed -ge 60) {
+            Write-Log ("API claim fallo x" + $script:ClaimFailCount + ": " + $_.Exception.Message)
+            $script:ClaimFailLastLog = $now
+        }
         return
     }
     $ok = [bool](Get-DictValue $data "ok")

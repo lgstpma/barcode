@@ -109,14 +109,26 @@ if not exist "print_service_21\print_etiqueta21.ps1" (
 )
 
 echo.
-echo [4/4] arrancando worker + start.bat...
-if exist "%CD%\print_service_21\arrancar_worker.bat" (
-  call "%CD%\print_service_21\arrancar_worker.bat"
-) else (
-  echo [ERROR] falta %CD%\print_service_21\arrancar_worker.bat
-)
+echo [4/4] arrancando start.bat ^(PHP primero; el worker espera ~5s^)...
 echo. > "tools\.skip_update_once"
 start "BARCODE" /D "%CD%" cmd /k start.bat
+
+REM Esperar a que :8080 escuche (Win7: sin timeout nativo fiable)
+set "UP=0"
+for /L %%I in (1,1,20) do (
+  netstat -ano | findstr ":8080" | findstr "LISTENING" >nul
+  if not errorlevel 1 (
+    set "UP=1"
+    goto :web_up
+  )
+  ping -n 2 127.0.0.1 >nul
+)
+:web_up
+if "%UP%"=="1" (
+  echo Web :8080 LISTENING.
+) else (
+  echo [AVISO] :8080 aun no escucha. Deje la ventana BARCODE abierta.
+)
 
 echo %date% %time% forzar_sync OK local=%LOCAL% remote=%REMOTE%>>"%LOG%"
 echo.
@@ -124,5 +136,7 @@ echo Listo. Debe quedar en:
 "%GIT%" log -1 --oneline
 echo.
 echo Si el hash no es el de GitHub master, el fetch no trajo el remoto.
+echo En la ventana BARCODE debe verse el servidor PHP.
+echo Luego: print_service_21\diagnostico.bat  ^([4]=SI^)
 pause
 exit /b 0

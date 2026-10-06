@@ -72,10 +72,17 @@ REM Consola a archivo (Win7): si el ps1 muere al parsear, queda el error aqui.
 echo ----- %date% %time% arrancar ----->>"%SVC%\worker_console.log"
 start "BARCODE-worker" /MIN cmd /c ""%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%WORKERPS1%" >>"%SVC%\worker_console.log" 2>&1"
 
-ping -n 5 127.0.0.1 >nul
+ping -n 12 127.0.0.1 >nul
 set "ALIVE=0"
 "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_diag_worker.ps1" | findstr /I "SI" >nul
 if not errorlevel 1 set "ALIVE=1"
+
+REM Si WMI de impresoras tarda, reintentar una vez
+if "%ALIVE%"=="0" (
+  ping -n 8 127.0.0.1 >nul
+  "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_diag_worker.ps1" | findstr /I "SI" >nul
+  if not errorlevel 1 set "ALIVE=1"
+)
 
 echo.
 if "%ALIVE%"=="1" (
