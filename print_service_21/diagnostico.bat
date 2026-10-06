@@ -24,7 +24,14 @@ if exist "%~dp0..\print_migrate.cfg" (type "%~dp0..\print_migrate.cfg") else ech
 echo.
 
 echo [2] config.local.ps1 (ApiUrl debe apuntar al web que encola):
-if exist "%~dp0config.local.ps1" (type "%~dp0config.local.ps1") else echo    Falta - ejecute configurar_api_servicios.bat
+if exist "%~dp0config.local.ps1" (
+  type "%~dp0config.local.ps1"
+  findstr /C:"GK420t_2" "%~dp0config.local.ps1" | findstr /V /C:"GK420t_2x3" >nul
+  if not errorlevel 1 (
+    echo    [AVISO] AcceptPrinters parece partido en 2 lineas.
+    echo    Ejecute: reparar_config_local.bat
+  )
+) else echo    Falta - ejecute configurar_api_servicios.bat
 echo.
 
 echo [3] Impresoras Windows (GK420 / Zebra / 2x3 / chica):

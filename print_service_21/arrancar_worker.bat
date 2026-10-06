@@ -70,9 +70,26 @@ if exist "%ROOT%\print_migrate.cfg" (echo   print_migrate.cfg: SI)
 
 start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%WORKERPS1%"
 
-ping -n 2 127.0.0.1 >nul
+ping -n 4 127.0.0.1 >nul
+set "ALIVE=0"
+"%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_diag_worker.ps1" | findstr /I "SI" >nul
+if not errorlevel 1 set "ALIVE=1"
+
 echo.
-echo Worker unico: iniciado.
+if "%ALIVE%"=="1" (
+  echo Worker unico: iniciado y CORRIENDO.
+) else (
+  echo [ERROR] Worker NO quedo corriendo. Ultimas lineas del log:
+  echo ----------------------------------------
+  if exist "%SVC%\print_service.log" (
+    "%PSHEXE%" -NoProfile -Command "Get-Content '%SVC%\print_service.log' -Tail 12 -ErrorAction SilentlyContinue"
+  ) else (
+    echo   ^(no hay print_service.log^)
+  )
+  echo ----------------------------------------
+  echo Si salio por config.local.ps1: ejecute reparar_config_local.bat
+  echo Luego otra vez: arrancar_worker.bat
+)
 echo Log: %SVC%\print_service.log
 echo Para parar: stop_worker.bat
 exit /b 0

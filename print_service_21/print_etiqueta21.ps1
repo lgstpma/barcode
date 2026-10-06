@@ -29,42 +29,67 @@ $WorkerId        = $env:COMPUTERNAME + "-zpl"
 $TempZpl         = Join-Path $env:TEMP ("etiqueta_zpl_" + $PID + ".zpl")
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$migrateCfg = Join-Path $scriptDir "print_migrate.cfg"
-if (-not (Test-Path $migrateCfg)) {
-    $parentDir = Split-Path $scriptDir -Parent
-    if ($parentDir) {
-        $migrateCfg = Join-Path $parentDir "print_migrate.cfg"
-    }
-}
-if (Test-Path $migrateCfg) {
-    $migNames = @()
-    foreach ($line in (Get-Content $migrateCfg)) {
-        $t = ([string]$line).Trim()
-        if ($t -eq "") { continue }
-        if ($t.StartsWith("#")) { continue }
-        $migNames += $t
-    }
-    if ($migNames.Count -gt 0) {
-        $AcceptPrinters = [string]::Join(",", $migNames)
-    }
-}
-$localCfg = Join-Path $scriptDir "config.local.ps1"
-if (Test-Path $localCfg) {
-    . $localCfg
-}
-if ([string]::IsNullOrEmpty($WorkerId)) {
-    $WorkerId = $env:COMPUTERNAME + "-zpl"
-}
-if ($null -eq $PrinterAliases) {
-    $PrinterAliases = @{}
-}
-
 $LogFile = Join-Path $scriptDir "print_service.log"
 
 function Write-Log($msg) {
     $line = ("{0} {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg)
     Write-Host $line
     try { Add-Content -Path $script:LogFile -Value $line -ErrorAction SilentlyContinue } catch {}
+}
+
+Write-Log ("Worker arrancando PID=" + $PID + " script=" + $MyInvocation.MyCommand.Path)
+
+function Normalize-AcceptPrinters([string]$raw) {
+    if ([string]::IsNullOrEmpty($raw)) { return "" }
+    # Quita saltos de linea / espacios rotos (ej. "GK420t_2`nx3" -> "GK420t_2x3")
+    $s = $raw -replace "[\r\n\t ]+", ""
+    return $s
+}
+
+function Read-MigrateAcceptPrinters {
+    $migrateCfg = Join-Path $scriptDir "print_migrate.cfg"
+    if (-not (Test-Path $migrateCfg)) {
+        $parentDir = Split-Path $scriptDir -Parent
+        if ($parentDir) {
+            $migrateCfg = Join-Path $parentDir "print_migrate.cfg"
+        }
+    }
+    if (-not (Test-Path $migrateCfg)) { return $null }
+    $migNames = @()
+    foreach ($line in (Get-Content $migrateCfg -ErrorAction SilentlyContinue)) {
+        $t = ([string]$line).Trim()
+        if ($t -eq "") { continue }
+        if ($t.StartsWith("#")) { continue }
+        $migNames += $t
+    }
+    if ($migNames.Count -eq 0) { return $null }
+    return [string]::Join(",", $migNames)
+}
+
+$localCfg = Join-Path $scriptDir "config.local.ps1"
+if (Test-Path $localCfg) {
+    try {
+        . $localCfg
+        Write-Log "Usando config.local.ps1"
+    } catch {
+        Write-Log ("ERROR cargando config.local.ps1: " + $_.Exception.Message)
+        Write-Log "Revise sintaxis. Use print_service_21\reparar_config_local.bat"
+        Write-Log "AcceptPrinters debe ir en UNA sola linea."
+        exit 1
+    }
+}
+# print_migrate.cfg MANDA sobre AcceptPrinters de config.local (evita lista rota).
+$fromMigrate = Read-MigrateAcceptPrinters
+if ($fromMigrate) {
+    $AcceptPrinters = $fromMigrate
+    Write-Log ("AcceptPrinters desde print_migrate.cfg: " + $AcceptPrinters)
+}
+$AcceptPrinters = Normalize-AcceptPrinters $AcceptPrinters
+if ([string]::IsNullOrEmpty($WorkerId)) {
+    $WorkerId = $env:COMPUTERNAME + "-zpl"
+}
+if ($null -eq $PrinterAliases) {
+    $PrinterAliases = @{}
 }
 
 $rawType = @"
@@ -143,6 +168,11 @@ try {
 }
 
 function ConvertFrom-JsonLegacy([string]$json) {
+    if ($null -eq $json) { throw "Respuesta API vacia (null)" }
+    $trim = $json.Trim()
+    if ($trim -eq "" -or $trim -eq "." -or $trim.StartsWith("<")) {
+        throw ("Respuesta API no-JSON (len=" + $json.Length + "): " + $trim.Substring(0, [Math]::Min(80, $trim.Length)))
+    }
     $asm = [System.Reflection.Assembly]::LoadWithPartialName("System.Web.Extensions")
     if (-not $asm) {
         throw "No se pudo cargar System.Web.Extensions (JSON)."
@@ -217,17 +247,45 @@ function Show-LocalPrinters {
     }
 }
 
+function Get-PrinterPortName($p) {
+    try { return ([string]$p.PortName).Trim() } catch { return "" }
+}
+function Get-PrinterDriverName($p) {
+    try { return ([string]$p.DriverName).Trim() } catch { return "" }
+}
+function Test-IsRedirectedPrinter($p) {
+    $name = ""
+    try { $name = ([string]$p.Name) } catch {}
+    $port = Get-PrinterPortName $p
+    $drv = Get-PrinterDriverName $p
+    if ($name -match 'redireccionado|redirected') { return $true }
+    if ($port -match '^TS\d') { return $true }
+    if ($drv -match 'Generic\s*/\s*Text') { return $true }
+    return $false
+}
+function Get-PrinterPreferenceScore($p) {
+    # Mayor = mejor (USB Zebra fisico gana a RDP redirigido)
+    $score = 0
+    $port = Get-PrinterPortName $p
+    $drv = Get-PrinterDriverName $p
+    if (Test-IsRedirectedPrinter $p) { return -100 }
+    if ($port -match '^USB') { $score += 50 }
+    if ($drv -match 'ZDesigner|Zebra') { $score += 30 }
+    if ($port -match '^\d+\.\d+\.\d+\.\d+') { $score += 20 }
+    return $score
+}
+
 function Find-WindowsPrinterName([string]$wanted) {
     if ([string]::IsNullOrEmpty($wanted)) { return $null }
     $wanted = $wanted.Trim()
-    # Coincidencia por Name (case-insensitive). Sin parcial, sin ShareName, sin alias.
+    $candidates = @()
     try {
         $list = @(Get-Printer -ErrorAction Stop)
         foreach ($p in $list) {
             $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
             if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
-                return $name
+                $candidates += $p
             }
         }
     } catch {
@@ -236,11 +294,25 @@ function Find-WindowsPrinterName([string]$wanted) {
             $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
             if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
-                return $name
+                $candidates += $p
             }
         }
     }
-    return $null
+    if ($candidates.Count -eq 0) { return $null }
+    $best = $null
+    $bestScore = -99999
+    foreach ($p in $candidates) {
+        $s = Get-PrinterPreferenceScore $p
+        if ($s -gt $bestScore) {
+            $bestScore = $s
+            $best = $p
+        }
+    }
+    if ($best -eq $null) { return $null }
+    if ($bestScore -lt 0) {
+        Write-Log ("AVISO: '" + $wanted + "' solo aparece como redirigida/RDP (score=" + $bestScore + ")")
+    }
+    return ([string]$best.Name).Trim()
 }
 
 function Test-LocalPrinterExists([string]$name) {
@@ -520,9 +592,8 @@ if ($AcceptPrinters -ne "") {
     Write-Log "Ejecute print_service_21\diagnostico.bat y compare nombres."
     exit 1
 }
-if (Test-Path $localCfg) { Write-Log "Usando config.local.ps1" }
 if ($ShowPrinterList) {
-    Show-LocalPrinters
+    try { Show-LocalPrinters } catch { Write-Log ("Show-LocalPrinters: " + $_.Exception.Message) }
 }
 
 if ($LocalQueueDir -ne "" -and -not (Test-Path $LocalQueueDir)) {

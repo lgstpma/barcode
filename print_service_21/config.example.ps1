@@ -14,5 +14,8 @@
 $ApiUrl = "http://192.168.1.50:8080/api_print_21.php"
 $LocalQueueDir = ""
 
-# Impresoras: las define print_migrate.cfg (no hace falta listar aqui).
+# Impresoras: las define print_migrate.cfg (manda siempre).
+# Si pone AcceptPrinters aqui, DEBE ser UNA sola linea (sin Enter en medio):
 # $AcceptPrinters = "GK420t_chica,GK420t_grande,GK420t_3x1.25,GK420t_2x3"
+#
+# Si el worker no arranca: print_service_21\reparar_config_local.bat
