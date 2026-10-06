@@ -11,6 +11,14 @@
 # PC impresoras: configurar_api_servicios.bat + arrancar_worker.bat
 # Prueba: probar.bat
 
+# Marca de arranque ANTES de todo (diagnostico si el proceso muere al instante).
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$LogFile = Join-Path $scriptDir "print_service.log"
+$BootFile = Join-Path $scriptDir "worker_boot.txt"
+try {
+    Set-Content -Path $BootFile -Value ("boot " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss") + " pid=" + $PID) -Encoding ASCII
+} catch {}
+
 # API de ESTA copia (start.bat en 8080). Alternativa remota en config.local.ps1:
 # $ApiUrl = "http://IP-SERVICIOS:8080/api_print_21.php"
 $ApiUrl          = "http://127.0.0.1:8080/api_print_21.php"
@@ -28,8 +36,9 @@ $SleepSec        = 3
 $WorkerId        = $env:COMPUTERNAME + "-zpl"
 $TempZpl         = Join-Path $env:TEMP ("etiqueta_zpl_" + $PID + ".zpl")
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$LogFile = Join-Path $scriptDir "print_service.log"
+function Write-Boot($msg) {
+    try { Set-Content -Path $script:BootFile -Value ((Get-Date -Format "yyyy-MM-dd HH:mm:ss") + " " + $msg) -Encoding ASCII } catch {}
+}
 
 function Write-Log($msg) {
     $line = ("{0} {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg)
@@ -37,7 +46,15 @@ function Write-Log($msg) {
     try { Add-Content -Path $script:LogFile -Value $line -ErrorAction SilentlyContinue } catch {}
 }
 
+trap {
+    $m = "TRAP: " + $_.Exception.Message
+    try { Write-Log $m } catch {}
+    try { Write-Boot $m } catch {}
+    break
+}
+
 Write-Log ("Worker arrancando PID=" + $PID + " script=" + $MyInvocation.MyCommand.Path)
+Write-Boot ("running pid=" + $PID)
 
 function Normalize-AcceptPrinters([string]$raw) {
     if ([string]::IsNullOrEmpty($raw)) { return "" }
@@ -75,6 +92,7 @@ if (Test-Path $localCfg) {
         Write-Log ("ERROR cargando config.local.ps1: " + $_.Exception.Message)
         Write-Log "Revise sintaxis. Use print_service_21\reparar_config_local.bat"
         Write-Log "AcceptPrinters debe ir en UNA sola linea."
+        Write-Boot ("config.local ERROR: " + $_.Exception.Message)
         exit 1
     }
 }
@@ -278,14 +296,14 @@ function Get-PrinterPreferenceScore($p) {
 function Find-WindowsPrinterName([string]$wanted) {
     if ([string]::IsNullOrEmpty($wanted)) { return $null }
     $wanted = $wanted.Trim()
-    $candidates = @()
+    $candidates = New-Object System.Collections.ArrayList
     try {
         $list = @(Get-Printer -ErrorAction Stop)
         foreach ($p in $list) {
             $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
             if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
-                $candidates += $p
+                [void]$candidates.Add($p)
             }
         }
     } catch {
@@ -294,7 +312,7 @@ function Find-WindowsPrinterName([string]$wanted) {
             $name = ([string]$p.Name).Trim()
             if ($script:SkipUncPrinters -and ($name.IndexOf("\\") -eq 0)) { continue }
             if ([string]::Equals($name, $wanted, [System.StringComparison]::OrdinalIgnoreCase)) {
-                $candidates += $p
+                [void]$candidates.Add($p)
             }
         }
     }
@@ -561,6 +579,7 @@ if ($LocalQueueDir -ne "") {
     Write-Log "Cola ZPL (migracion hibrida): $ApiUrl"
 } else {
     Write-Log "ERROR: configura LocalQueueDir (prueba) o ApiUrl (API)."
+    Write-Boot "EXIT: sin LocalQueueDir ni ApiUrl"
     exit 1
 }
 Write-Log ("WorkerId: " + $WorkerId)
@@ -590,6 +609,7 @@ if ($AcceptPrinters -ne "") {
     Write-Log "ERROR: ninguna impresora de print_migrate.cfg esta instalada con el nombre exacto."
     Write-Log "Sin eso el worker NO tomara jobs de cola (quedan en pendiente)."
     Write-Log "Ejecute print_service_21\diagnostico.bat y compare nombres."
+    Write-Boot "EXIT: ninguna impresora AcceptPrinters instalada"
     exit 1
 }
 if ($ShowPrinterList) {
@@ -600,6 +620,7 @@ if ($LocalQueueDir -ne "" -and -not (Test-Path $LocalQueueDir)) {
     New-Item -ItemType Directory -Path $LocalQueueDir | Out-Null
 }
 
+Write-Boot ("loop pid=" + $PID + " printers=" + $AcceptPrinters)
 while ($true) {
     try {
         if ($LocalQueueDir -ne "") {

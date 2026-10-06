@@ -6,6 +6,9 @@ Desktop.ini
 tools/.skip_update_once
 tools/php/
 print_service_21/config.local.ps1
+print_service_21/pending_ack.txt
+print_service_21/worker_boot.txt
+print_service_21/*.bak
 Label_Printserver/
 Label_Printserver_ver2/
 data_array.php

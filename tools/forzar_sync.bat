@@ -45,7 +45,7 @@ echo Git: %GIT%
 echo.
 
 echo [1/4] fetch origin...
-"%GIT%" fetch origin
+"%GIT%" fetch origin --prune
 if errorlevel 1 (
   echo [ERROR] fetch fallo. Suele ser login/credenciales o red a GitHub.
   echo         Abra GitHub Desktop en esta PC ^> Fetch origin, o inicie sesion.
@@ -54,13 +54,27 @@ if errorlevel 1 (
   exit /b 1
 )
 
+REM Forzar ref master (a veces fetch "ok" deja origin/master viejo).
+"%GIT%" fetch origin refs/heads/master:refs/remotes/origin/master 2>nul
+
 set "LOCAL="
 set "REMOTE="
+set "GITHUB="
 for /f "delims=" %%H in ('"%GIT%" rev-parse HEAD') do set "LOCAL=%%H"
 for /f "delims=" %%H in ('"%GIT%" rev-parse origin/master') do set "REMOTE=%%H"
-echo Local:  %LOCAL%
-echo Remote: %REMOTE%
+for /f "tokens=1" %%H in ('"%GIT%" ls-remote origin refs/heads/master 2^>nul') do set "GITHUB=%%H"
+echo Local:   %LOCAL%
+echo Remote:  %REMOTE%
+echo GitHub:  %GITHUB%
 echo.
+
+if defined GITHUB if /I not "%REMOTE%"=="%GITHUB%" (
+  echo [AVISO] origin/master local != GitHub. Re-fetch forzando master...
+  "%GIT%" fetch origin +refs/heads/master:refs/remotes/origin/master
+  for /f "delims=" %%H in ('"%GIT%" rev-parse origin/master') do set "REMOTE=%%H"
+  echo Remote ahora: %REMOTE%
+  echo.
+)
 
 if /I "%LOCAL%"=="%REMOTE%" (
   echo Ya estaba en origin/master. Igual se reinicia runtime.

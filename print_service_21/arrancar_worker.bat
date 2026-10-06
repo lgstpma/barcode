@@ -68,9 +68,11 @@ echo   PowerShell: %PSHEXE%
 if exist "%SVC%\config.local.ps1" (echo   config.local.ps1: SI) else (echo   config.local.ps1: no)
 if exist "%ROOT%\print_migrate.cfg" (echo   print_migrate.cfg: SI)
 
-start "BARCODE-worker" /MIN "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%WORKERPS1%"
+REM Consola a archivo (Win7): si el ps1 muere al parsear, queda el error aqui.
+echo ----- %date% %time% arrancar ----->>"%SVC%\worker_console.log"
+start "BARCODE-worker" /MIN cmd /c ""%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%WORKERPS1%" >>"%SVC%\worker_console.log" 2>&1"
 
-ping -n 4 127.0.0.1 >nul
+ping -n 5 127.0.0.1 >nul
 set "ALIVE=0"
 "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_diag_worker.ps1" | findstr /I "SI" >nul
 if not errorlevel 1 set "ALIVE=1"
@@ -79,14 +81,28 @@ echo.
 if "%ALIVE%"=="1" (
   echo Worker unico: iniciado y CORRIENDO.
 ) else (
-  echo [ERROR] Worker NO quedo corriendo. Ultimas lineas del log:
-  echo ----------------------------------------
-  if exist "%SVC%\print_service.log" (
-    "%PSHEXE%" -NoProfile -Command "Get-Content '%SVC%\print_service.log' -Tail 12 -ErrorAction SilentlyContinue"
+  echo [ERROR] Worker NO quedo corriendo.
+  echo.
+  echo --- worker_boot.txt ---
+  if exist "%SVC%\worker_boot.txt" (type "%SVC%\worker_boot.txt") else echo   ^(no existe - el ps1 ni llego a arrancar^)
+  echo.
+  echo --- ultimas lineas print_service.log ---
+  if exist "%SVC%\_tail_log.ps1" (
+    "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_tail_log.ps1" "%SVC%\print_service.log" 15
+  ) else if exist "%SVC%\print_service.log" (
+    REM Fallback PS2 sin -Tail
+    "%PSHEXE%" -NoProfile -Command "$l=@(Get-Content '%SVC%\print_service.log' -EA SilentlyContinue); if($l.Count -gt 0){$l[[Math]::Max(0,$l.Count-15)..($l.Count-1)]}"
   ) else (
     echo   ^(no hay print_service.log^)
   )
-  echo ----------------------------------------
+  echo.
+  echo --- worker_console.log ---
+  if exist "%SVC%\_tail_log.ps1" (
+    "%PSHEXE%" -NoProfile -ExecutionPolicy Bypass -File "%SVC%\_tail_log.ps1" "%SVC%\worker_console.log" 20
+  ) else if exist "%SVC%\worker_console.log" (
+    type "%SVC%\worker_console.log"
+  )
+  echo.
   echo Si salio por config.local.ps1: ejecute reparar_config_local.bat
   echo Luego otra vez: arrancar_worker.bat
 )
